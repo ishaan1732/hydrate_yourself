@@ -6,9 +6,13 @@ import 'core/constants/app_constants.dart';
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'features/onboarding/presentation/onboarding_provider.dart';
+import 'features/reminders/data/background_task.dart';
+import 'features/reminders/data/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await BackgroundTaskManager.initialize();
+  await NotificationService().initialize();
   final prefs = await SharedPreferences.getInstance();
   final isOnboarded =
       prefs.getBool(AppConstants.prefHasCompletedOnboarding) ?? false;

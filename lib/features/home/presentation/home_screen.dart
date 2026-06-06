@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:hydrate_yourself/features/reminders/data/notification_service.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import '../domain/drink_type_model.dart';
 import '../domain/today_summary.dart';
+import '../../reminders/presentation/reminders_provider.dart';
 import 'home_provider.dart';
 import 'widgets/custom_amount_sheet.dart';
 import 'widgets/drink_type_chip.dart';
@@ -17,6 +19,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(notificationSetupNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final summaryAsync = ref.watch(todaySummaryProvider);
     final drinkTypesAsync = ref.watch(drinkTypesProvider);
@@ -59,6 +62,12 @@ class HomeScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        IconButton(
+          icon: Icon(Icons.notifications_active),
+          onPressed: () async {
+            await NotificationService().showReminderNotification();
+          },
+        ),
         // SECTION 1 — Greeting header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24).copyWith(top: 16),

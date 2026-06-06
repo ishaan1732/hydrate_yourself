@@ -3,6 +3,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../database/database_provider.dart';
+import '../../reminders/data/notification_service.dart';
 import '../data/home_repository.dart';
 import '../domain/drink_type_model.dart';
 import '../domain/today_summary.dart';
@@ -61,5 +62,6 @@ class HomeAction extends _$HomeAction {
           amountMl: amountMl,
           drinkTypeId: drinkType.id,
         );
+    await NotificationService().updateLastLogTime();
   }
 }
