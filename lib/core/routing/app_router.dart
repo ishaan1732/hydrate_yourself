@@ -7,6 +7,7 @@ import '../../features/history/presentation/history_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/onboarding/presentation/onboarding_provider.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/home/presentation/widgets/progress_ring_preview.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import 'main_shell.dart';
 
@@ -14,7 +15,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = _RouterNotifier(ref);
   ref.onDispose(notifier.dispose);
   return GoRouter(
-    initialLocation: '/home',
+    initialLocation: '/preview',
     debugLogDiagnostics: true,
     refreshListenable: notifier,
     redirect: (context, state) {
@@ -28,6 +29,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/onboarding',
         builder: (context, state) => const OnboardingScreen(),
+      ),
+      GoRoute(
+        path: '/preview',
+        builder: (context, state) => const ProgressRingPreview(),
       ),
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
