@@ -8,6 +8,7 @@ import 'core/theme/app_theme.dart';
 import 'features/onboarding/presentation/onboarding_provider.dart';
 import 'features/reminders/data/background_task.dart';
 import 'features/reminders/data/notification_service.dart';
+import 'features/settings/presentation/settings_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,7 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         onboardingCompleteProvider.overrideWith((ref) => isOnboarded),
+        sharedPreferencesProvider.overrideWithValue(prefs),
       ],
       child: const HydrateApp(),
     ),
