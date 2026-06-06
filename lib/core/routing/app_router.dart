@@ -1,21 +1,42 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/analytics/presentation/analytics_screen.dart';
+import '../../features/history/presentation/history_screen.dart';
+import '../../features/home/presentation/home_screen.dart';
+import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/settings/presentation/settings_screen.dart';
+import 'main_shell.dart';
+
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/home',
+    debugLogDiagnostics: true,
     routes: [
       GoRoute(
-        path: '/',
-        builder: (context, state) => const Scaffold(
-          body: Center(
-            child: Text(
-              'Hydrate Yourself 💧',
-              style: TextStyle(fontSize: 24),
-            ),
+        path: '/onboarding',
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+      ShellRoute(
+        builder: (context, state, child) => MainShell(child: child),
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (context, state) => const HomeScreen(),
           ),
-        ),
+          GoRoute(
+            path: '/history',
+            builder: (context, state) => const HistoryScreen(),
+          ),
+          GoRoute(
+            path: '/analytics',
+            builder: (context, state) => const AnalyticsScreen(),
+          ),
+          GoRoute(
+            path: '/settings',
+            builder: (context, state) => const SettingsScreen(),
+          ),
+        ],
       ),
     ],
   );
