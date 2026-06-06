@@ -3,9 +3,24 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/routing/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'database/app_database.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // TEMPORARY - REMOVE AFTER VERIFICATION
+  final db = AppDatabase();
+  final drinkTypes = await db.drinkTypesDao.getAllDrinkTypes();
+  debugPrint('=== DB SEED VERIFICATION ===');
+  for (final dt in drinkTypes) {
+    debugPrint(
+        'DrinkType: ${dt.name} | coeff: ${dt.hydrationCoefficient} | icon: ${dt.iconName}');
+  }
+  debugPrint(
+      '=== END VERIFICATION: ${drinkTypes.length} drink types found ===');
+  await db.close();
+  // END TEMPORARY
+
   runApp(const ProviderScope(child: HydrateApp()));
 }
 
