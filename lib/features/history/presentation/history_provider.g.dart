@@ -6,7 +6,7 @@ part of 'history_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$historyRepositoryHash() => r'c8de983d2dc2de0c9b4d8527a5ffa076179acd39';
+String _$historyRepositoryHash() => r'4bd62b85eae898f68c5d47e880f7b762b79a4542';
 
 /// See also [historyRepository].
 @ProviderFor(historyRepository)
@@ -24,7 +24,7 @@ final historyRepositoryProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef HistoryRepositoryRef = AutoDisposeProviderRef<HistoryRepository>;
-String _$weeklySummariesHash() => r'eb1fb0618923dd25a61e1f267654230e6fc88815';
+String _$weeklySummariesHash() => r'2e995a5573c7d39827a41b9238573da06017b239';
 
 /// See also [weeklySummaries].
 @ProviderFor(weeklySummaries)
@@ -42,7 +42,7 @@ final weeklySummariesProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef WeeklySummariesRef = AutoDisposeFutureProviderRef<List<DailySummary>>;
-String _$currentStreakHash() => r'd8516d8dc4f5512cdda96f74b467de9a6c9ef47d';
+String _$currentStreakHash() => r'a5e857f784364a9c8c6921626b926579df007a30';
 
 /// See also [currentStreak].
 @ProviderFor(currentStreak)
@@ -59,7 +59,7 @@ final currentStreakProvider = AutoDisposeFutureProvider<int>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef CurrentStreakRef = AutoDisposeFutureProviderRef<int>;
-String _$selectedDateLogsHash() => r'e3387aec870ba69877f1105493ca8be19169d5e7';
+String _$selectedDateLogsHash() => r'6505f7b779a6f8add97d197199a121a41179c2a6';
 
 /// See also [selectedDateLogs].
 @ProviderFor(selectedDateLogs)

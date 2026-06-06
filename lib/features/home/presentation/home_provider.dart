@@ -12,28 +12,28 @@ import '../../onboarding/domain/user_profile_model.dart';
 part 'home_provider.g.dart';
 
 @riverpod
-HomeRepository homeRepository(Ref ref) => HomeRepository(
+HomeRepository homeRepository(HomeRepositoryRef ref) => HomeRepository(
       ref.watch(waterLogsDaoProvider),
       ref.watch(userProfileDaoProvider),
       ref.watch(drinkTypesDaoProvider),
     );
 
 @riverpod
-Future<UserProfileModel?> userProfile(Ref ref) =>
+Future<UserProfileModel?> userProfile(UserProfileRef ref) =>
     ref.watch(homeRepositoryProvider).getProfile();
 
 @riverpod
-Stream<List<DrinkTypeModel>> drinkTypes(Ref ref) =>
+Stream<List<DrinkTypeModel>> drinkTypes(DrinkTypesRef ref) =>
     ref.watch(homeRepositoryProvider).watchDrinkTypes();
 
 @riverpod
-Stream<double> todayTotalMl(Ref ref) =>
+Stream<double> todayTotalMl(TodayTotalMlRef ref) =>
     ref.watch(homeRepositoryProvider).watchTodayTotalMl();
 
 final selectedDrinkTypeIdProvider = StateProvider<int?>((ref) => null);
 
 @riverpod
-Future<TodaySummary> todaySummary(Ref ref) async {
+Future<TodaySummary> todaySummary(TodaySummaryRef ref) async {
   final profile = await ref.watch(userProfileProvider.future);
   final totalMl = await ref.watch(todayTotalMlProvider.future);
   final goalMl = profile?.dailyGoalMl ?? AppConstants.defaultDailyGoalMl;

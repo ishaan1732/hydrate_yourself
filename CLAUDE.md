@@ -16,6 +16,12 @@
 6. Navigation: always context.go() or context.push() — never Navigator.push().
 7. Never use WillPopScope (deprecated) — use PopScope.
 
+## Riverpod @riverpod provider Ref types
+The Ref parameter type for @riverpod functions is always:
+function name in PascalCase + 'Ref'
+Example: myProvider(MyProviderRef ref)
+NEVER write plain Ref — it does not exist in Riverpod 2.x
+
 ## After ANY change to a @riverpod, @freezed, or Drift table file
 Run: dart run build_runner build --delete-conflicting-outputs
 

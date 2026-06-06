@@ -6,7 +6,7 @@ part of 'home_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$homeRepositoryHash() => r'3d370978667260651f1a3cc8621876283d218b7f';
+String _$homeRepositoryHash() => r'c3978f1ff54b7b39bb3c4868c9205018f16e6ef2';
 
 /// See also [homeRepository].
 @ProviderFor(homeRepository)
@@ -23,7 +23,7 @@ final homeRepositoryProvider = AutoDisposeProvider<HomeRepository>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef HomeRepositoryRef = AutoDisposeProviderRef<HomeRepository>;
-String _$userProfileHash() => r'a45ac070fb88b876c7bfe8d8c8b35c53c61e32a5';
+String _$userProfileHash() => r'd31ae7e09693d3a927ef04cbe9f1e6571592fc79';
 
 /// See also [userProfile].
 @ProviderFor(userProfile)
@@ -41,7 +41,7 @@ final userProfileProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef UserProfileRef = AutoDisposeFutureProviderRef<UserProfileModel?>;
-String _$drinkTypesHash() => r'cd2f3ffa81a61617cda4fe3231cdc7aa4df49258';
+String _$drinkTypesHash() => r'5e609a84f428212b420681865b2d4fe5319b0f36';
 
 /// See also [drinkTypes].
 @ProviderFor(drinkTypes)
@@ -59,7 +59,7 @@ final drinkTypesProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef DrinkTypesRef = AutoDisposeStreamProviderRef<List<DrinkTypeModel>>;
-String _$todayTotalMlHash() => r'e4d4a6d153b4862c421f572f4bac0bb2943823b6';
+String _$todayTotalMlHash() => r'2c849580951e2c78cd80bc011fd62309e9525464';
 
 /// See also [todayTotalMl].
 @ProviderFor(todayTotalMl)
@@ -76,7 +76,7 @@ final todayTotalMlProvider = AutoDisposeStreamProvider<double>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TodayTotalMlRef = AutoDisposeStreamProviderRef<double>;
-String _$todaySummaryHash() => r'c65d90d05fb2753fccbda16e9ea246e53e22547c';
+String _$todaySummaryHash() => r'7da71753aab521e11d9e3cb99f418ba049114d52';
 
 /// See also [todaySummary].
 @ProviderFor(todaySummary)
