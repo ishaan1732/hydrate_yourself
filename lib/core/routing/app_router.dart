@@ -1,17 +1,29 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/analytics/presentation/analytics_screen.dart';
 import '../../features/history/presentation/history_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/onboarding/presentation/onboarding_provider.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/settings/presentation/settings_screen.dart';
 import 'main_shell.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
+  final notifier = _RouterNotifier(ref);
+  ref.onDispose(notifier.dispose);
   return GoRouter(
     initialLocation: '/home',
     debugLogDiagnostics: true,
+    refreshListenable: notifier,
+    redirect: (context, state) {
+      final isComplete = ref.read(onboardingCompleteProvider);
+      final isOnOnboarding = state.matchedLocation == '/onboarding';
+      if (!isComplete && !isOnOnboarding) return '/onboarding';
+      if (isComplete && isOnOnboarding) return '/home';
+      return null;
+    },
     routes: [
       GoRoute(
         path: '/onboarding',
@@ -41,3 +53,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     ],
   );
 });
+
+class _RouterNotifier extends ChangeNotifier {
+  _RouterNotifier(Ref ref) {
+    ref.listen<bool>(onboardingCompleteProvider, (_, _) {
+      notifyListeners();
+    });
+  }
+}

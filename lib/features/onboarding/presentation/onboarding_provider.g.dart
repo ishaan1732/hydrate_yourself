@@ -1,0 +1,30 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'onboarding_provider.dart';
+
+// **************************************************************************
+// RiverpodGenerator
+// **************************************************************************
+
+String _$onboardingNotifierHash() =>
+    r'cbe1be3161314916530ef9c80cb784e87ea85178';
+
+/// See also [OnboardingNotifier].
+@ProviderFor(OnboardingNotifier)
+final onboardingNotifierProvider =
+    AutoDisposeAsyncNotifierProvider<
+      OnboardingNotifier,
+      OnboardingFormData
+    >.internal(
+      OnboardingNotifier.new,
+      name: r'onboardingNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$onboardingNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$OnboardingNotifier = AutoDisposeAsyncNotifier<OnboardingFormData>;
+// ignore_for_file: type=lint
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
