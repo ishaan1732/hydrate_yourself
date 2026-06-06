@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/extensions/double_extensions.dart';
+
 class QuickAddButton extends StatelessWidget {
   const QuickAddButton({
     super.key,
     required this.amountMl,
     required this.onTap,
     this.accentColor,
+    this.unit = 'ml',
   });
 
   final int amountMl;
   final VoidCallback onTap;
   final Color? accentColor;
+  final String unit;
 
   @override
   Widget build(BuildContext context) {
@@ -30,9 +34,11 @@ class QuickAddButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                amountMl < 1000
-                    ? '+${amountMl}ml'
-                    : '+${(amountMl / 1000)}L',
+                unit == 'oz'
+                    ? '+${amountMl.toDouble().mlToOz.toStringAsFixed(1)}oz'
+                    : amountMl < 1000
+                        ? '+${amountMl}ml'
+                        : '+${(amountMl / 1000).toStringAsFixed(1)}L',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: accentColor ?? colorScheme.primary,
@@ -40,7 +46,7 @@ class QuickAddButton extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                'ml',
+                unit,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),

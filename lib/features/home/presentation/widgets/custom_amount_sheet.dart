@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/extensions/double_extensions.dart';
+
 class CustomAmountSheet extends StatefulWidget {
-  const CustomAmountSheet({super.key, required this.onAdd});
+  const CustomAmountSheet({
+    super.key,
+    required this.onAdd,
+    this.unit = 'ml',
+  });
 
   final void Function(double amount) onAdd;
+  final String unit;
 
   @override
   State<CustomAmountSheet> createState() => _CustomAmountSheetState();
@@ -40,7 +47,9 @@ class _CustomAmountSheetState extends State<CustomAmountSheet> {
           const SizedBox(height: 24),
           Center(
             child: Text(
-              '${_amount.round()} ml',
+              widget.unit == 'oz'
+                  ? '${_amount.mlToOz.toStringAsFixed(1)} oz'
+                  : '${_amount.round()} ml',
               style: theme.textTheme.displaySmall?.copyWith(
                 fontWeight: FontWeight.w800,
                 color: colorScheme.primary,
@@ -57,14 +66,14 @@ class _CustomAmountSheetState extends State<CustomAmountSheet> {
           Row(
             children: [
               Text(
-                '50 ml',
+                widget.unit == 'oz' ? '1.7 oz' : '50 ml',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
               const Spacer(),
               Text(
-                '1000 ml',
+                widget.unit == 'oz' ? '33.8 oz' : '1000 ml',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -82,7 +91,11 @@ class _CustomAmountSheetState extends State<CustomAmountSheet> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text('Add ${_amount.round()} ml'),
+              child: Text(
+                widget.unit == 'oz'
+                    ? 'Add ${_amount.mlToOz.toStringAsFixed(1)} oz'
+                    : 'Add ${_amount.round()} ml',
+              ),
             ),
           ),
         ],

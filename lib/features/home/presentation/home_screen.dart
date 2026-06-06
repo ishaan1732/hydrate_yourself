@@ -180,6 +180,7 @@ class HomeScreen extends ConsumerWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 4),
                       child: QuickAddButton(
                         amountMl: amount,
+                        unit: unit,
                         onTap: () => ref
                             .read(homeActionProvider.notifier)
                             .addQuickLog(amount.toDouble()),
@@ -204,7 +205,7 @@ class HomeScreen extends ConsumerWidget {
             child: OutlinedButton.icon(
               icon: const Icon(Icons.add),
               label: const Text('Custom amount'),
-              onPressed: () => _showCustomAmountSheet(context, ref),
+              onPressed: () => _showCustomAmountSheet(context, ref, unit),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
@@ -239,7 +240,7 @@ class HomeScreen extends ConsumerWidget {
         .color;
   }
 
-  void _showCustomAmountSheet(BuildContext context, WidgetRef ref) {
+  void _showCustomAmountSheet(BuildContext context, WidgetRef ref, String unit) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -251,6 +252,7 @@ class HomeScreen extends ConsumerWidget {
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: CustomAmountSheet(
+          unit: unit,
           onAdd: (amount) {
             ref.read(homeActionProvider.notifier).addQuickLog(amount);
             Navigator.of(context).pop();

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/extensions/double_extensions.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import 'settings_provider.dart';
 
@@ -255,7 +256,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '${profile.dailyGoalMl} ml',
+            profile.unit == 'oz'
+                ? '${profile.dailyGoalMl.toDouble().mlToOz.toStringAsFixed(1)} oz'
+                : '${profile.dailyGoalMl} ml',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
