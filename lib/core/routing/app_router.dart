@@ -15,7 +15,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   final notifier = _RouterNotifier(ref);
   ref.onDispose(notifier.dispose);
   return GoRouter(
-    initialLocation: '/preview',
+    initialLocation: '/home',
     debugLogDiagnostics: true,
     refreshListenable: notifier,
     redirect: (context, state) {
