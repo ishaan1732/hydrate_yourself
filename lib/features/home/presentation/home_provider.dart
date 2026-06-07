@@ -85,6 +85,7 @@ class HomeAction extends _$HomeAction {
     }
 
     ref.invalidate(lastLogProvider);
+    ref.read(jumboTapAmountProvider.notifier).state = amountMl.round();
   }
 
   Future<void> deleteLastLog() async {
@@ -110,3 +111,5 @@ class HomeAction extends _$HomeAction {
     }
   }
 }
+
+final jumboTapAmountProvider = StateProvider<int>((ref) => 250);

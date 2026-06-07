@@ -110,7 +110,7 @@ final todaySummaryProvider = AutoDisposeFutureProvider<TodaySummary>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TodaySummaryRef = AutoDisposeFutureProviderRef<TodaySummary>;
-String _$homeActionHash() => r'2b35de1cd82264362b5e3b137bd765f71c5647d9';
+String _$homeActionHash() => r'9dda4ac0fbf7417b6400f7e9682f19c954f10c8d';
 
 /// See also [HomeAction].
 @ProviderFor(HomeAction)
