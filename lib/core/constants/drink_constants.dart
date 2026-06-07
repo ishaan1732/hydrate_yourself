@@ -17,6 +17,12 @@ class DrinkConstants {
   static const String iconJuice = 'local_drink';
   static const String iconSoda = 'sports_bar';
 
+  static const _knownIconNames = [
+    'water_drop', 'coffee', 'emoji_food_beverage', 'local_drink', 'sports_bar',
+  ];
+
+  static bool isEmoji(String iconName) => !_knownIconNames.contains(iconName);
+
   static IconData getIconData(String iconName) {
     return switch (iconName) {
       'water_drop' => Icons.water_drop,

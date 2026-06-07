@@ -41,11 +41,16 @@ class DrinkTypeChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           spacing: 8,
           children: [
-            Icon(
-              DrinkConstants.getIconData(drinkType.iconName),
-              size: 18,
-              color: isSelected ? drinkType.color : colorScheme.onSurfaceVariant,
-            ),
+            DrinkConstants.isEmoji(drinkType.iconName)
+                ? Text(drinkType.iconName,
+                    style: const TextStyle(fontSize: 16))
+                : Icon(
+                    DrinkConstants.getIconData(drinkType.iconName),
+                    size: 18,
+                    color: isSelected
+                        ? drinkType.color
+                        : colorScheme.onSurfaceVariant,
+                  ),
             Text(
               drinkType.name,
               style: theme.textTheme.labelLarge?.copyWith(
