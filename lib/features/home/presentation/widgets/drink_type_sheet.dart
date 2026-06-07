@@ -101,11 +101,12 @@ class DrinkTypeSheet extends ConsumerWidget {
                 final maxSort = existing.isEmpty
                     ? 0
                     : existing.map((e) => e.sortOrder).reduce(max);
-                await dao.insertDrinkType(DrinkTypesCompanion.insert(
-                  name: name,
+                debugPrint('Inserting custom drink: $name ($emoji) coeff=$coefficient');
+                await dao.insertDrinkType(DrinkTypesCompanion(
+                  name: Value(name),
                   hydrationCoefficient: Value(coefficient),
-                  iconName: emoji,
-                  colorHex: '#0090C8',
+                  iconName: Value(emoji),
+                  colorHex: const Value('#0090C8'),
                   isCustom: const Value(true),
                   sortOrder: Value(maxSort + 1),
                 ));

@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/datetime_extensions.dart';
+import '../../../../core/extensions/double_extensions.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../domain/daily_summary.dart';
 
@@ -13,11 +14,13 @@ class WeeklyBarChart extends StatelessWidget {
     required this.summaries,
     required this.selectedDate,
     required this.onDayTapped,
+    this.unit = 'ml',
   });
 
   final List<DailySummary> summaries;
   final DateTime? selectedDate;
   final void Function(DateTime) onDayTapped;
+  final String unit;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +77,7 @@ class WeeklyBarChart extends StatelessWidget {
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final summary = summaries[groupIndex];
                 return BarTooltipItem(
-                  '${summary.totalMl.round()}ml',
+                  summary.totalMl.toHydrationString(unit),
                   const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,

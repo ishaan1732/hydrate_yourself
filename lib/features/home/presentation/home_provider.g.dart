@@ -110,6 +110,23 @@ final todaySummaryProvider = AutoDisposeFutureProvider<TodaySummary>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TodaySummaryRef = AutoDisposeFutureProviderRef<TodaySummary>;
+String _$appUnitHash() => r'006177039551f0ba757f995fa3b9ba2816c79cf6';
+
+/// See also [appUnit].
+@ProviderFor(appUnit)
+final appUnitProvider = AutoDisposeFutureProvider<String>.internal(
+  appUnit,
+  name: r'appUnitProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$appUnitHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef AppUnitRef = AutoDisposeFutureProviderRef<String>;
 String _$homeActionHash() => r'9dda4ac0fbf7417b6400f7e9682f19c954f10c8d';
 
 /// See also [HomeAction].

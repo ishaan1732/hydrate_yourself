@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../home/presentation/home_provider.dart';
 import 'analytics_provider.dart';
 import 'widgets/drink_breakdown_chart.dart';
 import 'widgets/stat_card.dart';
@@ -14,6 +16,7 @@ class AnalyticsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final unit = ref.watch(appUnitProvider).valueOrNull ?? AppConstants.unitMl;
     final summaryAsync = ref.watch(analyticsSummaryProvider);
 
     return Scaffold(
@@ -92,13 +95,13 @@ class AnalyticsScreen extends ConsumerWidget {
                     children: [
                       StatCard(
                         label: 'Daily Average',
-                        value: summary.averageDailyMl.toHydrationString('ml'),
+                        value: summary.averageDailyMl.toHydrationString(unit),
                         subtitle: 'per day',
                         icon: Icons.water_drop_outlined,
                       ),
                       StatCard(
                         label: 'Best Day',
-                        value: summary.bestDayMl.toHydrationString('ml'),
+                        value: summary.bestDayMl.toHydrationString(unit),
                         subtitle: 'single day',
                         icon: Icons.emoji_events_outlined,
                         iconColor: AppColors.goalWarning,
@@ -112,7 +115,7 @@ class AnalyticsScreen extends ConsumerWidget {
                       ),
                       StatCard(
                         label: 'Total Intake',
-                        value: summary.totalMl30Days.toHydrationString('ml'),
+                        value: summary.totalMl30Days.toHydrationString(unit),
                         subtitle: '30 day total',
                         icon: Icons.summarize_outlined,
                       ),
@@ -142,7 +145,7 @@ class AnalyticsScreen extends ConsumerWidget {
                             ),
                       ),
                       const SizedBox(height: 16),
-                      TrendChart(points: summary.dailyChartPoints),
+                      TrendChart(points: summary.dailyChartPoints, unit: unit),
                     ],
                   ),
                 ),

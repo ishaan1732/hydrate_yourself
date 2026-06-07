@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../core/extensions/double_extensions.dart';
+
 class _SplashParticle {
   _SplashParticle({
     required this.direction,
@@ -35,11 +37,17 @@ class _JumboWidgetState extends State<JumboWidget>
   late AnimationController _bounceCtrl;
   final List<_SplashParticle> _particles = [];
 
-  static const _directions = [
-    Offset(-0.8, -1.0), Offset(-0.4, -1.2), Offset(0.0, -1.3),
-    Offset(0.4, -1.2),  Offset(0.8, -1.0), Offset(-1.0, -0.6),
-    Offset(1.0, -0.6),  Offset(-1.1, -0.2), Offset(1.1, -0.2),
-    Offset(-0.3, -0.9),
+  // 14 main particles spanning a wide arc, + 6 smaller secondary ones
+  static const _mainDirections = [
+    Offset(-1.0, -0.5), Offset(-0.85, -0.9), Offset(-0.6, -1.1),
+    Offset(-0.3, -1.3), Offset(0.0, -1.4),   Offset(0.3, -1.3),
+    Offset(0.6, -1.1),  Offset(0.85, -0.9),  Offset(1.0, -0.5),
+    Offset(-1.1, -0.1), Offset(1.1, -0.1),   Offset(-0.5, -0.7),
+    Offset(0.5, -0.7),  Offset(0.0, -1.0),
+  ];
+  static const _secondaryDirections = [
+    Offset(-0.7, -0.8), Offset(0.7, -0.8), Offset(-0.2, -1.1),
+    Offset(0.2, -1.1),  Offset(-0.9, -0.4), Offset(0.9, -0.4),
   ];
 
   @override
@@ -68,13 +76,13 @@ class _JumboWidgetState extends State<JumboWidget>
   }
 
   void _spawnSplash() {
-    for (int i = 0; i < _directions.length; i++) {
+    for (int i = 0; i < _mainDirections.length; i++) {
       final ctrl = AnimationController(
         vsync: this,
-        duration: Duration(milliseconds: 600 + i * 20),
+        duration: Duration(milliseconds: 750 + i * 30),
       );
       final particle = _SplashParticle(
-        direction: _directions[i],
+        direction: _mainDirections[i],
         size: 6.0 + (i % 4) * 1.5,
         ctrl: ctrl,
       );
@@ -85,6 +93,28 @@ class _JumboWidgetState extends State<JumboWidget>
       });
       setState(() => _particles.add(particle));
     }
+
+    // 6 secondary smaller particles with 120ms delay
+    Future.delayed(const Duration(milliseconds: 120), () {
+      if (!mounted) return;
+      for (int i = 0; i < _secondaryDirections.length; i++) {
+        final ctrl = AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 500),
+        );
+        final particle = _SplashParticle(
+          direction: _secondaryDirections[i],
+          size: 4.0,
+          ctrl: ctrl,
+        );
+        ctrl.forward().then((_) {
+          if (!mounted) return;
+          setState(() => _particles.remove(particle));
+          ctrl.dispose();
+        });
+        setState(() => _particles.add(particle));
+      }
+    });
   }
 
   @override
@@ -96,7 +126,7 @@ class _JumboWidgetState extends State<JumboWidget>
               animation: p.ctrl,
               builder: (_, _) {
                 final progress = p.ctrl.value;
-                final distance = progress * 60.0;
+                final distance = progress * 90.0;
                 final opacity = (1.0 - progress).clamp(0.0, 1.0);
                 return Positioned(
                   left: 190 * 0.475 + p.direction.dx * distance - p.size / 2,
@@ -105,10 +135,15 @@ class _JumboWidgetState extends State<JumboWidget>
                     opacity: opacity,
                     child: Container(
                       width: p.size,
-                      height: p.size * 1.3,
+                      height: p.size * 1.5,
                       decoration: BoxDecoration(
                         color: const Color(0xFF38BDF8),
-                        borderRadius: BorderRadius.circular(p.size),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(p.size),
+                          topRight: Radius.circular(p.size),
+                          bottomLeft: Radius.circular(p.size * 0.3),
+                          bottomRight: Radius.circular(p.size * 0.3),
+                        ),
                       ),
                     ),
                   ),
@@ -148,7 +183,7 @@ class _JumboWidgetState extends State<JumboWidget>
                   ),
                   child: Text(
                     widget.unit == 'oz'
-                        ? 'Tap Jumbo · +${(widget.tapAmount * 0.0338).toStringAsFixed(1)}oz'
+                        ? 'Tap Jumbo · +${widget.tapAmount.toDouble().mlToOz.toStringAsFixed(1)}oz'
                         : 'Tap Jumbo · +${widget.tapAmount}ml',
                     style: const TextStyle(
                       color: Colors.white,

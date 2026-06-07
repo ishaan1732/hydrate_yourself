@@ -202,6 +202,7 @@ class HomeScreen extends ConsumerWidget {
     int jumboAmount,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    final lastLog = lastLogAsync.valueOrNull;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
@@ -212,7 +213,7 @@ class HomeScreen extends ConsumerWidget {
             child: _ActionButton(
               icon: Icons.local_drink_outlined,
               label: unit == 'oz'
-                  ? '${(jumboAmount.toDouble() * 0.0338).toStringAsFixed(0)} oz'
+                  ? '${jumboAmount.toDouble().mlToOz.toStringAsFixed(1)} oz'
                   : '$jumboAmount ml',
               onTap: () => showModalBottomSheet(
                 context: context,
@@ -244,32 +245,16 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(width: 10),
 
-          // Undo log button
+          // Undo log button — use valueOrNull to avoid loading flash on undo
           Expanded(
-            child: lastLogAsync.when(
-              loading: () => const _ActionButton(
-                icon: Icons.undo_rounded,
-                label: 'Undo Log',
-                onTap: null,
-                isDisabled: true,
-              ),
-              error: (_, _) => const _ActionButton(
-                icon: Icons.undo_rounded,
-                label: 'Undo Log',
-                onTap: null,
-                isDisabled: true,
-              ),
-              data: (lastLog) => _ActionButton(
-                icon: Icons.undo_rounded,
-                label: 'Undo Log',
-                color: lastLog != null ? colorScheme.error : null,
-                isDisabled: lastLog == null,
-                onTap: lastLog != null
-                    ? () => ref
-                        .read(homeActionProvider.notifier)
-                        .deleteLastLog()
-                    : null,
-              ),
+            child: _ActionButton(
+              icon: Icons.undo_rounded,
+              label: 'Undo Log',
+              color: lastLog != null ? colorScheme.error : null,
+              isDisabled: lastLog == null,
+              onTap: lastLog != null
+                  ? () => ref.read(homeActionProvider.notifier).deleteLastLog()
+                  : null,
             ),
           ),
         ],

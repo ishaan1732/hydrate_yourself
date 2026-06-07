@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/datetime_extensions.dart';
+import '../../../core/extensions/double_extensions.dart';
 import '../../home/domain/water_log_model.dart';
+import '../../home/presentation/home_provider.dart';
 import 'history_provider.dart';
 import 'widgets/log_list_tile.dart';
 import 'widgets/weekly_bar_chart.dart';
@@ -13,6 +16,7 @@ class HistoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final unit = ref.watch(appUnitProvider).valueOrNull ?? AppConstants.unitMl;
     final weeklySummariesAsync = ref.watch(weeklySummariesProvider);
     final streakAsync = ref.watch(currentStreakProvider);
     final selectedDate = ref.watch(selectedDateProvider);
@@ -117,6 +121,7 @@ class HistoryScreen extends ConsumerWidget {
                         return WeeklyBarChart(
                           summaries: summaries,
                           selectedDate: selectedDate,
+                          unit: unit,
                           onDayTapped: (date) {
                             final current = ref.read(selectedDateProvider);
                             if (current != null &&
@@ -153,7 +158,7 @@ class HistoryScreen extends ConsumerWidget {
                       const Spacer(),
                       selectedLogsAsync.when(
                         data: (logs) => Text(
-                          '${logs.length} logs · ${_totalForLogs(logs).round()}ml',
+                          '${logs.length} logs · ${_totalForLogs(logs).toHydrationString(unit)}',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
@@ -192,7 +197,7 @@ class HistoryScreen extends ConsumerWidget {
                     : SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) =>
-                              LogListTile(log: logs[index]),
+                              LogListTile(log: logs[index], unit: unit),
                           childCount: logs.length,
                         ),
                       ),

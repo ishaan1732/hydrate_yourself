@@ -6,9 +6,10 @@ import 'package:flutter/material.dart';
 import '../../domain/analytics_models.dart';
 
 class TrendChart extends StatelessWidget {
-  const TrendChart({super.key, required this.points});
+  const TrendChart({super.key, required this.points, this.unit = 'ml'});
 
   final List<DailyChartPoint> points;
+  final String unit;
 
   @override
   Widget build(BuildContext context) {

@@ -113,3 +113,9 @@ class HomeAction extends _$HomeAction {
 }
 
 final jumboTapAmountProvider = StateProvider<int>((ref) => 250);
+
+@riverpod
+Future<String> appUnit(AppUnitRef ref) async {
+  final profile = await ref.watch(userProfileProvider.future);
+  return profile?.unit ?? AppConstants.unitMl;
+}

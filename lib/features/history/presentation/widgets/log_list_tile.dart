@@ -6,9 +6,10 @@ import '../../../home/domain/drink_type_model.dart';
 import '../../../home/domain/water_log_model.dart';
 
 class LogListTile extends StatelessWidget {
-  const LogListTile({super.key, required this.log});
+  const LogListTile({super.key, required this.log, this.unit = 'ml'});
 
   final WaterLogModel log;
+  final String unit;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +27,7 @@ class LogListTile extends StatelessWidget {
         ),
       ),
       title: Text(
-        log.amountMl.toHydrationString('ml'),
+        log.amountMl.toHydrationString(unit),
         style: theme.textTheme.bodyLarge?.copyWith(
           fontWeight: FontWeight.w600,
         ),

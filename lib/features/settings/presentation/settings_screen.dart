@@ -270,7 +270,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               size: 20, color: colorScheme.onSurfaceVariant),
         ],
       ),
-      onTap: () => _showGoalDialog(context, ref, profile.dailyGoalMl),
+      onTap: () => _showGoalDialog(context, ref, profile.dailyGoalMl, profile.unit),
     );
   }
 
@@ -448,58 +448,72 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showGoalDialog(
-      BuildContext context, WidgetRef ref, int currentGoal) {
+      BuildContext context, WidgetRef ref, int currentGoal, String unit) {
+    final isOz = unit == AppConstants.unitOz;
     double sliderValue = currentGoal.toDouble();
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Daily Goal'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                '${sliderValue.round()} ml',
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: Theme.of(context).colorScheme.primary,
+        builder: (context, setState) {
+          final displayValue = isOz
+              ? '${sliderValue.mlToOz.toStringAsFixed(1)} oz'
+              : '${sliderValue.round()} ml';
+          return AlertDialog(
+            title: const Text('Daily Goal'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  displayValue,
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                  textAlign: TextAlign.center,
+                ),
+                Slider(
+                  min: AppConstants.minDailyGoalMl.toDouble(),
+                  max: AppConstants.maxDailyGoalMl.toDouble(),
+                  divisions: 25,
+                  value: sliderValue,
+                  label: displayValue,
+                  onChanged: (val) => setState(() => sliderValue = val),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      isOz
+                          ? '${AppConstants.minDailyGoalMl.toDouble().mlToOz.toStringAsFixed(1)} oz'
+                          : '${AppConstants.minDailyGoalMl} ml',
+                      style: Theme.of(context).textTheme.bodySmall,
                     ),
-                textAlign: TextAlign.center,
+                    const Spacer(),
+                    Text(
+                      isOz
+                          ? '${AppConstants.maxDailyGoalMl.toDouble().mlToOz.toStringAsFixed(1)} oz'
+                          : '${AppConstants.maxDailyGoalMl} ml',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
               ),
-              Slider(
-                min: AppConstants.minDailyGoalMl.toDouble(),
-                max: AppConstants.maxDailyGoalMl.toDouble(),
-                divisions: 25,
-                value: sliderValue,
-                label: '${sliderValue.round()} ml',
-                onChanged: (val) => setState(() => sliderValue = val),
-              ),
-              Row(
-                children: [
-                  Text('${AppConstants.minDailyGoalMl}ml',
-                      style: Theme.of(context).textTheme.bodySmall),
-                  const Spacer(),
-                  Text('${AppConstants.maxDailyGoalMl}ml',
-                      style: Theme.of(context).textTheme.bodySmall),
-                ],
+              FilledButton(
+                onPressed: () {
+                  final goal = sliderValue.round();
+                  Navigator.pop(dialogContext);
+                  ref.read(settingsNotifierProvider.notifier).updateGoal(goal);
+                },
+                child: const Text('Save'),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                final goal = sliderValue.round();
-                Navigator.pop(dialogContext);
-                ref.read(settingsNotifierProvider.notifier).updateGoal(goal);
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

@@ -17,22 +17,25 @@ class CupSizeSheet extends StatefulWidget {
 }
 
 class _CupSizeSheetState extends State<CupSizeSheet> {
-  static const _presets = [150, 250, 330, 500];
+  static const _mlPresets = [150, 250, 330, 500];
+  static const _ozPresets = [237, 355, 473, 591];
   static const _ozSteps = [4, 6, 8, 10, 12, 16, 20, 24, 32];
   static const _mlSteps = [118, 177, 237, 296, 355, 473, 591, 710, 946];
 
   late int _selectedPreset;
   late int _customMl;
+  late int _ozIndex;
 
   @override
   void initState() {
     super.initState();
     _customMl = widget.currentSizeMl;
-    _selectedPreset =
-        _presets.contains(widget.currentSizeMl) ? widget.currentSizeMl : -1;
+    final presets = widget.unit == 'oz' ? _ozPresets : _mlPresets;
+    _selectedPreset = presets.contains(widget.currentSizeMl) ? widget.currentSizeMl : -1;
+    _ozIndex = _closestOzIndex(_customMl);
   }
 
-  String _mlToNaturalOz(int ml) {
+  int _closestOzIndex(int ml) {
     int closestIdx = 0;
     int minDiff = (_mlSteps[0] - ml).abs();
     for (int i = 1; i < _mlSteps.length; i++) {
@@ -42,7 +45,12 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
         closestIdx = i;
       }
     }
-    if (minDiff < 30) return _ozSteps[closestIdx].toString();
+    return closestIdx;
+  }
+
+  String _mlToNaturalOz(int ml) {
+    final idx = _closestOzIndex(ml);
+    if ((_mlSteps[idx] - ml).abs() < 30) return _ozSteps[idx].toString();
     return (ml * 0.0338).toStringAsFixed(0);
   }
 
@@ -50,6 +58,7 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final presets = widget.unit == 'oz' ? _ozPresets : _mlPresets;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -73,7 +82,7 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
           ),
           const SizedBox(height: 12),
           Row(
-            children: _presets
+            children: presets
                 .map((ml) => Expanded(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
@@ -99,52 +108,24 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
               }),
             )
           else
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(_ozSteps.length, (i) {
-                  final isSelected = _customMl == _mlSteps[i];
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: GestureDetector(
-                      onTap: () => setState(() {
-                        _customMl = _mlSteps[i];
-                        _selectedPreset = -1;
-                      }),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? colorScheme.primary.withValues(alpha: 0.2)
-                              : colorScheme.surfaceContainerHighest,
-                          border: Border.all(
-                            color: isSelected
-                                ? colorScheme.primary
-                                : Colors.transparent,
-                          ),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          '${_ozSteps[i]} oz',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: isSelected
-                                ? colorScheme.primary
-                                : colorScheme.onSurface,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
-              ),
+            Slider(
+              min: 0,
+              max: (_ozSteps.length - 1).toDouble(),
+              divisions: _ozSteps.length - 1,
+              value: _ozIndex.toDouble(),
+              label: '${_ozSteps[_ozIndex]} oz',
+              onChanged: (v) => setState(() {
+                _ozIndex = v.round();
+                _customMl = _mlSteps[_ozIndex];
+                _selectedPreset = -1;
+              }),
             ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 widget.unit == 'oz'
-                    ? '${_mlToNaturalOz(_customMl)} oz selected'
+                    ? '${_ozSteps[_ozIndex]} oz selected'
                     : '$_customMl ml selected',
                 style: theme.textTheme.bodyMedium
                     ?.copyWith(color: colorScheme.onSurfaceVariant),
@@ -181,6 +162,7 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
       onTap: () => setState(() {
         _selectedPreset = ml;
         _customMl = ml;
+        if (widget.unit == 'oz') _ozIndex = _closestOzIndex(ml);
       }),
       child: Container(
         padding: const EdgeInsets.all(14),
