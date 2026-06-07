@@ -7,12 +7,16 @@ import '../../../core/constants/app_constants.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import '../domain/drink_type_model.dart';
 import '../domain/today_summary.dart';
+import '../domain/water_log_model.dart';
 import '../../reminders/presentation/reminders_provider.dart';
 import 'home_provider.dart';
+import 'widgets/celebration_overlay.dart';
+import 'widgets/custom_add_button.dart';
 import 'widgets/custom_amount_sheet.dart';
 import 'widgets/drink_type_chip.dart';
 import 'widgets/progress_ring.dart';
 import 'widgets/quick_add_button.dart';
+import 'widgets/undo_log_button.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -26,23 +30,35 @@ class HomeScreen extends ConsumerWidget {
     final selectedDrinkTypeId = ref.watch(selectedDrinkTypeIdProvider);
     final profile = ref.watch(userProfileProvider).valueOrNull;
     final unit = profile?.unit ?? AppConstants.unitMl;
+    final showCelebration = ref.watch(showCelebrationProvider);
+    final lastLogAsync = ref.watch(lastLogProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        child: summaryAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (e, _) => Center(child: Text('Error: $e')),
-          data: (summary) => _buildContent(
-            context,
-            ref,
-            summary,
-            drinkTypesAsync,
-            selectedDrinkTypeId,
-            unit,
-            profile,
+      body: Stack(
+        children: [
+          SafeArea(
+            child: summaryAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Error: $e')),
+              data: (summary) => _buildContent(
+                context,
+                ref,
+                summary,
+                drinkTypesAsync,
+                selectedDrinkTypeId,
+                unit,
+                profile,
+                lastLogAsync,
+              ),
+            ),
           ),
-        ),
+          if (showCelebration)
+            CelebrationOverlay(
+              isVisible: showCelebration,
+              unit: unit,
+            ),
+        ],
       ),
     );
   }
@@ -55,6 +71,7 @@ class HomeScreen extends ConsumerWidget {
     int? selectedDrinkTypeId,
     String unit,
     UserProfileModel? profile,
+    AsyncValue<WaterLogModel?> lastLogAsync,
   ) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -115,7 +132,7 @@ class HomeScreen extends ConsumerWidget {
 
         // SECTION 3 — Drink type selector
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -159,9 +176,11 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
 
-        // SECTION 4 — Quick add buttons
+        const SizedBox(height: 16),
+
+        // SECTION 4 — Quick add buttons + inline custom button
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -173,47 +192,58 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: AppConstants.quickAddAmounts.map((amount) {
-                  return Expanded(
+                children: [
+                  ...AppConstants.quickAddAmounts.map((amount) => Expanded(
+                        child: Padding(
+                          padding:
+                              const EdgeInsets.symmetric(horizontal: 4),
+                          child: QuickAddButton(
+                            amountMl: amount,
+                            unit: unit,
+                            onTap: () => ref
+                                .read(homeActionProvider.notifier)
+                                .addQuickLog(amount.toDouble()),
+                            accentColor: _getSelectedDrinkColor(
+                              drinkTypesAsync.valueOrNull,
+                              selectedDrinkTypeId,
+                            ),
+                          ),
+                        ),
+                      )),
+                  Expanded(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: QuickAddButton(
-                        amountMl: amount,
-                        unit: unit,
-                        onTap: () => ref
-                            .read(homeActionProvider.notifier)
-                            .addQuickLog(amount.toDouble()),
+                      child: CustomAddButton(
+                        onTap: () =>
+                            _showCustomAmountSheet(context, ref, unit),
                         accentColor: _getSelectedDrinkColor(
                           drinkTypesAsync.valueOrNull,
                           selectedDrinkTypeId,
                         ),
                       ),
                     ),
-                  );
-                }).toList(),
+                  ),
+                ],
               ),
             ],
           ),
         ),
 
-        // SECTION 5 — Custom amount button
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-          child: SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              icon: const Icon(Icons.add),
-              label: const Text('Custom amount'),
-              onPressed: () => _showCustomAmountSheet(context, ref, unit),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
+        const SizedBox(height: 8),
+
+        // SECTION 4b — Undo last log
+        lastLogAsync.when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+          data: (lastLog) => lastLog != null
+              ? UndoLogButton(
+                  lastLog: lastLog,
+                  unit: unit,
+                  onUndo: () => ref
+                      .read(homeActionProvider.notifier)
+                      .deleteLastLog(),
+                )
+              : const SizedBox.shrink(),
         ),
       ],
     );

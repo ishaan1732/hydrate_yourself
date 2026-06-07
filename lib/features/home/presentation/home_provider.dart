@@ -7,6 +7,7 @@ import '../../reminders/data/notification_service.dart';
 import '../data/home_repository.dart';
 import '../domain/drink_type_model.dart';
 import '../domain/today_summary.dart';
+import '../domain/water_log_model.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 
 part 'home_provider.g.dart';
@@ -31,6 +32,14 @@ Stream<double> todayTotalMl(TodayTotalMlRef ref) =>
     ref.watch(homeRepositoryProvider).watchTodayTotalMl();
 
 final selectedDrinkTypeIdProvider = StateProvider<int?>((ref) => null);
+
+final goalPreviouslyAchievedProvider = StateProvider<bool>((ref) => false);
+
+final showCelebrationProvider = StateProvider<bool>((ref) => false);
+
+@riverpod
+Future<WaterLogModel?> lastLog(LastLogRef ref) =>
+    ref.watch(homeRepositoryProvider).getLastLog();
 
 @riverpod
 Future<TodaySummary> todaySummary(TodaySummaryRef ref) async {
@@ -63,5 +72,41 @@ class HomeAction extends _$HomeAction {
           drinkTypeId: drinkType.id,
         );
     await NotificationService().updateLastLogTime();
+
+    final summary = await ref.read(todaySummaryProvider.future);
+    final wasAlreadyAchieved = ref.read(goalPreviouslyAchievedProvider);
+
+    if (summary.isGoalAchieved && !wasAlreadyAchieved) {
+      ref.read(goalPreviouslyAchievedProvider.notifier).state = true;
+      ref.read(showCelebrationProvider.notifier).state = true;
+      Future.delayed(const Duration(seconds: 3), () {
+        ref.read(showCelebrationProvider.notifier).state = false;
+      });
+    }
+
+    ref.invalidate(lastLogProvider);
+  }
+
+  Future<void> deleteLastLog() async {
+    final lastLog = await ref.read(lastLogProvider.future);
+    if (lastLog == null) return;
+
+    // Read current total and goal BEFORE deleting
+    // so we get accurate values, not stale stream data
+    final currentTotal = await ref.read(todayTotalMlProvider.future);
+    final summary = await ref.read(todaySummaryProvider.future);
+
+    // Calculate what the total will be after deletion
+    final totalAfterUndo = currentTotal - lastLog.amountMl;
+
+    // Delete the log
+    await ref.read(homeRepositoryProvider).deleteLog(lastLog.id);
+    ref.invalidate(lastLogProvider);
+
+    // If new total drops below goal, reset celebration
+    // so it fires again when goal is re-crossed
+    if (totalAfterUndo < summary.goalMl) {
+      ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
+    }
   }
 }

@@ -76,6 +76,23 @@ final todayTotalMlProvider = AutoDisposeStreamProvider<double>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TodayTotalMlRef = AutoDisposeStreamProviderRef<double>;
+String _$lastLogHash() => r'6b543c20d43b9aa4a9f52b377283d82d00a9993c';
+
+/// See also [lastLog].
+@ProviderFor(lastLog)
+final lastLogProvider = AutoDisposeFutureProvider<WaterLogModel?>.internal(
+  lastLog,
+  name: r'lastLogProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$lastLogHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef LastLogRef = AutoDisposeFutureProviderRef<WaterLogModel?>;
 String _$todaySummaryHash() => r'7da71753aab521e11d9e3cb99f418ba049114d52';
 
 /// See also [todaySummary].
@@ -93,7 +110,7 @@ final todaySummaryProvider = AutoDisposeFutureProvider<TodaySummary>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef TodaySummaryRef = AutoDisposeFutureProviderRef<TodaySummary>;
-String _$homeActionHash() => r'172680091e5919f8c0683cc13adba9bebb7acc6b';
+String _$homeActionHash() => r'984375bc6abff1ff7db7e72124b9f095415128b4';
 
 /// See also [HomeAction].
 @ProviderFor(HomeAction)

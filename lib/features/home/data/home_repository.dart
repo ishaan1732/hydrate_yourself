@@ -5,6 +5,7 @@ import '../../../database/daos/drink_types_dao.dart';
 import '../../../database/daos/user_profile_dao.dart';
 import '../../../database/daos/water_logs_dao.dart';
 import '../domain/drink_type_model.dart';
+import '../domain/water_log_model.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 
 class HomeRepository {
@@ -41,4 +42,26 @@ class HomeRepository {
         drinkTypeId: drinkTypeId,
         note: const Value(null),
       ));
+
+  Future<WaterLogModel?> getLastLog() async {
+    final db = _waterLogsDao.attachedDatabase;
+    final result = await (db.select(db.waterLogs)
+          ..orderBy([(l) => OrderingTerm.desc(l.loggedAt)])
+          ..limit(1))
+        .get();
+
+    if (result.isEmpty) return null;
+
+    final log = result.first;
+    final drinkTypesList = await _drinkTypesDao.getAllDrinkTypes();
+    final drinkType = drinkTypesList.firstWhere(
+      (dt) => dt.id == log.drinkTypeId,
+    );
+
+    return WaterLogModel.fromDrift(log, drinkType);
+  }
+
+  Future<void> deleteLog(int id) async {
+    await _waterLogsDao.deleteLog(id);
+  }
 }
