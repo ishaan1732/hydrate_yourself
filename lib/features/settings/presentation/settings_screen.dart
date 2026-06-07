@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -22,7 +21,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: SafeArea(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
         child: settingsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, st) {
@@ -45,6 +46,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ? const Center(child: Text('No profile found'))
               : _buildContent(context, ref, profile),
         ),
+      ),
       ),
     );
   }
@@ -400,23 +402,40 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Activity Level'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: List.generate(4, (i) {
-            return RadioListTile<int>(
-              value: i,
-              groupValue: currentLevel,
-              title: Text(labels[i]),
-              secondary: Icon(icons[i]),
-              onChanged: (val) {
-                if (val == null) return;
-                Navigator.pop(dialogContext);
-                ref
-                    .read(settingsNotifierProvider.notifier)
-                    .updateActivityLevel(val);
-              },
-            );
-          }),
+        content: RadioGroup<int>(
+          groupValue: currentLevel,
+          onChanged: (val) {
+            if (val == null) return;
+            Navigator.pop(dialogContext);
+            ref
+                .read(settingsNotifierProvider.notifier)
+                .updateActivityLevel(val);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              RadioListTile<int>(
+                value: 0,
+                title: const Text('Sedentary'),
+                secondary: const Icon(Icons.chair),
+              ),
+              RadioListTile<int>(
+                value: 1,
+                title: const Text('Light'),
+                secondary: const Icon(Icons.directions_walk),
+              ),
+              RadioListTile<int>(
+                value: 2,
+                title: const Text('Moderate'),
+                secondary: const Icon(Icons.directions_run),
+              ),
+              RadioListTile<int>(
+                value: 3,
+                title: const Text('Active'),
+                secondary: const Icon(Icons.fitness_center),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -491,22 +510,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Reminder Interval'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: options.map((option) {
-            return RadioListTile<int>(
-              value: option,
-              groupValue: current,
-              title: Text(_formatInterval(option)),
-              onChanged: (val) {
-                if (val == null) return;
-                Navigator.pop(dialogContext);
-                ref
-                    .read(settingsNotifierProvider.notifier)
-                    .updateReminderInterval(val);
-              },
-            );
-          }).toList(),
+        content: RadioGroup<int>(
+          groupValue: current,
+          onChanged: (val) {
+            if (val == null) return;
+            Navigator.pop(dialogContext);
+            ref
+                .read(settingsNotifierProvider.notifier)
+                .updateReminderInterval(val);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options
+                .map((option) => RadioListTile<int>(
+                      value: option,
+                      title: Text(_formatInterval(option)),
+                    ))
+                .toList(),
+          ),
         ),
         actions: [
           TextButton(

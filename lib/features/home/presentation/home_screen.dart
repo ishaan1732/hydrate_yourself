@@ -39,7 +39,43 @@ class HomeScreen extends ConsumerWidget {
         children: [
           SafeArea(
             child: summaryAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => Column(
+                children: [
+                  const SizedBox(height: 24),
+                  Center(
+                    child: Container(
+                      width: 240,
+                      height: 240,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: colorScheme.surfaceContainerHighest,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: List.generate(
+                        4,
+                        (i) => Expanded(
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 4),
+                            child: Container(
+                              height: 72,
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
               error: (e, _) => Center(child: Text('Error: $e')),
               data: (summary) => _buildContent(
                 context,
@@ -76,7 +112,8 @@ class HomeScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Column(
+    return SingleChildScrollView(
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         IconButton(
@@ -117,8 +154,8 @@ class HomeScreen extends ConsumerWidget {
         ),
 
         // SECTION 2 — Progress ring
-        Expanded(
-          flex: 4,
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
           child: Center(
             child: ProgressRing(
               percentage: summary.percentage,
@@ -129,6 +166,18 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ),
+
+        if (summary.totalMl == 0)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              'Tap a button below to log your first drink! 💧',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
 
         // SECTION 3 — Drink type selector
         Padding(
@@ -234,7 +283,7 @@ class HomeScreen extends ConsumerWidget {
         // SECTION 4b — Undo last log
         lastLogAsync.when(
           loading: () => const SizedBox.shrink(),
-          error: (_, __) => const SizedBox.shrink(),
+          error: (_, _) => const SizedBox.shrink(),
           data: (lastLog) => lastLog != null
               ? UndoLogButton(
                   lastLog: lastLog,
@@ -245,7 +294,10 @@ class HomeScreen extends ConsumerWidget {
                 )
               : const SizedBox.shrink(),
         ),
+
+        const SizedBox(height: 16),
       ],
+      ),
     );
   }
 

@@ -34,7 +34,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: SafeArea(
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
         child: Column(
           children: [
             Padding(
@@ -90,6 +92,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -384,8 +387,20 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Future<void> _complete() async {
-    final notifier = ref.read(onboardingNotifierProvider.notifier);
-    await notifier.completeOnboarding();
+    final formData = ref.read(onboardingNotifierProvider).value;
+    final name = _nameController.text.trim();
+    final weightKg = double.tryParse(_weightController.text.trim()) ??
+        AppConstants.defaultWeightKg;
+    await ref.read(onboardingNotifierProvider.notifier).completeOnboarding(
+          name: name,
+          weightKg: weightKg,
+          activityLevel:
+              formData?.activityLevel ?? AppConstants.defaultActivityLevel,
+          wakeHour: formData?.wakeHour ?? AppConstants.defaultWakeHour,
+          sleepHour: formData?.sleepHour ?? AppConstants.defaultSleepHour,
+          reminderIntervalMinutes: formData?.reminderIntervalMinutes ??
+              AppConstants.defaultReminderIntervalMinutes,
+        );
     if (mounted) context.go('/home');
   }
 }

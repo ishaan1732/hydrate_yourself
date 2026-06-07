@@ -71,21 +71,27 @@ class OnboardingNotifier extends _$OnboardingNotifier {
       state = AsyncData(
           state.requireValue.copyWith(reminderIntervalMinutes: minutes));
 
-  Future<void> completeOnboarding() async {
-    final data = state.requireValue;
+  Future<void> completeOnboarding({
+    required String name,
+    required double weightKg,
+    required int activityLevel,
+    required int wakeHour,
+    required int sleepHour,
+    required int reminderIntervalMinutes,
+  }) async {
     final dailyGoalMl = HydrationCalculator.calculateDailyGoalMl(
-        data.weightKg, data.activityLevel);
+        weightKg, activityLevel);
     final prefs = await SharedPreferences.getInstance();
     final userProfileDao = ref.read(userProfileDaoProvider);
     final repository = OnboardingRepository(userProfileDao, prefs);
     await repository.saveProfileAndComplete(
-      name: data.name,
-      weightKg: data.weightKg,
-      activityLevel: data.activityLevel,
+      name: name,
+      weightKg: weightKg,
+      activityLevel: activityLevel,
       dailyGoalMl: dailyGoalMl,
-      wakeHour: data.wakeHour,
-      sleepHour: data.sleepHour,
-      reminderIntervalMinutes: data.reminderIntervalMinutes,
+      wakeHour: wakeHour,
+      sleepHour: sleepHour,
+      reminderIntervalMinutes: reminderIntervalMinutes,
     );
     ref.read(onboardingCompleteProvider.notifier).state = true;
   }

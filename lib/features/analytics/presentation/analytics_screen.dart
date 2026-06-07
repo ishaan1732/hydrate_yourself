@@ -22,7 +22,39 @@ class AnalyticsScreen extends ConsumerWidget {
         child: summaryAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('Error: $e')),
-          data: (summary) => CustomScrollView(
+          data: (summary) {
+            if (summary.totalMl30Days == 0) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.insights_outlined,
+                      size: 64,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No data yet',
+                      style: Theme.of(context)
+                          .textTheme
+                          .headlineSmall
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Log water for a few days to\nsee your analytics',
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }
+            return CustomScrollView(
             slivers: [
               SliverAppBar(
                 pinned: true,
@@ -148,7 +180,8 @@ class AnalyticsScreen extends ConsumerWidget {
                 ),
               ),
             ],
-          ),
+          );
+          },
         ),
       ),
     );

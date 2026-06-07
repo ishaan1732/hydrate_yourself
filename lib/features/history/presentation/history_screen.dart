@@ -72,20 +72,64 @@ class HistoryScreen extends ConsumerWidget {
                         child: Center(child: CircularProgressIndicator()),
                       ),
                       error: (e, _) => Text('Error: $e'),
-                      data: (summaries) => WeeklyBarChart(
-                        summaries: summaries,
-                        selectedDate: selectedDate,
-                        onDayTapped: (date) {
-                          final current = ref.read(selectedDateProvider);
-                          if (current != null && current.isSameDay(date)) {
-                            ref.read(selectedDateProvider.notifier).state =
-                                null;
-                          } else {
-                            ref.read(selectedDateProvider.notifier).state =
-                                date;
-                          }
-                        },
-                      ),
+                      data: (summaries) {
+                        final hasData =
+                            summaries.any((s) => s.totalMl > 0);
+                        if (!hasData) {
+                          return SizedBox(
+                            height: 200,
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.water_drop_outlined,
+                                    size: 48,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'No data yet',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          color:
+                                              colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Start logging water to see your history',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color:
+                                              colorScheme.onSurfaceVariant,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        return WeeklyBarChart(
+                          summaries: summaries,
+                          selectedDate: selectedDate,
+                          onDayTapped: (date) {
+                            final current = ref.read(selectedDateProvider);
+                            if (current != null &&
+                                current.isSameDay(date)) {
+                              ref.read(selectedDateProvider.notifier).state =
+                                  null;
+                            } else {
+                              ref.read(selectedDateProvider.notifier).state =
+                                  date;
+                            }
+                          },
+                        );
+                      },
                     ),
                   ],
                 ),

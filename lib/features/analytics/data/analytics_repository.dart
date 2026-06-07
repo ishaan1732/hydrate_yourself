@@ -1,7 +1,5 @@
 import 'dart:math';
 
-import 'package:hydrate_yourself/database/app_database.dart';
-
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/datetime_extensions.dart';
 import '../../../database/daos/drink_types_dao.dart';

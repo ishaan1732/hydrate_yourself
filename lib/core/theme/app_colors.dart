@@ -9,4 +9,7 @@ class AppColors {
   static const Color goalCritical = Color(0xFFE74C3C);
   static const Color coffee = Color(0xFF795548);
   static const Color juice = Color(0xFFFF9800);
+  static const Color tea = Color(0xFF8D6E63);
+  static const Color soda = Color(0xFF78909C);
+  static const Color drinkDefault = Color(0xFF9E9E9E);
 }

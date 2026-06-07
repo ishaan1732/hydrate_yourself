@@ -100,10 +100,10 @@ class DrinkBreakdownChart extends StatelessWidget {
     return switch (name.toLowerCase()) {
       'water' => AppColors.primary,
       'coffee' => AppColors.coffee,
-      'tea' => const Color(0xFF8D6E63),
+      'tea' => AppColors.tea,
       'juice' => AppColors.juice,
-      'soda' => const Color(0xFF78909C),
-      _ => const Color(0xFF9E9E9E),
+      'soda' => AppColors.soda,
+      _ => AppColors.drinkDefault,
     };
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../../../core/extensions/double_extensions.dart';
 
@@ -25,7 +26,10 @@ class QuickAddButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(16),
       color: colorScheme.surfaceContainerHighest,
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.mediumImpact();
+          onTap();
+        },
         borderRadius: BorderRadius.circular(16),
         child: Container(
           padding: const EdgeInsets.all(16),
