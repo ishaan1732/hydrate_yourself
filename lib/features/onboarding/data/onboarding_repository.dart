@@ -17,6 +17,7 @@ class OnboardingRepository {
   Future<void> saveProfileAndComplete({
     required String name,
     required double weightKg,
+    required String weightUnit,
     required int activityLevel,
     required int dailyGoalMl,
     required int wakeHour,
@@ -32,6 +33,7 @@ class OnboardingRepository {
         wakeHour: Value(wakeHour),
         sleepHour: Value(sleepHour),
         reminderIntervalMinutes: Value(reminderIntervalMinutes),
+        weightUnit: Value(weightUnit),
       ),
     );
     await _prefs.setBool(AppConstants.prefHasCompletedOnboarding, true);

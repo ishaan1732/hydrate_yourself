@@ -45,7 +45,7 @@ class SettingsRepository {
     ));
   }
 
-  Future<void> updateWeight(double weightKg) async {
+  Future<void> updateWeight(double weightKg, String weightUnit) async {
     final profile = await _userProfileDao.getProfile();
     if (profile == null) return;
     final newGoal = HydrationCalculator.calculateDailyGoalMl(
@@ -53,7 +53,35 @@ class SettingsRepository {
     await _userProfileDao.updateProfile(UserProfileCompanion(
       id: Value(profile.id),
       weightKg: Value(weightKg),
+      weightUnit: Value(weightUnit),
       dailyGoalMl: Value(newGoal),
+    ));
+  }
+
+  Future<void> updateWeightUnit(String unit) async {
+    final profile = await _userProfileDao.getProfile();
+    if (profile == null) return;
+    await _userProfileDao.updateProfile(UserProfileCompanion(
+      id: Value(profile.id),
+      weightUnit: Value(unit),
+    ));
+  }
+
+  Future<void> updateWakeHour(int hour) async {
+    final profile = await _userProfileDao.getProfile();
+    if (profile == null) return;
+    await _userProfileDao.updateProfile(UserProfileCompanion(
+      id: Value(profile.id),
+      wakeHour: Value(hour),
+    ));
+  }
+
+  Future<void> updateSleepHour(int hour) async {
+    final profile = await _userProfileDao.getProfile();
+    if (profile == null) return;
+    await _userProfileDao.updateProfile(UserProfileCompanion(
+      id: Value(profile.id),
+      sleepHour: Value(hour),
     ));
   }
 

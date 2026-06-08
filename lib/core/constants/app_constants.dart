@@ -38,4 +38,7 @@ class AppConstants {
   // Unit constants
   static const String unitMl = 'ml';
   static const String unitOz = 'oz';
+  static const String unitKg = 'kg';
+  static const String unitLbs = 'lbs';
+  static const String prefWeightUnit = 'weight_unit';
 }

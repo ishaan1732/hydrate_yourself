@@ -13,6 +13,7 @@ class OnboardingFormData {
   OnboardingFormData({
     this.name = '',
     this.weightKg = AppConstants.defaultWeightKg,
+    this.weightUnit = AppConstants.unitKg,
     this.activityLevel = AppConstants.defaultActivityLevel,
     this.wakeHour = AppConstants.defaultWakeHour,
     this.sleepHour = AppConstants.defaultSleepHour,
@@ -21,6 +22,7 @@ class OnboardingFormData {
 
   final String name;
   final double weightKg;
+  final String weightUnit;
   final int activityLevel;
   final int wakeHour;
   final int sleepHour;
@@ -29,6 +31,7 @@ class OnboardingFormData {
   OnboardingFormData copyWith({
     String? name,
     double? weightKg,
+    String? weightUnit,
     int? activityLevel,
     int? wakeHour,
     int? sleepHour,
@@ -37,6 +40,7 @@ class OnboardingFormData {
       OnboardingFormData(
         name: name ?? this.name,
         weightKg: weightKg ?? this.weightKg,
+        weightUnit: weightUnit ?? this.weightUnit,
         activityLevel: activityLevel ?? this.activityLevel,
         wakeHour: wakeHour ?? this.wakeHour,
         sleepHour: sleepHour ?? this.sleepHour,
@@ -58,6 +62,9 @@ class OnboardingNotifier extends _$OnboardingNotifier {
   void updateWeight(double weightKg) =>
       state = AsyncData(state.requireValue.copyWith(weightKg: weightKg));
 
+  void updateWeightUnit(String unit) =>
+      state = AsyncData(state.requireValue.copyWith(weightUnit: unit));
+
   void updateActivityLevel(int level) =>
       state = AsyncData(state.requireValue.copyWith(activityLevel: level));
 
@@ -74,6 +81,7 @@ class OnboardingNotifier extends _$OnboardingNotifier {
   Future<void> completeOnboarding({
     required String name,
     required double weightKg,
+    required String weightUnit,
     required int activityLevel,
     required int wakeHour,
     required int sleepHour,
@@ -87,6 +95,7 @@ class OnboardingNotifier extends _$OnboardingNotifier {
     await repository.saveProfileAndComplete(
       name: name,
       weightKg: weightKg,
+      weightUnit: weightUnit,
       activityLevel: activityLevel,
       dailyGoalMl: dailyGoalMl,
       wakeHour: wakeHour,

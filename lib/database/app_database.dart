@@ -18,7 +18,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'hydrate_yourself'));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -66,7 +66,9 @@ class AppDatabase extends _$AppDatabase {
           ));
         },
         onUpgrade: (m, from, to) async {
-          // TODO: add migration steps here when schemaVersion increases
+          if (from < 2) {
+            await m.addColumn(userProfile, userProfile.weightUnit);
+          }
         },
       );
 }

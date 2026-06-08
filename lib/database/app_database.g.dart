@@ -893,6 +893,18 @@ class $UserProfileTable extends UserProfile
     requiredDuringInsert: false,
     defaultValue: const Constant('ml'),
   );
+  static const VerificationMeta _weightUnitMeta = const VerificationMeta(
+    'weightUnit',
+  );
+  @override
+  late final GeneratedColumn<String> weightUnit = GeneratedColumn<String>(
+    'weight_unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('kg'),
+  );
   static const VerificationMeta _wakeHourMeta = const VerificationMeta(
     'wakeHour',
   );
@@ -963,6 +975,7 @@ class $UserProfileTable extends UserProfile
     activityLevel,
     dailyGoalMl,
     unit,
+    weightUnit,
     wakeHour,
     sleepHour,
     reminderIntervalMinutes,
@@ -1026,6 +1039,12 @@ class $UserProfileTable extends UserProfile
       context.handle(
         _unitMeta,
         unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('weight_unit')) {
+      context.handle(
+        _weightUnitMeta,
+        weightUnit.isAcceptableOrUnknown(data['weight_unit']!, _weightUnitMeta),
       );
     }
     if (data.containsKey('wake_hour')) {
@@ -1097,6 +1116,10 @@ class $UserProfileTable extends UserProfile
         DriftSqlType.string,
         data['${effectivePrefix}unit'],
       )!,
+      weightUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}weight_unit'],
+      )!,
       wakeHour: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}wake_hour'],
@@ -1133,6 +1156,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
   final int activityLevel;
   final int dailyGoalMl;
   final String unit;
+  final String weightUnit;
   final int wakeHour;
   final int sleepHour;
   final int reminderIntervalMinutes;
@@ -1145,6 +1169,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     required this.activityLevel,
     required this.dailyGoalMl,
     required this.unit,
+    required this.weightUnit,
     required this.wakeHour,
     required this.sleepHour,
     required this.reminderIntervalMinutes,
@@ -1160,6 +1185,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     map['activity_level'] = Variable<int>(activityLevel);
     map['daily_goal_ml'] = Variable<int>(dailyGoalMl);
     map['unit'] = Variable<String>(unit);
+    map['weight_unit'] = Variable<String>(weightUnit);
     map['wake_hour'] = Variable<int>(wakeHour);
     map['sleep_hour'] = Variable<int>(sleepHour);
     map['reminder_interval_minutes'] = Variable<int>(reminderIntervalMinutes);
@@ -1176,6 +1202,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       activityLevel: Value(activityLevel),
       dailyGoalMl: Value(dailyGoalMl),
       unit: Value(unit),
+      weightUnit: Value(weightUnit),
       wakeHour: Value(wakeHour),
       sleepHour: Value(sleepHour),
       reminderIntervalMinutes: Value(reminderIntervalMinutes),
@@ -1196,6 +1223,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       activityLevel: serializer.fromJson<int>(json['activityLevel']),
       dailyGoalMl: serializer.fromJson<int>(json['dailyGoalMl']),
       unit: serializer.fromJson<String>(json['unit']),
+      weightUnit: serializer.fromJson<String>(json['weightUnit']),
       wakeHour: serializer.fromJson<int>(json['wakeHour']),
       sleepHour: serializer.fromJson<int>(json['sleepHour']),
       reminderIntervalMinutes: serializer.fromJson<int>(
@@ -1217,6 +1245,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       'activityLevel': serializer.toJson<int>(activityLevel),
       'dailyGoalMl': serializer.toJson<int>(dailyGoalMl),
       'unit': serializer.toJson<String>(unit),
+      'weightUnit': serializer.toJson<String>(weightUnit),
       'wakeHour': serializer.toJson<int>(wakeHour),
       'sleepHour': serializer.toJson<int>(sleepHour),
       'reminderIntervalMinutes': serializer.toJson<int>(
@@ -1234,6 +1263,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     int? activityLevel,
     int? dailyGoalMl,
     String? unit,
+    String? weightUnit,
     int? wakeHour,
     int? sleepHour,
     int? reminderIntervalMinutes,
@@ -1246,6 +1276,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     activityLevel: activityLevel ?? this.activityLevel,
     dailyGoalMl: dailyGoalMl ?? this.dailyGoalMl,
     unit: unit ?? this.unit,
+    weightUnit: weightUnit ?? this.weightUnit,
     wakeHour: wakeHour ?? this.wakeHour,
     sleepHour: sleepHour ?? this.sleepHour,
     reminderIntervalMinutes:
@@ -1265,6 +1296,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           ? data.dailyGoalMl.value
           : this.dailyGoalMl,
       unit: data.unit.present ? data.unit.value : this.unit,
+      weightUnit: data.weightUnit.present
+          ? data.weightUnit.value
+          : this.weightUnit,
       wakeHour: data.wakeHour.present ? data.wakeHour.value : this.wakeHour,
       sleepHour: data.sleepHour.present ? data.sleepHour.value : this.sleepHour,
       reminderIntervalMinutes: data.reminderIntervalMinutes.present
@@ -1286,6 +1320,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           ..write('activityLevel: $activityLevel, ')
           ..write('dailyGoalMl: $dailyGoalMl, ')
           ..write('unit: $unit, ')
+          ..write('weightUnit: $weightUnit, ')
           ..write('wakeHour: $wakeHour, ')
           ..write('sleepHour: $sleepHour, ')
           ..write('reminderIntervalMinutes: $reminderIntervalMinutes, ')
@@ -1303,6 +1338,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     activityLevel,
     dailyGoalMl,
     unit,
+    weightUnit,
     wakeHour,
     sleepHour,
     reminderIntervalMinutes,
@@ -1319,6 +1355,7 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           other.activityLevel == this.activityLevel &&
           other.dailyGoalMl == this.dailyGoalMl &&
           other.unit == this.unit &&
+          other.weightUnit == this.weightUnit &&
           other.wakeHour == this.wakeHour &&
           other.sleepHour == this.sleepHour &&
           other.reminderIntervalMinutes == this.reminderIntervalMinutes &&
@@ -1333,6 +1370,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
   final Value<int> activityLevel;
   final Value<int> dailyGoalMl;
   final Value<String> unit;
+  final Value<String> weightUnit;
   final Value<int> wakeHour;
   final Value<int> sleepHour;
   final Value<int> reminderIntervalMinutes;
@@ -1345,6 +1383,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     this.activityLevel = const Value.absent(),
     this.dailyGoalMl = const Value.absent(),
     this.unit = const Value.absent(),
+    this.weightUnit = const Value.absent(),
     this.wakeHour = const Value.absent(),
     this.sleepHour = const Value.absent(),
     this.reminderIntervalMinutes = const Value.absent(),
@@ -1358,6 +1397,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     required int activityLevel,
     required int dailyGoalMl,
     this.unit = const Value.absent(),
+    this.weightUnit = const Value.absent(),
     this.wakeHour = const Value.absent(),
     this.sleepHour = const Value.absent(),
     this.reminderIntervalMinutes = const Value.absent(),
@@ -1374,6 +1414,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     Expression<int>? activityLevel,
     Expression<int>? dailyGoalMl,
     Expression<String>? unit,
+    Expression<String>? weightUnit,
     Expression<int>? wakeHour,
     Expression<int>? sleepHour,
     Expression<int>? reminderIntervalMinutes,
@@ -1387,6 +1428,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
       if (activityLevel != null) 'activity_level': activityLevel,
       if (dailyGoalMl != null) 'daily_goal_ml': dailyGoalMl,
       if (unit != null) 'unit': unit,
+      if (weightUnit != null) 'weight_unit': weightUnit,
       if (wakeHour != null) 'wake_hour': wakeHour,
       if (sleepHour != null) 'sleep_hour': sleepHour,
       if (reminderIntervalMinutes != null)
@@ -1404,6 +1446,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     Value<int>? activityLevel,
     Value<int>? dailyGoalMl,
     Value<String>? unit,
+    Value<String>? weightUnit,
     Value<int>? wakeHour,
     Value<int>? sleepHour,
     Value<int>? reminderIntervalMinutes,
@@ -1417,6 +1460,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
       activityLevel: activityLevel ?? this.activityLevel,
       dailyGoalMl: dailyGoalMl ?? this.dailyGoalMl,
       unit: unit ?? this.unit,
+      weightUnit: weightUnit ?? this.weightUnit,
       wakeHour: wakeHour ?? this.wakeHour,
       sleepHour: sleepHour ?? this.sleepHour,
       reminderIntervalMinutes:
@@ -1447,6 +1491,9 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     if (unit.present) {
       map['unit'] = Variable<String>(unit.value);
     }
+    if (weightUnit.present) {
+      map['weight_unit'] = Variable<String>(weightUnit.value);
+    }
     if (wakeHour.present) {
       map['wake_hour'] = Variable<int>(wakeHour.value);
     }
@@ -1476,6 +1523,7 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
           ..write('activityLevel: $activityLevel, ')
           ..write('dailyGoalMl: $dailyGoalMl, ')
           ..write('unit: $unit, ')
+          ..write('weightUnit: $weightUnit, ')
           ..write('wakeHour: $wakeHour, ')
           ..write('sleepHour: $sleepHour, ')
           ..write('reminderIntervalMinutes: $reminderIntervalMinutes, ')
@@ -2166,6 +2214,7 @@ typedef $$UserProfileTableCreateCompanionBuilder =
       required int activityLevel,
       required int dailyGoalMl,
       Value<String> unit,
+      Value<String> weightUnit,
       Value<int> wakeHour,
       Value<int> sleepHour,
       Value<int> reminderIntervalMinutes,
@@ -2180,6 +2229,7 @@ typedef $$UserProfileTableUpdateCompanionBuilder =
       Value<int> activityLevel,
       Value<int> dailyGoalMl,
       Value<String> unit,
+      Value<String> weightUnit,
       Value<int> wakeHour,
       Value<int> sleepHour,
       Value<int> reminderIntervalMinutes,
@@ -2223,6 +2273,11 @@ class $$UserProfileTableFilterComposer
 
   ColumnFilters<String> get unit => $composableBuilder(
     column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2291,6 +2346,11 @@ class $$UserProfileTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get wakeHour => $composableBuilder(
     column: $table.wakeHour,
     builder: (column) => ColumnOrderings(column),
@@ -2347,6 +2407,11 @@ class $$UserProfileTableAnnotationComposer
 
   GeneratedColumn<String> get unit =>
       $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get weightUnit => $composableBuilder(
+    column: $table.weightUnit,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get wakeHour =>
       $composableBuilder(column: $table.wakeHour, builder: (column) => column);
@@ -2405,6 +2470,7 @@ class $$UserProfileTableTableManager
                 Value<int> activityLevel = const Value.absent(),
                 Value<int> dailyGoalMl = const Value.absent(),
                 Value<String> unit = const Value.absent(),
+                Value<String> weightUnit = const Value.absent(),
                 Value<int> wakeHour = const Value.absent(),
                 Value<int> sleepHour = const Value.absent(),
                 Value<int> reminderIntervalMinutes = const Value.absent(),
@@ -2417,6 +2483,7 @@ class $$UserProfileTableTableManager
                 activityLevel: activityLevel,
                 dailyGoalMl: dailyGoalMl,
                 unit: unit,
+                weightUnit: weightUnit,
                 wakeHour: wakeHour,
                 sleepHour: sleepHour,
                 reminderIntervalMinutes: reminderIntervalMinutes,
@@ -2431,6 +2498,7 @@ class $$UserProfileTableTableManager
                 required int activityLevel,
                 required int dailyGoalMl,
                 Value<String> unit = const Value.absent(),
+                Value<String> weightUnit = const Value.absent(),
                 Value<int> wakeHour = const Value.absent(),
                 Value<int> sleepHour = const Value.absent(),
                 Value<int> reminderIntervalMinutes = const Value.absent(),
@@ -2443,6 +2511,7 @@ class $$UserProfileTableTableManager
                 activityLevel: activityLevel,
                 dailyGoalMl: dailyGoalMl,
                 unit: unit,
+                weightUnit: weightUnit,
                 wakeHour: wakeHour,
                 sleepHour: sleepHour,
                 reminderIntervalMinutes: reminderIntervalMinutes,

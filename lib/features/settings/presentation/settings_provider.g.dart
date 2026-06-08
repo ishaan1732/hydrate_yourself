@@ -43,7 +43,7 @@ final settingsProfileProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SettingsProfileRef = AutoDisposeFutureProviderRef<UserProfileModel?>;
-String _$settingsNotifierHash() => r'254382643b5cc05c77680c36dfe89dd375cc1f2b';
+String _$settingsNotifierHash() => r'b17fed62fecf1d879b34df82212e7d9a37c48743';
 
 /// See also [SettingsNotifier].
 @ProviderFor(SettingsNotifier)

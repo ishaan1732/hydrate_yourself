@@ -87,12 +87,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     context,
                     icon: Icons.monitor_weight_outlined,
                     label: 'Weight',
-                    value: '${profile.weightKg.toStringAsFixed(1)} kg',
+                    value: profile.weightKg.toWeightString(profile.weightUnit),
                     onTap: () =>
-                        _showEditWeightDialog(context, ref, profile.weightKg),
+                        _showEditWeightDialog(context, ref, profile),
                   ),
                   const Divider(height: 1, indent: 56),
+                  _buildWeightUnitTile(context, ref, profile),
+                  const Divider(height: 1, indent: 56),
                   _buildActivityTile(context, ref, profile.activityLevel),
+                  const Divider(height: 1, indent: 56),
+                  _buildWakeTimeTile(context, ref, profile),
+                  const Divider(height: 1, indent: 56),
+                  _buildSleepTimeTile(context, ref, profile),
                 ],
               ),
 
@@ -247,6 +253,138 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
+  Widget _buildWeightUnitTile(
+      BuildContext context, WidgetRef ref, UserProfileModel profile) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Icon(Icons.scale_outlined, color: colorScheme.primary),
+      title: Text('Weight Unit', style: Theme.of(context).textTheme.bodyLarge),
+      trailing: SegmentedButton<String>(
+        segments: const [
+          ButtonSegment(value: 'kg', label: Text('kg')),
+          ButtonSegment(value: 'lbs', label: Text('lbs')),
+        ],
+        selected: {profile.weightUnit},
+        onSelectionChanged: (val) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref
+                .read(settingsNotifierProvider.notifier)
+                .updateWeightUnit(val.first);
+          });
+        },
+        style: const ButtonStyle(
+          visualDensity: VisualDensity.compact,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWakeTimeTile(
+      BuildContext context, WidgetRef ref, UserProfileModel profile) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Icon(Icons.wb_sunny_outlined, color: colorScheme.primary),
+      title: Text('Wake up', style: Theme.of(context).textTheme.bodyLarge),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _formatHour(profile.wakeHour),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(width: 4),
+          Icon(Icons.chevron_right, size: 20, color: colorScheme.onSurfaceVariant),
+        ],
+      ),
+      onTap: () => _showHourPicker(
+        context,
+        title: 'Wake up time',
+        currentHour: profile.wakeHour,
+        minHour: 4,
+        maxHour: 12,
+        onSelected: (h) =>
+            ref.read(settingsNotifierProvider.notifier).updateWakeHour(h),
+      ),
+    );
+  }
+
+  Widget _buildSleepTimeTile(
+      BuildContext context, WidgetRef ref, UserProfileModel profile) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: Icon(Icons.bedtime_outlined, color: colorScheme.primary),
+      title: Text('Bedtime', style: Theme.of(context).textTheme.bodyLarge),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            _formatHour(profile.sleepHour),
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+          ),
+          const SizedBox(width: 4),
+          Icon(Icons.chevron_right, size: 20, color: colorScheme.onSurfaceVariant),
+        ],
+      ),
+      onTap: () => _showHourPicker(
+        context,
+        title: 'Bedtime',
+        currentHour: profile.sleepHour,
+        minHour: 20,
+        maxHour: 23,
+        onSelected: (h) =>
+            ref.read(settingsNotifierProvider.notifier).updateSleepHour(h),
+      ),
+    );
+  }
+
+  void _showHourPicker(
+    BuildContext context, {
+    required String title,
+    required int currentHour,
+    required int minHour,
+    required int maxHour,
+    required void Function(int) onSelected,
+  }) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (int hour = minHour; hour <= maxHour; hour++)
+              RadioListTile<int>(
+                value: hour,
+                groupValue: currentHour,
+                title: Text(_formatHour(hour)),
+                onChanged: (val) {
+                  if (val == null) return;
+                  Navigator.pop(dialogContext);
+                  onSelected(val);
+                },
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatHour(int hour) {
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final h = hour > 12 ? hour - 12 : hour == 0 ? 12 : hour;
+    return '$h:00 $period';
+  }
+
   Widget _buildGoalTile(
       BuildContext context, WidgetRef ref, UserProfileModel profile) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -353,18 +491,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showEditWeightDialog(
-      BuildContext context, WidgetRef ref, double currentWeight) {
-    final controller =
-        TextEditingController(text: currentWeight.toStringAsFixed(1));
+      BuildContext context, WidgetRef ref, UserProfileModel profile) {
+    final isLbs = profile.weightUnit == AppConstants.unitLbs;
+    final controller = TextEditingController(
+      text: isLbs
+          ? profile.weightKg.kgToLbs.toStringAsFixed(1)
+          : profile.weightKg.toStringAsFixed(1),
+    );
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Edit Weight'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Weight (kg)',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: 'Weight (${profile.weightUnit})',
+            border: const OutlineInputBorder(),
           ),
           keyboardType:
               const TextInputType.numberWithOptions(decimal: true),
@@ -380,7 +522,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               final val = double.tryParse(controller.text);
               if (val == null || val <= 0) return;
               Navigator.pop(dialogContext);
-              ref.read(settingsNotifierProvider.notifier).updateWeight(val);
+              ref.read(settingsNotifierProvider.notifier)
+                  .updateWeight(val, profile.weightUnit);
             },
             child: const Text('Save'),
           ),

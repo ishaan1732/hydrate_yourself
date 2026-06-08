@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/extensions/double_extensions.dart';
 import '../../../database/database_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
 import '../../onboarding/domain/user_profile_model.dart';
@@ -66,17 +67,55 @@ class SettingsNotifier extends _$SettingsNotifier {
     }
   }
 
-  Future<void> updateWeight(double weightKg) async {
+  Future<void> updateWeight(double inputWeight, String weightUnit) async {
     final current = state.valueOrNull;
     if (current == null) return;
+    // Convert to kg for storage if input is in lbs
+    final weightKg = weightUnit == AppConstants.unitLbs
+        ? inputWeight.lbsToKg
+        : inputWeight;
     final newGoal = HydrationCalculator.calculateDailyGoalMl(
         weightKg, current.activityLevel);
     state = AsyncData(current.copyWith(
       weightKg: weightKg,
       dailyGoalMl: newGoal,
+      weightUnit: weightUnit,
     ));
     try {
-      await ref.read(settingsRepositoryProvider).updateWeight(weightKg);
+      await ref.read(settingsRepositoryProvider).updateWeight(weightKg, weightUnit);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> updateWeightUnit(String unit) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncData(current.copyWith(weightUnit: unit));
+    try {
+      await ref.read(settingsRepositoryProvider).updateWeightUnit(unit);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> updateWakeHour(int hour) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncData(current.copyWith(wakeHour: hour));
+    try {
+      await ref.read(settingsRepositoryProvider).updateWakeHour(hour);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> updateSleepHour(int hour) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncData(current.copyWith(sleepHour: hour));
+    try {
+      await ref.read(settingsRepositoryProvider).updateSleepHour(hour);
     } catch (e, st) {
       state = AsyncError(e, st);
     }

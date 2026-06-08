@@ -7,4 +7,13 @@ extension HydrationExtensions on double {
     if (this >= 1000) return '${(this / 1000).toStringAsFixed(1)}L';
     return '${round()}ml';
   }
+
+  // Weight conversions
+  double get kgToLbs => this * 2.20462;
+  double get lbsToKg => this / 2.20462;
+
+  String toWeightString(String weightUnit) {
+    if (weightUnit == 'lbs') return '${kgToLbs.toStringAsFixed(1)} lbs';
+    return '${toStringAsFixed(1)} kg';
+  }
 }

@@ -23,6 +23,7 @@ mixin _$UserProfileModel {
   int get activityLevel => throw _privateConstructorUsedError;
   int get dailyGoalMl => throw _privateConstructorUsedError;
   String get unit => throw _privateConstructorUsedError;
+  String get weightUnit => throw _privateConstructorUsedError;
   int get wakeHour => throw _privateConstructorUsedError;
   int get sleepHour => throw _privateConstructorUsedError;
   int get reminderIntervalMinutes => throw _privateConstructorUsedError;
@@ -49,6 +50,7 @@ abstract class $UserProfileModelCopyWith<$Res> {
     int activityLevel,
     int dailyGoalMl,
     String unit,
+    String weightUnit,
     int wakeHour,
     int sleepHour,
     int reminderIntervalMinutes,
@@ -77,6 +79,7 @@ class _$UserProfileModelCopyWithImpl<$Res, $Val extends UserProfileModel>
     Object? activityLevel = null,
     Object? dailyGoalMl = null,
     Object? unit = null,
+    Object? weightUnit = null,
     Object? wakeHour = null,
     Object? sleepHour = null,
     Object? reminderIntervalMinutes = null,
@@ -107,6 +110,10 @@ class _$UserProfileModelCopyWithImpl<$Res, $Val extends UserProfileModel>
             unit: null == unit
                 ? _value.unit
                 : unit // ignore: cast_nullable_to_non_nullable
+                      as String,
+            weightUnit: null == weightUnit
+                ? _value.weightUnit
+                : weightUnit // ignore: cast_nullable_to_non_nullable
                       as String,
             wakeHour: null == wakeHour
                 ? _value.wakeHour
@@ -146,6 +153,7 @@ abstract class _$$UserProfileModelImplCopyWith<$Res>
     int activityLevel,
     int dailyGoalMl,
     String unit,
+    String weightUnit,
     int wakeHour,
     int sleepHour,
     int reminderIntervalMinutes,
@@ -173,6 +181,7 @@ class __$$UserProfileModelImplCopyWithImpl<$Res>
     Object? activityLevel = null,
     Object? dailyGoalMl = null,
     Object? unit = null,
+    Object? weightUnit = null,
     Object? wakeHour = null,
     Object? sleepHour = null,
     Object? reminderIntervalMinutes = null,
@@ -203,6 +212,10 @@ class __$$UserProfileModelImplCopyWithImpl<$Res>
         unit: null == unit
             ? _value.unit
             : unit // ignore: cast_nullable_to_non_nullable
+                  as String,
+        weightUnit: null == weightUnit
+            ? _value.weightUnit
+            : weightUnit // ignore: cast_nullable_to_non_nullable
                   as String,
         wakeHour: null == wakeHour
             ? _value.wakeHour
@@ -235,6 +248,7 @@ class _$UserProfileModelImpl implements _UserProfileModel {
     required this.activityLevel,
     required this.dailyGoalMl,
     required this.unit,
+    required this.weightUnit,
     required this.wakeHour,
     required this.sleepHour,
     required this.reminderIntervalMinutes,
@@ -254,6 +268,8 @@ class _$UserProfileModelImpl implements _UserProfileModel {
   @override
   final String unit;
   @override
+  final String weightUnit;
+  @override
   final int wakeHour;
   @override
   final int sleepHour;
@@ -264,7 +280,7 @@ class _$UserProfileModelImpl implements _UserProfileModel {
 
   @override
   String toString() {
-    return 'UserProfileModel(id: $id, name: $name, weightKg: $weightKg, activityLevel: $activityLevel, dailyGoalMl: $dailyGoalMl, unit: $unit, wakeHour: $wakeHour, sleepHour: $sleepHour, reminderIntervalMinutes: $reminderIntervalMinutes, notificationsEnabled: $notificationsEnabled)';
+    return 'UserProfileModel(id: $id, name: $name, weightKg: $weightKg, activityLevel: $activityLevel, dailyGoalMl: $dailyGoalMl, unit: $unit, weightUnit: $weightUnit, wakeHour: $wakeHour, sleepHour: $sleepHour, reminderIntervalMinutes: $reminderIntervalMinutes, notificationsEnabled: $notificationsEnabled)';
   }
 
   @override
@@ -281,6 +297,8 @@ class _$UserProfileModelImpl implements _UserProfileModel {
             (identical(other.dailyGoalMl, dailyGoalMl) ||
                 other.dailyGoalMl == dailyGoalMl) &&
             (identical(other.unit, unit) || other.unit == unit) &&
+            (identical(other.weightUnit, weightUnit) ||
+                other.weightUnit == weightUnit) &&
             (identical(other.wakeHour, wakeHour) ||
                 other.wakeHour == wakeHour) &&
             (identical(other.sleepHour, sleepHour) ||
@@ -303,6 +321,7 @@ class _$UserProfileModelImpl implements _UserProfileModel {
     activityLevel,
     dailyGoalMl,
     unit,
+    weightUnit,
     wakeHour,
     sleepHour,
     reminderIntervalMinutes,
@@ -329,6 +348,7 @@ abstract class _UserProfileModel implements UserProfileModel {
     required final int activityLevel,
     required final int dailyGoalMl,
     required final String unit,
+    required final String weightUnit,
     required final int wakeHour,
     required final int sleepHour,
     required final int reminderIntervalMinutes,
@@ -347,6 +367,8 @@ abstract class _UserProfileModel implements UserProfileModel {
   int get dailyGoalMl;
   @override
   String get unit;
+  @override
+  String get weightUnit;
   @override
   int get wakeHour;
   @override

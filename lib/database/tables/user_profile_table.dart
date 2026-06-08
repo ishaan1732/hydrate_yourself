@@ -8,6 +8,7 @@ class UserProfile extends Table {
   IntColumn get activityLevel => integer()();
   IntColumn get dailyGoalMl => integer()();
   TextColumn get unit => text().withDefault(const Constant('ml'))();
+  TextColumn get weightUnit => text().withDefault(const Constant('kg'))();
   IntColumn get wakeHour => integer().withDefault(const Constant(7))();
   IntColumn get sleepHour => integer().withDefault(const Constant(23))();
   IntColumn get reminderIntervalMinutes =>

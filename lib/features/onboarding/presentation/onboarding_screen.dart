@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/extensions/double_extensions.dart';
 import 'onboarding_provider.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -137,23 +138,48 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 ref.read(onboardingNotifierProvider.notifier).updateName(value),
           ),
           const SizedBox(height: 16),
-          TextField(
-            controller: _weightController,
-            decoration: InputDecoration(
-              labelText: 'Weight (kg)',
-              errorText: _weightError,
-              border: const OutlineInputBorder(),
-            ),
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            onChanged: (value) {
-              final weight = double.tryParse(value.trim());
-              if (weight != null && weight > 0) {
-                ref
-                    .read(onboardingNotifierProvider.notifier)
-                    .updateWeight(weight);
-              }
+          Builder(builder: (context) {
+            final weightUnit = ref.watch(onboardingNotifierProvider)
+                    .value?.weightUnit ??
+                AppConstants.unitKg;
+            return TextField(
+              controller: _weightController,
+              decoration: InputDecoration(
+                labelText: 'Weight ($weightUnit)',
+                errorText: _weightError,
+                border: const OutlineInputBorder(),
+              ),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              onChanged: (value) {
+                final weight = double.tryParse(value.trim());
+                if (weight != null && weight > 0) {
+                  ref
+                      .read(onboardingNotifierProvider.notifier)
+                      .updateWeight(weight);
+                }
+              },
+            );
+          }),
+          const SizedBox(height: 12),
+          Text(
+            'Weight unit',
+            style: theme.textTheme.labelLarge
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 8),
+          SegmentedButton<String>(
+            segments: const [
+              ButtonSegment(value: 'kg', label: Text('kg')),
+              ButtonSegment(value: 'lbs', label: Text('lbs')),
+            ],
+            selected: {
+              ref.watch(onboardingNotifierProvider).value?.weightUnit ??
+                  AppConstants.unitKg,
             },
+            onSelectionChanged: (val) => ref
+                .read(onboardingNotifierProvider.notifier)
+                .updateWeightUnit(val.first),
           ),
         ],
       ),
@@ -389,11 +415,17 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _complete() async {
     final formData = ref.read(onboardingNotifierProvider).value;
     final name = _nameController.text.trim();
-    final weightKg = double.tryParse(_weightController.text.trim()) ??
+    // Weight entered in user's chosen unit; convert to kg for storage
+    final rawWeight = double.tryParse(_weightController.text.trim()) ??
         AppConstants.defaultWeightKg;
+    final weightUnit = formData?.weightUnit ?? AppConstants.unitKg;
+    final storedWeight = weightUnit == AppConstants.unitLbs
+        ? rawWeight.lbsToKg
+        : rawWeight;
     await ref.read(onboardingNotifierProvider.notifier).completeOnboarding(
           name: name,
-          weightKg: weightKg,
+          weightKg: storedWeight,
+          weightUnit: weightUnit,
           activityLevel:
               formData?.activityLevel ?? AppConstants.defaultActivityLevel,
           wakeHour: formData?.wakeHour ?? AppConstants.defaultWakeHour,
