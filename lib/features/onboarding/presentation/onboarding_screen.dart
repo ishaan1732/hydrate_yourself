@@ -454,6 +454,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   void _nextPage() {
+    FocusScope.of(context).unfocus();
     if (_currentPage == 0) {
       String? nameErr;
       String? weightErr;
