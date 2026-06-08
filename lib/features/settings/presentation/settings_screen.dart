@@ -14,6 +14,12 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  static const List<int> _reminderOptions = [
+    30, 60, 90, 120, 150, 180,
+    210, 240, 270, 300, 330, 360,
+    390, 420, 450, 480,
+  ];
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -298,12 +304,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Icon(Icons.chevron_right, size: 20, color: colorScheme.onSurfaceVariant),
         ],
       ),
-      onTap: () => _showHourPicker(
+      onTap: () => _showTimePicker(
         context,
         title: 'Wake up time',
         currentHour: profile.wakeHour,
-        minHour: 4,
-        maxHour: 12,
         onSelected: (h) =>
             ref.read(settingsNotifierProvider.notifier).updateWakeHour(h),
       ),
@@ -329,53 +333,139 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Icon(Icons.chevron_right, size: 20, color: colorScheme.onSurfaceVariant),
         ],
       ),
-      onTap: () => _showHourPicker(
+      onTap: () => _showTimePicker(
         context,
         title: 'Bedtime',
         currentHour: profile.sleepHour,
-        minHour: 20,
-        maxHour: 23,
         onSelected: (h) =>
             ref.read(settingsNotifierProvider.notifier).updateSleepHour(h),
       ),
     );
   }
 
-  void _showHourPicker(
+  void _showTimePicker(
     BuildContext context, {
     required String title,
     required int currentHour,
-    required int minHour,
-    required int maxHour,
-    required void Function(int) onSelected,
+    required void Function(int hour) onSelected,
   }) {
-    showDialog(
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (int hour = minHour; hour <= maxHour; hour++)
-              RadioListTile<int>(
-                value: hour,
-                groupValue: currentHour,
-                title: Text(_formatHour(hour)),
-                onChanged: (val) {
-                  if (val == null) return;
-                  Navigator.pop(dialogContext);
-                  onSelected(val);
-                },
-              ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-        ],
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (dialogContext) {
+        int selected = currentHour;
+        return StatefulBuilder(
+          builder: (ctx, setState) => Container(
+            padding: EdgeInsets.only(
+              top: 20,
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(dialogContext),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 320),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: 24,
+                    itemBuilder: (_, i) {
+                      final isSelected = i == selected;
+                      return GestureDetector(
+                        onTap: () => setState(() => selected = i),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          margin: const EdgeInsets.symmetric(vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? colorScheme.primary.withValues(alpha: 0.15)
+                                : colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                _formatHour(i),
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
+                                  color: isSelected
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurface,
+                                ),
+                              ),
+                              const Spacer(),
+                              if (isSelected)
+                                Icon(Icons.check_circle_rounded,
+                                    color: colorScheme.primary, size: 20),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                      onSelected(selected);
+                    },
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text('Confirm ${_formatHour(selected)}'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -438,7 +528,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget _buildReminderIntervalTile(
       BuildContext context, WidgetRef ref, int currentMinutes) {
     final colorScheme = Theme.of(context).colorScheme;
-    const options = [30, 60, 90, 120, 180, 240];
     return ListTile(
       leading: Icon(Icons.timer_outlined, color: colorScheme.primary),
       title: Text(
@@ -451,8 +540,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
       trailing:
           Icon(Icons.chevron_right, size: 20, color: colorScheme.onSurfaceVariant),
-      onTap: () =>
-          _showIntervalDialog(context, ref, currentMinutes, options),
+      onTap: () => _showReminderPicker(context, ref, currentMinutes),
     );
   }
 
@@ -661,45 +749,163 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _showIntervalDialog(BuildContext context, WidgetRef ref, int current,
-      List<int> options) {
-    showDialog(
+  void _showReminderPicker(
+      BuildContext context, WidgetRef ref, int currentMinutes) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    showModalBottomSheet(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Reminder Interval'),
-        content: RadioGroup<int>(
-          groupValue: current,
-          onChanged: (val) {
-            if (val == null) return;
-            Navigator.pop(dialogContext);
-            ref
-                .read(settingsNotifierProvider.notifier)
-                .updateReminderInterval(val);
-          },
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: options
-                .map((option) => RadioListTile<int>(
-                      value: option,
-                      title: Text(_formatInterval(option)),
-                    ))
-                .toList(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-        ],
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (dialogContext) {
+        int selected = _reminderOptions.contains(currentMinutes)
+            ? currentMinutes
+            : 90;
+        return StatefulBuilder(
+          builder: (ctx, setState) => Container(
+            padding: EdgeInsets.only(
+              top: 20,
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      'Reminder Interval',
+                      style: theme.textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(dialogContext),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  "How often to remind you when you haven't logged",
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+                const SizedBox(height: 12),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 340),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: _reminderOptions.length,
+                    itemBuilder: (_, i) {
+                      final option = _reminderOptions[i];
+                      final isSelected = option == selected;
+                      return GestureDetector(
+                        onTap: () => setState(() => selected = option),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          margin: const EdgeInsets.symmetric(vertical: 3),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 14),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? colorScheme.primary.withValues(alpha: 0.15)
+                                : colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Text(
+                                _formatInterval(option),
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                  fontWeight: isSelected
+                                      ? FontWeight.w700
+                                      : FontWeight.w400,
+                                  color: isSelected
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurface,
+                                ),
+                              ),
+                              const Spacer(),
+                              if (option == 90)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: colorScheme.secondaryContainer,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    'Recommended',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: colorScheme.onSecondaryContainer,
+                                    ),
+                                  ),
+                                ),
+                              if (isSelected) ...[
+                                const SizedBox(width: 8),
+                                Icon(Icons.check_circle_rounded,
+                                    color: colorScheme.primary, size: 20),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () {
+                      Navigator.pop(dialogContext);
+                      ref
+                          .read(settingsNotifierProvider.notifier)
+                          .updateReminderInterval(selected);
+                    },
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                        'Set reminder every ${_formatInterval(selected)}'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   String _formatInterval(int minutes) {
     if (minutes < 60) return '$minutes min';
-    if (minutes == 60) return '1 hour';
-    if (minutes % 60 == 0) return '${minutes ~/ 60} hours';
-    return '${minutes ~/ 60}h ${minutes % 60}min';
+    final hours = minutes ~/ 60;
+    final mins = minutes % 60;
+    if (mins == 0) return hours == 1 ? '1 hr' : '$hours hrs';
+    return '$hours hr $mins min';
   }
 }
