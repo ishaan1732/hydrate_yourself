@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
+import '../../home/presentation/widgets/water_wave.dart';
 import 'onboarding_provider.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -21,6 +22,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   late FixedExtentScrollController _hourWheelCtrl;
   late FixedExtentScrollController _minuteWheelCtrl;
   int _currentPage = 0;
+  bool _hasAttemptedNext = false;
   String? _nameError;
   String? _weightError;
 
@@ -46,60 +48,67 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    if (_currentPage == 0) {
+      return Scaffold(
+        body: _buildWelcomePage(),
+      );
+    }
+
     return Scaffold(
       backgroundColor: colorScheme.surface,
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SafeArea(
+      body: SafeArea(
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(3, (index) {
-                      final isActive = index == _currentPage;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: isActive ? 24 : 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? colorScheme.primary
-                              : colorScheme.outlineVariant,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 32),
-                ],
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(3, (i) {
+                  final isActive = i == _currentPage - 1;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    width: isActive ? 24 : 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? colorScheme.primary
+                          : colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  );
+                }),
               ),
             ),
             Expanded(
-              child: PageView.builder(
+              child: PageView(
                 controller: _pageController,
-                itemCount: 3,
                 physics: const NeverScrollableScrollPhysics(),
-                itemBuilder: (context, index) => _buildPage(index),
+                children: [
+                  _buildNameWeightPage(),
+                  _buildActivityPage(),
+                  _buildRemindersPage(),
+                ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
               child: Row(
                 children: [
-                  if (_currentPage > 0)
-                    TextButton(
-                      onPressed: _previousPage,
-                      child: const Text('Back'),
-                    ),
+                  TextButton(
+                    onPressed: _previousPage,
+                    child: const Text('Back'),
+                  ),
                   const Spacer(),
                   FilledButton(
-                    onPressed: _currentPage < 2 ? _nextPage : _complete,
-                    child: Text(_currentPage < 2 ? 'Next' : 'Complete'),
+                    onPressed: _currentPage < 3 ? _nextPage : _complete,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(_currentPage < 3 ? 'Next' : 'Complete'),
                   ),
                 ],
               ),
@@ -107,17 +116,108 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ],
         ),
       ),
-      ),
     );
   }
 
-  Widget _buildPage(int index) {
-    return switch (index) {
-      0 => _buildNameWeightPage(),
-      1 => _buildActivityPage(),
-      2 => _buildRemindersPage(),
-      _ => const SizedBox.shrink(),
-    };
+  Widget _buildWelcomePage() {
+    return SizedBox.expand(
+      child: Stack(
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF0090C8), Color(0xFF0077A8)],
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: MediaQuery.of(context).size.height * 0.28,
+            child: const WaterWave(
+              fillPercent: 1.0,
+              waveColor: Colors.white,
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                const Spacer(flex: 2),
+                Image.asset(
+                  'assets/images/jumbo_transparent.png',
+                  width: 220,
+                  height: 220,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Hi, I\'m Jumbo!',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    letterSpacing: -0.5,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    'Your personal hydration companion.\nI\'ll help you drink more water every day.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withValues(alpha: 0.85),
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const Spacer(flex: 3),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        setState(() => _currentPage = 1);
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF0090C8),
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Get Started',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Takes less than a minute to set up',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.6),
+                  ),
+                ),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildNameWeightPage() {
@@ -144,7 +244,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             controller: _nameController,
             decoration: InputDecoration(
               labelText: 'Your name',
-              errorText: _nameError,
+              errorText: _hasAttemptedNext ? _nameError : null,
               border: const OutlineInputBorder(),
             ),
             onChanged: (value) =>
@@ -159,7 +259,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               controller: _weightController,
               decoration: InputDecoration(
                 labelText: 'Weight ($weightUnit)',
-                errorText: _weightError,
+                errorText: _hasAttemptedNext ? _weightError : null,
                 border: const OutlineInputBorder(),
               ),
               keyboardType:
@@ -455,43 +555,55 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   void _nextPage() {
     FocusScope.of(context).unfocus();
-    if (_currentPage == 0) {
+
+    if (_currentPage == 1) {
+      setState(() => _hasAttemptedNext = true);
+
+      final name = _nameController.text.trim();
+      final weight = double.tryParse(_weightController.text.trim());
+
       String? nameErr;
       String? weightErr;
 
-      if (_nameController.text.trim().isEmpty) {
+      if (name.isEmpty) {
         nameErr = 'Please enter your name';
       }
-
-      final weight = double.tryParse(_weightController.text.trim());
       if (weight == null || weight <= 0) {
         weightErr = 'Please enter a valid weight';
       }
 
-      if (nameErr != null || weightErr != null) {
-        setState(() {
-          _nameError = nameErr;
-          _weightError = weightErr;
-        });
-        return;
+      setState(() {
+        _nameError = nameErr;
+        _weightError = weightErr;
+      });
+
+      if (name.isNotEmpty) {
+        ref.read(onboardingNotifierProvider.notifier).updateName(name);
+      }
+      if (weight != null && weight > 0) {
+        ref.read(onboardingNotifierProvider.notifier).updateWeight(weight);
       }
 
-      setState(() {
-        _nameError = null;
-        _weightError = null;
-      });
+      if (nameErr != null || weightErr != null) return;
     }
 
     _pageController.nextPage(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOut,
     );
     setState(() => _currentPage++);
   }
 
   void _previousPage() {
+    FocusScope.of(context).unfocus();
+
+    if (_currentPage == 1) {
+      setState(() => _currentPage = 0);
+      return;
+    }
+
     _pageController.previousPage(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 350),
       curve: Curves.easeInOut,
     );
     setState(() => _currentPage--);
