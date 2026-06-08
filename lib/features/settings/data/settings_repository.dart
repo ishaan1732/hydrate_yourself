@@ -85,6 +85,26 @@ class SettingsRepository {
     ));
   }
 
+  Future<void> updateWakeTime(int hour, int minute) async {
+    final profile = await _userProfileDao.getProfile();
+    if (profile == null) return;
+    await _userProfileDao.updateProfile(UserProfileCompanion(
+      id: Value(profile.id),
+      wakeHour: Value(hour),
+      wakeMinute: Value(minute),
+    ));
+  }
+
+  Future<void> updateSleepTime(int hour, int minute) async {
+    final profile = await _userProfileDao.getProfile();
+    if (profile == null) return;
+    await _userProfileDao.updateProfile(UserProfileCompanion(
+      id: Value(profile.id),
+      sleepHour: Value(hour),
+      sleepMinute: Value(minute),
+    ));
+  }
+
   Future<void> updateNotificationsEnabled(bool enabled) async {
     final profile = await _userProfileDao.getProfile();
     if (profile == null) return;

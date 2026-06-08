@@ -929,6 +929,30 @@ class $UserProfileTable extends UserProfile
     requiredDuringInsert: false,
     defaultValue: const Constant(23),
   );
+  static const VerificationMeta _wakeMinuteMeta = const VerificationMeta(
+    'wakeMinute',
+  );
+  @override
+  late final GeneratedColumn<int> wakeMinute = GeneratedColumn<int>(
+    'wake_minute',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _sleepMinuteMeta = const VerificationMeta(
+    'sleepMinute',
+  );
+  @override
+  late final GeneratedColumn<int> sleepMinute = GeneratedColumn<int>(
+    'sleep_minute',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _reminderIntervalMinutesMeta =
       const VerificationMeta('reminderIntervalMinutes');
   @override
@@ -978,6 +1002,8 @@ class $UserProfileTable extends UserProfile
     weightUnit,
     wakeHour,
     sleepHour,
+    wakeMinute,
+    sleepMinute,
     reminderIntervalMinutes,
     notificationsEnabled,
     createdAt,
@@ -1059,6 +1085,21 @@ class $UserProfileTable extends UserProfile
         sleepHour.isAcceptableOrUnknown(data['sleep_hour']!, _sleepHourMeta),
       );
     }
+    if (data.containsKey('wake_minute')) {
+      context.handle(
+        _wakeMinuteMeta,
+        wakeMinute.isAcceptableOrUnknown(data['wake_minute']!, _wakeMinuteMeta),
+      );
+    }
+    if (data.containsKey('sleep_minute')) {
+      context.handle(
+        _sleepMinuteMeta,
+        sleepMinute.isAcceptableOrUnknown(
+          data['sleep_minute']!,
+          _sleepMinuteMeta,
+        ),
+      );
+    }
     if (data.containsKey('reminder_interval_minutes')) {
       context.handle(
         _reminderIntervalMinutesMeta,
@@ -1128,6 +1169,14 @@ class $UserProfileTable extends UserProfile
         DriftSqlType.int,
         data['${effectivePrefix}sleep_hour'],
       )!,
+      wakeMinute: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}wake_minute'],
+      )!,
+      sleepMinute: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sleep_minute'],
+      )!,
       reminderIntervalMinutes: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}reminder_interval_minutes'],
@@ -1159,6 +1208,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
   final String weightUnit;
   final int wakeHour;
   final int sleepHour;
+  final int wakeMinute;
+  final int sleepMinute;
   final int reminderIntervalMinutes;
   final bool notificationsEnabled;
   final DateTime createdAt;
@@ -1172,6 +1223,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     required this.weightUnit,
     required this.wakeHour,
     required this.sleepHour,
+    required this.wakeMinute,
+    required this.sleepMinute,
     required this.reminderIntervalMinutes,
     required this.notificationsEnabled,
     required this.createdAt,
@@ -1188,6 +1241,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     map['weight_unit'] = Variable<String>(weightUnit);
     map['wake_hour'] = Variable<int>(wakeHour);
     map['sleep_hour'] = Variable<int>(sleepHour);
+    map['wake_minute'] = Variable<int>(wakeMinute);
+    map['sleep_minute'] = Variable<int>(sleepMinute);
     map['reminder_interval_minutes'] = Variable<int>(reminderIntervalMinutes);
     map['notifications_enabled'] = Variable<bool>(notificationsEnabled);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -1205,6 +1260,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       weightUnit: Value(weightUnit),
       wakeHour: Value(wakeHour),
       sleepHour: Value(sleepHour),
+      wakeMinute: Value(wakeMinute),
+      sleepMinute: Value(sleepMinute),
       reminderIntervalMinutes: Value(reminderIntervalMinutes),
       notificationsEnabled: Value(notificationsEnabled),
       createdAt: Value(createdAt),
@@ -1226,6 +1283,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       weightUnit: serializer.fromJson<String>(json['weightUnit']),
       wakeHour: serializer.fromJson<int>(json['wakeHour']),
       sleepHour: serializer.fromJson<int>(json['sleepHour']),
+      wakeMinute: serializer.fromJson<int>(json['wakeMinute']),
+      sleepMinute: serializer.fromJson<int>(json['sleepMinute']),
       reminderIntervalMinutes: serializer.fromJson<int>(
         json['reminderIntervalMinutes'],
       ),
@@ -1248,6 +1307,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       'weightUnit': serializer.toJson<String>(weightUnit),
       'wakeHour': serializer.toJson<int>(wakeHour),
       'sleepHour': serializer.toJson<int>(sleepHour),
+      'wakeMinute': serializer.toJson<int>(wakeMinute),
+      'sleepMinute': serializer.toJson<int>(sleepMinute),
       'reminderIntervalMinutes': serializer.toJson<int>(
         reminderIntervalMinutes,
       ),
@@ -1266,6 +1327,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     String? weightUnit,
     int? wakeHour,
     int? sleepHour,
+    int? wakeMinute,
+    int? sleepMinute,
     int? reminderIntervalMinutes,
     bool? notificationsEnabled,
     DateTime? createdAt,
@@ -1279,6 +1342,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     weightUnit: weightUnit ?? this.weightUnit,
     wakeHour: wakeHour ?? this.wakeHour,
     sleepHour: sleepHour ?? this.sleepHour,
+    wakeMinute: wakeMinute ?? this.wakeMinute,
+    sleepMinute: sleepMinute ?? this.sleepMinute,
     reminderIntervalMinutes:
         reminderIntervalMinutes ?? this.reminderIntervalMinutes,
     notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
@@ -1301,6 +1366,12 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           : this.weightUnit,
       wakeHour: data.wakeHour.present ? data.wakeHour.value : this.wakeHour,
       sleepHour: data.sleepHour.present ? data.sleepHour.value : this.sleepHour,
+      wakeMinute: data.wakeMinute.present
+          ? data.wakeMinute.value
+          : this.wakeMinute,
+      sleepMinute: data.sleepMinute.present
+          ? data.sleepMinute.value
+          : this.sleepMinute,
       reminderIntervalMinutes: data.reminderIntervalMinutes.present
           ? data.reminderIntervalMinutes.value
           : this.reminderIntervalMinutes,
@@ -1323,6 +1394,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           ..write('weightUnit: $weightUnit, ')
           ..write('wakeHour: $wakeHour, ')
           ..write('sleepHour: $sleepHour, ')
+          ..write('wakeMinute: $wakeMinute, ')
+          ..write('sleepMinute: $sleepMinute, ')
           ..write('reminderIntervalMinutes: $reminderIntervalMinutes, ')
           ..write('notificationsEnabled: $notificationsEnabled, ')
           ..write('createdAt: $createdAt')
@@ -1341,6 +1414,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     weightUnit,
     wakeHour,
     sleepHour,
+    wakeMinute,
+    sleepMinute,
     reminderIntervalMinutes,
     notificationsEnabled,
     createdAt,
@@ -1358,6 +1433,8 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           other.weightUnit == this.weightUnit &&
           other.wakeHour == this.wakeHour &&
           other.sleepHour == this.sleepHour &&
+          other.wakeMinute == this.wakeMinute &&
+          other.sleepMinute == this.sleepMinute &&
           other.reminderIntervalMinutes == this.reminderIntervalMinutes &&
           other.notificationsEnabled == this.notificationsEnabled &&
           other.createdAt == this.createdAt);
@@ -1373,6 +1450,8 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
   final Value<String> weightUnit;
   final Value<int> wakeHour;
   final Value<int> sleepHour;
+  final Value<int> wakeMinute;
+  final Value<int> sleepMinute;
   final Value<int> reminderIntervalMinutes;
   final Value<bool> notificationsEnabled;
   final Value<DateTime> createdAt;
@@ -1386,6 +1465,8 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     this.weightUnit = const Value.absent(),
     this.wakeHour = const Value.absent(),
     this.sleepHour = const Value.absent(),
+    this.wakeMinute = const Value.absent(),
+    this.sleepMinute = const Value.absent(),
     this.reminderIntervalMinutes = const Value.absent(),
     this.notificationsEnabled = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -1400,6 +1481,8 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     this.weightUnit = const Value.absent(),
     this.wakeHour = const Value.absent(),
     this.sleepHour = const Value.absent(),
+    this.wakeMinute = const Value.absent(),
+    this.sleepMinute = const Value.absent(),
     this.reminderIntervalMinutes = const Value.absent(),
     this.notificationsEnabled = const Value.absent(),
     this.createdAt = const Value.absent(),
@@ -1417,6 +1500,8 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     Expression<String>? weightUnit,
     Expression<int>? wakeHour,
     Expression<int>? sleepHour,
+    Expression<int>? wakeMinute,
+    Expression<int>? sleepMinute,
     Expression<int>? reminderIntervalMinutes,
     Expression<bool>? notificationsEnabled,
     Expression<DateTime>? createdAt,
@@ -1431,6 +1516,8 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
       if (weightUnit != null) 'weight_unit': weightUnit,
       if (wakeHour != null) 'wake_hour': wakeHour,
       if (sleepHour != null) 'sleep_hour': sleepHour,
+      if (wakeMinute != null) 'wake_minute': wakeMinute,
+      if (sleepMinute != null) 'sleep_minute': sleepMinute,
       if (reminderIntervalMinutes != null)
         'reminder_interval_minutes': reminderIntervalMinutes,
       if (notificationsEnabled != null)
@@ -1449,6 +1536,8 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     Value<String>? weightUnit,
     Value<int>? wakeHour,
     Value<int>? sleepHour,
+    Value<int>? wakeMinute,
+    Value<int>? sleepMinute,
     Value<int>? reminderIntervalMinutes,
     Value<bool>? notificationsEnabled,
     Value<DateTime>? createdAt,
@@ -1463,6 +1552,8 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
       weightUnit: weightUnit ?? this.weightUnit,
       wakeHour: wakeHour ?? this.wakeHour,
       sleepHour: sleepHour ?? this.sleepHour,
+      wakeMinute: wakeMinute ?? this.wakeMinute,
+      sleepMinute: sleepMinute ?? this.sleepMinute,
       reminderIntervalMinutes:
           reminderIntervalMinutes ?? this.reminderIntervalMinutes,
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
@@ -1500,6 +1591,12 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     if (sleepHour.present) {
       map['sleep_hour'] = Variable<int>(sleepHour.value);
     }
+    if (wakeMinute.present) {
+      map['wake_minute'] = Variable<int>(wakeMinute.value);
+    }
+    if (sleepMinute.present) {
+      map['sleep_minute'] = Variable<int>(sleepMinute.value);
+    }
     if (reminderIntervalMinutes.present) {
       map['reminder_interval_minutes'] = Variable<int>(
         reminderIntervalMinutes.value,
@@ -1526,6 +1623,8 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
           ..write('weightUnit: $weightUnit, ')
           ..write('wakeHour: $wakeHour, ')
           ..write('sleepHour: $sleepHour, ')
+          ..write('wakeMinute: $wakeMinute, ')
+          ..write('sleepMinute: $sleepMinute, ')
           ..write('reminderIntervalMinutes: $reminderIntervalMinutes, ')
           ..write('notificationsEnabled: $notificationsEnabled, ')
           ..write('createdAt: $createdAt')
@@ -2217,6 +2316,8 @@ typedef $$UserProfileTableCreateCompanionBuilder =
       Value<String> weightUnit,
       Value<int> wakeHour,
       Value<int> sleepHour,
+      Value<int> wakeMinute,
+      Value<int> sleepMinute,
       Value<int> reminderIntervalMinutes,
       Value<bool> notificationsEnabled,
       Value<DateTime> createdAt,
@@ -2232,6 +2333,8 @@ typedef $$UserProfileTableUpdateCompanionBuilder =
       Value<String> weightUnit,
       Value<int> wakeHour,
       Value<int> sleepHour,
+      Value<int> wakeMinute,
+      Value<int> sleepMinute,
       Value<int> reminderIntervalMinutes,
       Value<bool> notificationsEnabled,
       Value<DateTime> createdAt,
@@ -2288,6 +2391,16 @@ class $$UserProfileTableFilterComposer
 
   ColumnFilters<int> get sleepHour => $composableBuilder(
     column: $table.sleepHour,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get wakeMinute => $composableBuilder(
+    column: $table.wakeMinute,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sleepMinute => $composableBuilder(
+    column: $table.sleepMinute,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2361,6 +2474,16 @@ class $$UserProfileTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get wakeMinute => $composableBuilder(
+    column: $table.wakeMinute,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sleepMinute => $composableBuilder(
+    column: $table.sleepMinute,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get reminderIntervalMinutes => $composableBuilder(
     column: $table.reminderIntervalMinutes,
     builder: (column) => ColumnOrderings(column),
@@ -2419,6 +2542,16 @@ class $$UserProfileTableAnnotationComposer
   GeneratedColumn<int> get sleepHour =>
       $composableBuilder(column: $table.sleepHour, builder: (column) => column);
 
+  GeneratedColumn<int> get wakeMinute => $composableBuilder(
+    column: $table.wakeMinute,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sleepMinute => $composableBuilder(
+    column: $table.sleepMinute,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get reminderIntervalMinutes => $composableBuilder(
     column: $table.reminderIntervalMinutes,
     builder: (column) => column,
@@ -2473,6 +2606,8 @@ class $$UserProfileTableTableManager
                 Value<String> weightUnit = const Value.absent(),
                 Value<int> wakeHour = const Value.absent(),
                 Value<int> sleepHour = const Value.absent(),
+                Value<int> wakeMinute = const Value.absent(),
+                Value<int> sleepMinute = const Value.absent(),
                 Value<int> reminderIntervalMinutes = const Value.absent(),
                 Value<bool> notificationsEnabled = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -2486,6 +2621,8 @@ class $$UserProfileTableTableManager
                 weightUnit: weightUnit,
                 wakeHour: wakeHour,
                 sleepHour: sleepHour,
+                wakeMinute: wakeMinute,
+                sleepMinute: sleepMinute,
                 reminderIntervalMinutes: reminderIntervalMinutes,
                 notificationsEnabled: notificationsEnabled,
                 createdAt: createdAt,
@@ -2501,6 +2638,8 @@ class $$UserProfileTableTableManager
                 Value<String> weightUnit = const Value.absent(),
                 Value<int> wakeHour = const Value.absent(),
                 Value<int> sleepHour = const Value.absent(),
+                Value<int> wakeMinute = const Value.absent(),
+                Value<int> sleepMinute = const Value.absent(),
                 Value<int> reminderIntervalMinutes = const Value.absent(),
                 Value<bool> notificationsEnabled = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
@@ -2514,6 +2653,8 @@ class $$UserProfileTableTableManager
                 weightUnit: weightUnit,
                 wakeHour: wakeHour,
                 sleepHour: sleepHour,
+                wakeMinute: wakeMinute,
+                sleepMinute: sleepMinute,
                 reminderIntervalMinutes: reminderIntervalMinutes,
                 notificationsEnabled: notificationsEnabled,
                 createdAt: createdAt,

@@ -121,6 +121,28 @@ class SettingsNotifier extends _$SettingsNotifier {
     }
   }
 
+  Future<void> updateWakeTime(int hour, int minute) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncData(current.copyWith(wakeHour: hour, wakeMinute: minute));
+    try {
+      await ref.read(settingsRepositoryProvider).updateWakeTime(hour, minute);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> updateSleepTime(int hour, int minute) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncData(current.copyWith(sleepHour: hour, sleepMinute: minute));
+    try {
+      await ref.read(settingsRepositoryProvider).updateSleepTime(hour, minute);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
   Future<void> updateNotificationsEnabled(bool enabled) async {
     final current = state.valueOrNull;
     if (current == null) return;

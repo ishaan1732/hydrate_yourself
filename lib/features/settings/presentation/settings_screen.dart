@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,12 +15,6 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  static const List<int> _reminderOptions = [
-    30, 60, 90, 120, 150, 180,
-    210, 240, 270, 300, 330, 360,
-    390, 420, 450, 480,
-  ];
-
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -295,7 +290,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            _formatHour(profile.wakeHour),
+            _formatTime(profile.wakeHour, profile.wakeMinute),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -304,12 +299,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Icon(Icons.chevron_right, size: 20, color: colorScheme.onSurfaceVariant),
         ],
       ),
-      onTap: () => _showTimePicker(
+      onTap: () => _showAlarmTimePicker(
         context,
         title: 'Wake up time',
         currentHour: profile.wakeHour,
-        onSelected: (h) =>
-            ref.read(settingsNotifierProvider.notifier).updateWakeHour(h),
+        currentMinute: profile.wakeMinute,
+        onSelected: (h, m) =>
+            ref.read(settingsNotifierProvider.notifier).updateWakeTime(h, m),
       ),
     );
   }
@@ -324,7 +320,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            _formatHour(profile.sleepHour),
+            _formatTime(profile.sleepHour, profile.sleepMinute),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -333,146 +329,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           Icon(Icons.chevron_right, size: 20, color: colorScheme.onSurfaceVariant),
         ],
       ),
-      onTap: () => _showTimePicker(
+      onTap: () => _showAlarmTimePicker(
         context,
         title: 'Bedtime',
         currentHour: profile.sleepHour,
-        onSelected: (h) =>
-            ref.read(settingsNotifierProvider.notifier).updateSleepHour(h),
+        currentMinute: profile.sleepMinute,
+        onSelected: (h, m) =>
+            ref.read(settingsNotifierProvider.notifier).updateSleepTime(h, m),
       ),
     );
   }
 
-  void _showTimePicker(
+  void _showAlarmTimePicker(
     BuildContext context, {
     required String title,
     required int currentHour,
-    required void Function(int hour) onSelected,
-  }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    showModalBottomSheet(
+    required int currentMinute,
+    required void Function(int hour, int minute) onSelected,
+  }) async {
+    final TimeOfDay? picked = await showTimePicker(
       context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (dialogContext) {
-        int selected = currentHour;
-        return StatefulBuilder(
-          builder: (ctx, setState) => Container(
-            padding: EdgeInsets.only(
-              top: 20,
-              left: 20,
-              right: 20,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      title,
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(dialogContext),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 320),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: 24,
-                    itemBuilder: (_, i) {
-                      final isSelected = i == selected;
-                      return GestureDetector(
-                        onTap: () => setState(() => selected = i),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          margin: const EdgeInsets.symmetric(vertical: 3),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? colorScheme.primary.withValues(alpha: 0.15)
-                                : colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected
-                                  ? colorScheme.primary
-                                  : Colors.transparent,
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                _formatHour(i),
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w400,
-                                  color: isSelected
-                                      ? colorScheme.primary
-                                      : colorScheme.onSurface,
-                                ),
-                              ),
-                              const Spacer(),
-                              if (isSelected)
-                                Icon(Icons.check_circle_rounded,
-                                    color: colorScheme.primary, size: 20),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () {
-                      Navigator.pop(dialogContext);
-                      onSelected(selected);
-                    },
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: Text('Confirm ${_formatHour(selected)}'),
-                  ),
-                ),
-              ],
-            ),
-          ),
+      initialTime: TimeOfDay(hour: currentHour, minute: currentMinute),
+      helpText: title,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
+          child: child!,
         );
       },
     );
+    if (picked != null) {
+      onSelected(picked.hour, picked.minute);
+    }
   }
 
-  String _formatHour(int hour) {
+  String _formatTime(int hour, int minute) {
     final period = hour >= 12 ? 'PM' : 'AM';
-    final h = hour > 12 ? hour - 12 : hour == 0 ? 12 : hour;
-    return '$h:00 $period';
+    final h = hour == 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    final m = minute.toString().padLeft(2, '0');
+    return '$h:$m $period';
   }
 
   Widget _buildGoalTile(
@@ -754,6 +649,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
+    int selectedHours = (currentMinutes ~/ 60).clamp(0, 8);
+    int selectedHalfHour = ((currentMinutes % 60) ~/ 30).clamp(0, 1);
+    if (selectedHours == 0 && selectedHalfHour == 0) selectedHalfHour = 1;
+
+    final hourController =
+        FixedExtentScrollController(initialItem: selectedHours);
+    final minuteController =
+        FixedExtentScrollController(initialItem: selectedHalfHour);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -761,141 +665,175 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (dialogContext) {
-        int selected = _reminderOptions.contains(currentMinutes)
-            ? currentMinutes
-            : 90;
         return StatefulBuilder(
-          builder: (ctx, setState) => Container(
-            padding: EdgeInsets.only(
-              top: 20,
-              left: 20,
-              right: 20,
-              bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(2),
+          builder: (ctx, setState) {
+            int totalMinutes() {
+              final mins = selectedHours * 60 + selectedHalfHour * 30;
+              return mins == 0 ? 30 : mins;
+            }
+
+            String formatSelected() {
+              final t = totalMinutes();
+              final h = t ~/ 60;
+              final m = t % 60;
+              if (h == 0) return '$m min';
+              if (m == 0) return h == 1 ? '1 hr' : '$h hrs';
+              return '$h hr $m min';
+            }
+
+            return Container(
+              padding: const EdgeInsets.only(
+                  top: 20, left: 24, right: 24, bottom: 24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      'Reminder Interval',
-                      style: theme.textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w700),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(dialogContext),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  "How often to remind you when you haven't logged",
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
-                ),
-                const SizedBox(height: 12),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 340),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: _reminderOptions.length,
-                    itemBuilder: (_, i) {
-                      final option = _reminderOptions[i];
-                      final isSelected = option == selected;
-                      return GestureDetector(
-                        onTap: () => setState(() => selected = option),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 150),
-                          margin: const EdgeInsets.symmetric(vertical: 3),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? colorScheme.primary.withValues(alpha: 0.15)
-                                : colorScheme.surfaceContainerHighest,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected
-                                  ? colorScheme.primary
-                                  : Colors.transparent,
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
+                  Row(
+                    children: [
+                      Text(
+                        'Reminder every',
+                        style: theme.textTheme.headlineSmall
+                            ?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(dialogContext),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Remind you to drink when you haven't logged",
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    height: 200,
+                    child: Row(
+                      children: [
+                        // Hours wheel (0–8)
+                        Expanded(
+                          child: Stack(
+                            alignment: Alignment.center,
                             children: [
-                              Text(
-                                _formatInterval(option),
-                                style: theme.textTheme.bodyLarge?.copyWith(
-                                  fontWeight: isSelected
-                                      ? FontWeight.w700
-                                      : FontWeight.w400,
-                                  color: isSelected
-                                      ? colorScheme.primary
-                                      : colorScheme.onSurface,
+                              Container(
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary
+                                      .withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              const Spacer(),
-                              if (option == 90)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: colorScheme.secondaryContainer,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    'Recommended',
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      color: colorScheme.onSecondaryContainer,
+                              CupertinoPicker(
+                                scrollController: hourController,
+                                itemExtent: 44,
+                                selectionOverlay: const SizedBox.shrink(),
+                                onSelectedItemChanged: (i) =>
+                                    setState(() => selectedHours = i),
+                                children: List.generate(
+                                  9,
+                                  (i) => Center(
+                                    child: Text(
+                                      '$i hr',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
+                                      ),
                                     ),
                                   ),
                                 ),
-                              if (isSelected) ...[
-                                const SizedBox(width: 8),
-                                Icon(Icons.check_circle_rounded,
-                                    color: colorScheme.primary, size: 20),
-                              ],
+                              ),
                             ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () {
-                      Navigator.pop(dialogContext);
-                      ref
-                          .read(settingsNotifierProvider.notifier)
-                          .updateReminderInterval(selected);
-                    },
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        const SizedBox(width: 8),
+                        // Minutes wheel (:00 or :30)
+                        Expanded(
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: colorScheme.primary
+                                      .withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              CupertinoPicker(
+                                scrollController: minuteController,
+                                itemExtent: 44,
+                                selectionOverlay: const SizedBox.shrink(),
+                                onSelectedItemChanged: (i) =>
+                                    setState(() => selectedHalfHour = i),
+                                children: [
+                                  Center(
+                                    child: Text(
+                                      ':00 min',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ),
+                                  Center(
+                                    child: Text(
+                                      ':30 min',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    child: Text(
-                        'Set reminder every ${_formatInterval(selected)}'),
                   ),
-                ),
-              ],
-            ),
-          ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Remind me every ${formatSelected()}',
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext);
+                        ref
+                            .read(settingsNotifierProvider.notifier)
+                            .updateReminderInterval(totalMinutes());
+                      },
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: Text('Confirm — every ${formatSelected()}'),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );

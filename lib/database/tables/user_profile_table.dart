@@ -11,6 +11,8 @@ class UserProfile extends Table {
   TextColumn get weightUnit => text().withDefault(const Constant('kg'))();
   IntColumn get wakeHour => integer().withDefault(const Constant(7))();
   IntColumn get sleepHour => integer().withDefault(const Constant(23))();
+  IntColumn get wakeMinute => integer().withDefault(const Constant(0))();
+  IntColumn get sleepMinute => integer().withDefault(const Constant(0))();
   IntColumn get reminderIntervalMinutes =>
       integer().withDefault(const Constant(90))();
   BoolColumn get notificationsEnabled =>

@@ -17,7 +17,9 @@ class UserProfileModel with _$UserProfileModel {
     required String unit,
     required String weightUnit,
     required int wakeHour,
+    required int wakeMinute,
     required int sleepHour,
+    required int sleepMinute,
     required int reminderIntervalMinutes,
     required bool notificationsEnabled,
   }) = _UserProfileModel;
@@ -31,7 +33,9 @@ class UserProfileModel with _$UserProfileModel {
         unit: data.unit,
         weightUnit: data.weightUnit,
         wakeHour: data.wakeHour,
+        wakeMinute: data.wakeMinute,
         sleepHour: data.sleepHour,
+        sleepMinute: data.sleepMinute,
         reminderIntervalMinutes: data.reminderIntervalMinutes,
         notificationsEnabled: data.notificationsEnabled,
       );

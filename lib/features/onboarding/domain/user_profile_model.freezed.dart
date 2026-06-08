@@ -25,7 +25,9 @@ mixin _$UserProfileModel {
   String get unit => throw _privateConstructorUsedError;
   String get weightUnit => throw _privateConstructorUsedError;
   int get wakeHour => throw _privateConstructorUsedError;
+  int get wakeMinute => throw _privateConstructorUsedError;
   int get sleepHour => throw _privateConstructorUsedError;
+  int get sleepMinute => throw _privateConstructorUsedError;
   int get reminderIntervalMinutes => throw _privateConstructorUsedError;
   bool get notificationsEnabled => throw _privateConstructorUsedError;
 
@@ -52,7 +54,9 @@ abstract class $UserProfileModelCopyWith<$Res> {
     String unit,
     String weightUnit,
     int wakeHour,
+    int wakeMinute,
     int sleepHour,
+    int sleepMinute,
     int reminderIntervalMinutes,
     bool notificationsEnabled,
   });
@@ -81,7 +85,9 @@ class _$UserProfileModelCopyWithImpl<$Res, $Val extends UserProfileModel>
     Object? unit = null,
     Object? weightUnit = null,
     Object? wakeHour = null,
+    Object? wakeMinute = null,
     Object? sleepHour = null,
+    Object? sleepMinute = null,
     Object? reminderIntervalMinutes = null,
     Object? notificationsEnabled = null,
   }) {
@@ -119,9 +125,17 @@ class _$UserProfileModelCopyWithImpl<$Res, $Val extends UserProfileModel>
                 ? _value.wakeHour
                 : wakeHour // ignore: cast_nullable_to_non_nullable
                       as int,
+            wakeMinute: null == wakeMinute
+                ? _value.wakeMinute
+                : wakeMinute // ignore: cast_nullable_to_non_nullable
+                      as int,
             sleepHour: null == sleepHour
                 ? _value.sleepHour
                 : sleepHour // ignore: cast_nullable_to_non_nullable
+                      as int,
+            sleepMinute: null == sleepMinute
+                ? _value.sleepMinute
+                : sleepMinute // ignore: cast_nullable_to_non_nullable
                       as int,
             reminderIntervalMinutes: null == reminderIntervalMinutes
                 ? _value.reminderIntervalMinutes
@@ -155,7 +169,9 @@ abstract class _$$UserProfileModelImplCopyWith<$Res>
     String unit,
     String weightUnit,
     int wakeHour,
+    int wakeMinute,
     int sleepHour,
+    int sleepMinute,
     int reminderIntervalMinutes,
     bool notificationsEnabled,
   });
@@ -183,7 +199,9 @@ class __$$UserProfileModelImplCopyWithImpl<$Res>
     Object? unit = null,
     Object? weightUnit = null,
     Object? wakeHour = null,
+    Object? wakeMinute = null,
     Object? sleepHour = null,
+    Object? sleepMinute = null,
     Object? reminderIntervalMinutes = null,
     Object? notificationsEnabled = null,
   }) {
@@ -221,9 +239,17 @@ class __$$UserProfileModelImplCopyWithImpl<$Res>
             ? _value.wakeHour
             : wakeHour // ignore: cast_nullable_to_non_nullable
                   as int,
+        wakeMinute: null == wakeMinute
+            ? _value.wakeMinute
+            : wakeMinute // ignore: cast_nullable_to_non_nullable
+                  as int,
         sleepHour: null == sleepHour
             ? _value.sleepHour
             : sleepHour // ignore: cast_nullable_to_non_nullable
+                  as int,
+        sleepMinute: null == sleepMinute
+            ? _value.sleepMinute
+            : sleepMinute // ignore: cast_nullable_to_non_nullable
                   as int,
         reminderIntervalMinutes: null == reminderIntervalMinutes
             ? _value.reminderIntervalMinutes
@@ -250,7 +276,9 @@ class _$UserProfileModelImpl implements _UserProfileModel {
     required this.unit,
     required this.weightUnit,
     required this.wakeHour,
+    required this.wakeMinute,
     required this.sleepHour,
+    required this.sleepMinute,
     required this.reminderIntervalMinutes,
     required this.notificationsEnabled,
   });
@@ -272,7 +300,11 @@ class _$UserProfileModelImpl implements _UserProfileModel {
   @override
   final int wakeHour;
   @override
+  final int wakeMinute;
+  @override
   final int sleepHour;
+  @override
+  final int sleepMinute;
   @override
   final int reminderIntervalMinutes;
   @override
@@ -280,7 +312,7 @@ class _$UserProfileModelImpl implements _UserProfileModel {
 
   @override
   String toString() {
-    return 'UserProfileModel(id: $id, name: $name, weightKg: $weightKg, activityLevel: $activityLevel, dailyGoalMl: $dailyGoalMl, unit: $unit, weightUnit: $weightUnit, wakeHour: $wakeHour, sleepHour: $sleepHour, reminderIntervalMinutes: $reminderIntervalMinutes, notificationsEnabled: $notificationsEnabled)';
+    return 'UserProfileModel(id: $id, name: $name, weightKg: $weightKg, activityLevel: $activityLevel, dailyGoalMl: $dailyGoalMl, unit: $unit, weightUnit: $weightUnit, wakeHour: $wakeHour, wakeMinute: $wakeMinute, sleepHour: $sleepHour, sleepMinute: $sleepMinute, reminderIntervalMinutes: $reminderIntervalMinutes, notificationsEnabled: $notificationsEnabled)';
   }
 
   @override
@@ -301,8 +333,12 @@ class _$UserProfileModelImpl implements _UserProfileModel {
                 other.weightUnit == weightUnit) &&
             (identical(other.wakeHour, wakeHour) ||
                 other.wakeHour == wakeHour) &&
+            (identical(other.wakeMinute, wakeMinute) ||
+                other.wakeMinute == wakeMinute) &&
             (identical(other.sleepHour, sleepHour) ||
                 other.sleepHour == sleepHour) &&
+            (identical(other.sleepMinute, sleepMinute) ||
+                other.sleepMinute == sleepMinute) &&
             (identical(
                   other.reminderIntervalMinutes,
                   reminderIntervalMinutes,
@@ -323,7 +359,9 @@ class _$UserProfileModelImpl implements _UserProfileModel {
     unit,
     weightUnit,
     wakeHour,
+    wakeMinute,
     sleepHour,
+    sleepMinute,
     reminderIntervalMinutes,
     notificationsEnabled,
   );
@@ -350,7 +388,9 @@ abstract class _UserProfileModel implements UserProfileModel {
     required final String unit,
     required final String weightUnit,
     required final int wakeHour,
+    required final int wakeMinute,
     required final int sleepHour,
+    required final int sleepMinute,
     required final int reminderIntervalMinutes,
     required final bool notificationsEnabled,
   }) = _$UserProfileModelImpl;
@@ -372,7 +412,11 @@ abstract class _UserProfileModel implements UserProfileModel {
   @override
   int get wakeHour;
   @override
+  int get wakeMinute;
+  @override
   int get sleepHour;
+  @override
+  int get sleepMinute;
   @override
   int get reminderIntervalMinutes;
   @override
