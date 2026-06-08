@@ -41,4 +41,14 @@ class AppConstants {
   static const String unitKg = 'kg';
   static const String unitLbs = 'lbs';
   static const String prefWeightUnit = 'weight_unit';
+
+  // Progress notification
+  static const int progressNotificationId = 1002;
+  static const String progressChannelId = 'hydrate_progress';
+  static const String progressChannelName = 'Daily Progress';
+  static const String progressChannelDesc =
+      'Shows your daily hydration progress';
+  static const String prefLastCupSizeMl = 'last_cup_size_ml';
+  static const String prefLastDrinkTypeId = 'last_drink_type_id';
+  static const String prefTodayGoalMl = 'today_goal_ml';
 }

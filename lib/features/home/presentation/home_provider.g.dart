@@ -127,7 +127,7 @@ final appUnitProvider = AutoDisposeFutureProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AppUnitRef = AutoDisposeFutureProviderRef<String>;
-String _$homeActionHash() => r'9dda4ac0fbf7417b6400f7e9682f19c954f10c8d';
+String _$homeActionHash() => r'07b9af066a2f2e90f0aa3ad56c968bdcec0eec7d';
 
 /// See also [HomeAction].
 @ProviderFor(HomeAction)

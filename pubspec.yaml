@@ -56,6 +56,8 @@ dev_dependencies:
   riverpod_generator: ^2.4.0
   drift_dev: ^2.18.0
   freezed: ^2.5.2
+  flutter_launcher_icons: ^0.14.1
+  flutter_native_splash: ^2.4.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -72,3 +74,20 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/animations/
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "icon_sources/icon_with_bg_final.png"
+  adaptive_icon_background: "#0090C8"
+  adaptive_icon_foreground: "icon_sources/icon_foreground_final.png"
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#0090C8"
+  image: icon_sources/splash_final.png
+  android_12:
+    image: icon_sources/splash_final.png
+    color: "#0090C8"
+  fullscreen: false
+  web: false

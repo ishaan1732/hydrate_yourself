@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../database/database_provider.dart';
@@ -86,6 +87,22 @@ class HomeAction extends _$HomeAction {
 
     ref.invalidate(lastLogProvider);
     ref.read(jumboTapAmountProvider.notifier).state = amountMl.round();
+
+    // Store context for background notification tap handler
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(AppConstants.prefLastCupSizeMl, amountMl.round());
+    await prefs.setInt(AppConstants.prefLastDrinkTypeId, drinkType.id);
+    await prefs.setInt(AppConstants.prefTodayGoalMl, summary.goalMl);
+
+    // Update persistent progress notification
+    final profile = ref.read(userProfileProvider).valueOrNull;
+    final unit = profile?.unit ?? AppConstants.unitMl;
+    await NotificationService().showProgressNotification(
+      totalMl: (await ref.read(todayTotalMlProvider.future)).round(),
+      goalMl: summary.goalMl,
+      unit: unit,
+      cupSizeMl: amountMl.round(),
+    );
   }
 
   Future<void> deleteLastLog() async {
@@ -109,6 +126,21 @@ class HomeAction extends _$HomeAction {
     if (totalAfterUndo < summary.goalMl) {
       ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
     }
+
+    // Refresh persistent progress notification after undo
+    try {
+      final profile = ref.read(userProfileProvider).valueOrNull;
+      final unit = profile?.unit ?? AppConstants.unitMl;
+      final prefs = await SharedPreferences.getInstance();
+      final cupSize = prefs.getInt(AppConstants.prefLastCupSizeMl) ?? 250;
+      final newTotal = await ref.read(todayTotalMlProvider.future);
+      await NotificationService().showProgressNotification(
+        totalMl: newTotal.round(),
+        goalMl: summary.goalMl,
+        unit: unit,
+        cupSizeMl: cupSize,
+      );
+    } catch (_) {}
   }
 }
 

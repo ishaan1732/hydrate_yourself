@@ -6,6 +6,9 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../onboarding/domain/user_profile_model.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../reminders/data/notification_service.dart';
 import '../../reminders/presentation/reminders_provider.dart';
 import '../domain/today_summary.dart';
 import '../domain/water_log_model.dart';
@@ -52,7 +55,20 @@ class HomeScreen extends ConsumerWidget {
             child: summaryAsync.when(
               loading: () => _buildSkeleton(context),
               error: (e, _) => Center(child: Text('Error loading: $e')),
-              data: (summary) => Column(
+              data: (summary) {
+                WidgetsBinding.instance.addPostFrameCallback((_) async {
+                  final prefs = await SharedPreferences.getInstance();
+                  final cupSize =
+                      prefs.getInt(AppConstants.prefLastCupSizeMl) ??
+                          jumboAmount;
+                  await NotificationService().showProgressNotification(
+                    totalMl: summary.totalMl.round(),
+                    goalMl: summary.goalMl,
+                    unit: unit,
+                    cupSizeMl: cupSize,
+                  );
+                });
+                return Column(
                 children: [
                   _buildHeader(context, profile),
                   _buildProgressText(context, summary, unit),
@@ -77,7 +93,8 @@ class HomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 8),
                 ],
-              ),
+                );
+              },
             ),
           ),
 
