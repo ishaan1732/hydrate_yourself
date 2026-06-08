@@ -21,7 +21,9 @@ class OnboardingRepository {
     required int activityLevel,
     required int dailyGoalMl,
     required int wakeHour,
+    required int wakeMinute,
     required int sleepHour,
+    required int sleepMinute,
     required int reminderIntervalMinutes,
   }) async {
     await _userProfileDao.insertProfile(
@@ -31,7 +33,9 @@ class OnboardingRepository {
         activityLevel: activityLevel,
         dailyGoalMl: dailyGoalMl,
         wakeHour: Value(wakeHour),
+        wakeMinute: Value(wakeMinute),
         sleepHour: Value(sleepHour),
+        sleepMinute: Value(sleepMinute),
         reminderIntervalMinutes: Value(reminderIntervalMinutes),
         weightUnit: Value(weightUnit),
       ),

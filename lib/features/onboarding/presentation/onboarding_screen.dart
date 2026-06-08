@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,15 +18,27 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController(initialPage: 0);
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _weightController = TextEditingController();
+  late FixedExtentScrollController _hourWheelCtrl;
+  late FixedExtentScrollController _minuteWheelCtrl;
   int _currentPage = 0;
   String? _nameError;
   String? _weightError;
+
+  @override
+  void initState() {
+    super.initState();
+    const initMins = AppConstants.defaultReminderIntervalMinutes;
+    _hourWheelCtrl = FixedExtentScrollController(initialItem: initMins ~/ 60);
+    _minuteWheelCtrl = FixedExtentScrollController(initialItem: (initMins % 60) ~/ 30);
+  }
 
   @override
   void dispose() {
     _pageController.dispose();
     _nameController.dispose();
     _weightController.dispose();
+    _hourWheelCtrl.dispose();
+    _minuteWheelCtrl.dispose();
     super.dispose();
   }
 
@@ -269,8 +282,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final colorScheme = theme.colorScheme;
     final notifierState = ref.watch(onboardingNotifierProvider).value;
     final wakeHour = notifierState?.wakeHour ?? AppConstants.defaultWakeHour;
-    final sleepHour =
-        notifierState?.sleepHour ?? AppConstants.defaultSleepHour;
+    final wakeMinute = notifierState?.wakeMinute ?? 0;
+    final sleepHour = notifierState?.sleepHour ?? AppConstants.defaultSleepHour;
+    final sleepMinute = notifierState?.sleepMinute ?? 0;
     final intervalMinutes = notifierState?.reminderIntervalMinutes ??
         AppConstants.defaultReminderIntervalMinutes;
 
@@ -293,80 +307,150 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 24),
           Text('Wake up time', style: theme.textTheme.labelLarge),
           const SizedBox(height: 8),
-          DropdownButtonFormField<int>(
-            initialValue: wakeHour,
-            decoration: const InputDecoration(border: OutlineInputBorder()),
-            items: List.generate(9, (i) => i + 4)
-                .map((hour) => DropdownMenuItem(
-                      value: hour,
-                      child: Text('$hour:00 AM'),
-                    ))
-                .toList(),
-            onChanged: (value) {
-              if (value != null) {
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () async {
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay(hour: wakeHour, minute: wakeMinute),
+                helpText: 'Wake up time',
+                builder: (context, child) => MediaQuery(
+                  data: MediaQuery.of(context)
+                      .copyWith(alwaysUse24HourFormat: false),
+                  child: child!,
+                ),
+              );
+              if (picked != null) {
                 ref
                     .read(onboardingNotifierProvider.notifier)
-                    .updateWakeHour(value);
+                    .updateWakeTime(picked.hour, picked.minute);
               }
             },
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                border: Border.all(color: colorScheme.outline),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.access_time),
+                  const SizedBox(width: 12),
+                  Text(_formatTime(wakeHour, wakeMinute),
+                      style: theme.textTheme.bodyLarge),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           Text('Bedtime', style: theme.textTheme.labelLarge),
           const SizedBox(height: 8),
-          DropdownButtonFormField<int>(
-            initialValue: sleepHour,
-            decoration: const InputDecoration(border: OutlineInputBorder()),
-            items: List.generate(5, (i) => i + 19)
-                .map((hour) => DropdownMenuItem(
-                      value: hour,
-                      child: Text(
-                        '${hour > 12 ? hour - 12 : hour}:00 ${hour >= 12 ? 'PM' : 'AM'}',
-                      ),
-                    ))
-                .toList(),
-            onChanged: (value) {
-              if (value != null) {
+          InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: () async {
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: TimeOfDay(hour: sleepHour, minute: sleepMinute),
+                helpText: 'Bedtime',
+                builder: (context, child) => MediaQuery(
+                  data: MediaQuery.of(context)
+                      .copyWith(alwaysUse24HourFormat: false),
+                  child: child!,
+                ),
+              );
+              if (picked != null) {
                 ref
                     .read(onboardingNotifierProvider.notifier)
-                    .updateSleepHour(value);
+                    .updateSleepTime(picked.hour, picked.minute);
               }
             },
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                border: Border.all(color: colorScheme.outline),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.bedtime_outlined),
+                  const SizedBox(width: 12),
+                  Text(_formatTime(sleepHour, sleepMinute),
+                      style: theme.textTheme.bodyLarge),
+                ],
+              ),
+            ),
           ),
           const SizedBox(height: 24),
           Row(
             children: [
               Text('Reminder every', style: theme.textTheme.bodyLarge),
               const Spacer(),
-              Text('$intervalMinutes min', style: theme.textTheme.bodyLarge),
+              Text(_formatInterval(intervalMinutes),
+                  style: theme.textTheme.bodyLarge),
             ],
           ),
-          Slider(
-            min: AppConstants.minReminderIntervalMinutes.toDouble(),
-            max: AppConstants.maxReminderIntervalMinutes.toDouble(),
-            divisions: 7,
-            value: intervalMinutes.toDouble(),
-            onChanged: (value) => ref
-                .read(onboardingNotifierProvider.notifier)
-                .updateReminderInterval(value.round()),
-          ),
-          Row(
-            children: [
-              Text(
-                '30 min',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
-              const Spacer(),
-              Text(
-                '4 hrs',
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
-            ],
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 120,
+            child: Row(
+              children: [
+                Expanded(
+                  child: CupertinoPicker(
+                    scrollController: _hourWheelCtrl,
+                    itemExtent: 40,
+                    onSelectedItemChanged: (index) {
+                      final mins = (intervalMinutes % 60 ~/ 30) * 30;
+                      final total = index * 60 + (index == 0 && mins == 0 ? 30 : mins);
+                      ref
+                          .read(onboardingNotifierProvider.notifier)
+                          .updateReminderInterval(total);
+                    },
+                    children: List.generate(
+                      9,
+                      (i) => Center(child: Text('$i hr')),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: CupertinoPicker(
+                    scrollController: _minuteWheelCtrl,
+                    itemExtent: 40,
+                    onSelectedItemChanged: (index) {
+                      final mins = index * 30;
+                      final hours = intervalMinutes ~/ 60;
+                      final total = hours * 60 + mins;
+                      ref
+                          .read(onboardingNotifierProvider.notifier)
+                          .updateReminderInterval(total == 0 ? 30 : total);
+                    },
+                    children: const [
+                      Center(child: Text(':00')),
+                      Center(child: Text(':30')),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
+  }
+
+  String _formatTime(int hour, int minute) {
+    final period = hour >= 12 ? 'PM' : 'AM';
+    final h = hour == 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    final m = minute.toString().padLeft(2, '0');
+    return '$h:$m $period';
+  }
+
+  String _formatInterval(int minutes) {
+    if (minutes < 60) return '$minutes min';
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    return m == 0 ? '$h hr' : '$h hr $m min';
   }
 
   void _nextPage() {
@@ -429,7 +513,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           activityLevel:
               formData?.activityLevel ?? AppConstants.defaultActivityLevel,
           wakeHour: formData?.wakeHour ?? AppConstants.defaultWakeHour,
+          wakeMinute: formData?.wakeMinute ?? 0,
           sleepHour: formData?.sleepHour ?? AppConstants.defaultSleepHour,
+          sleepMinute: formData?.sleepMinute ?? 0,
           reminderIntervalMinutes: formData?.reminderIntervalMinutes ??
               AppConstants.defaultReminderIntervalMinutes,
         );

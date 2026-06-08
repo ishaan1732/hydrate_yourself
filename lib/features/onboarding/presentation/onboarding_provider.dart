@@ -16,7 +16,9 @@ class OnboardingFormData {
     this.weightUnit = AppConstants.unitKg,
     this.activityLevel = AppConstants.defaultActivityLevel,
     this.wakeHour = AppConstants.defaultWakeHour,
+    this.wakeMinute = 0,
     this.sleepHour = AppConstants.defaultSleepHour,
+    this.sleepMinute = 0,
     this.reminderIntervalMinutes = AppConstants.defaultReminderIntervalMinutes,
   });
 
@@ -25,7 +27,9 @@ class OnboardingFormData {
   final String weightUnit;
   final int activityLevel;
   final int wakeHour;
+  final int wakeMinute;
   final int sleepHour;
+  final int sleepMinute;
   final int reminderIntervalMinutes;
 
   OnboardingFormData copyWith({
@@ -34,7 +38,9 @@ class OnboardingFormData {
     String? weightUnit,
     int? activityLevel,
     int? wakeHour,
+    int? wakeMinute,
     int? sleepHour,
+    int? sleepMinute,
     int? reminderIntervalMinutes,
   }) =>
       OnboardingFormData(
@@ -43,7 +49,9 @@ class OnboardingFormData {
         weightUnit: weightUnit ?? this.weightUnit,
         activityLevel: activityLevel ?? this.activityLevel,
         wakeHour: wakeHour ?? this.wakeHour,
+        wakeMinute: wakeMinute ?? this.wakeMinute,
         sleepHour: sleepHour ?? this.sleepHour,
+        sleepMinute: sleepMinute ?? this.sleepMinute,
         reminderIntervalMinutes:
             reminderIntervalMinutes ?? this.reminderIntervalMinutes,
       );
@@ -74,6 +82,12 @@ class OnboardingNotifier extends _$OnboardingNotifier {
   void updateSleepHour(int hour) =>
       state = AsyncData(state.requireValue.copyWith(sleepHour: hour));
 
+  void updateWakeTime(int hour, int minute) => state =
+      AsyncData(state.requireValue.copyWith(wakeHour: hour, wakeMinute: minute));
+
+  void updateSleepTime(int hour, int minute) => state =
+      AsyncData(state.requireValue.copyWith(sleepHour: hour, sleepMinute: minute));
+
   void updateReminderInterval(int minutes) =>
       state = AsyncData(
           state.requireValue.copyWith(reminderIntervalMinutes: minutes));
@@ -84,7 +98,9 @@ class OnboardingNotifier extends _$OnboardingNotifier {
     required String weightUnit,
     required int activityLevel,
     required int wakeHour,
+    required int wakeMinute,
     required int sleepHour,
+    required int sleepMinute,
     required int reminderIntervalMinutes,
   }) async {
     final dailyGoalMl = HydrationCalculator.calculateDailyGoalMl(
@@ -99,7 +115,9 @@ class OnboardingNotifier extends _$OnboardingNotifier {
       activityLevel: activityLevel,
       dailyGoalMl: dailyGoalMl,
       wakeHour: wakeHour,
+      wakeMinute: wakeMinute,
       sleepHour: sleepHour,
+      sleepMinute: sleepMinute,
       reminderIntervalMinutes: reminderIntervalMinutes,
     );
     ref.read(onboardingCompleteProvider.notifier).state = true;
