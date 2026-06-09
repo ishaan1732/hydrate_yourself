@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
 import 'daos/drink_types_dao.dart';
@@ -16,6 +19,12 @@ part 'app_database.g.dart';
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(driftDatabase(name: 'hydrate_yourself'));
+
+  // Used by background isolate — explicit path required
+  AppDatabase._withExecutor(super.executor);
+
+  static AppDatabase openWithPath(String dbPath) =>
+      AppDatabase._withExecutor(NativeDatabase(File(dbPath)));
 
   @override
   int get schemaVersion => 3;

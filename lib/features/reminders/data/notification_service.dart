@@ -1,6 +1,12 @@
+import 'dart:ui' show DartPluginRegistrant;
+
 import 'package:drift/drift.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+// ignore: depend_on_referenced_packages
+import 'package:path/path.dart' as p;
+// ignore: depend_on_referenced_packages
+import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -22,8 +28,12 @@ class NotificationService {
 
     await _plugin.initialize(
       settings,
-      onDidReceiveNotificationResponse: (response) {
-        // Deep link handled in main.dart — nothing needed here
+      onDidReceiveNotificationResponse: (response) async {
+        debugPrint('=== FOREGROUND HANDLER FIRED payload=${response.payload} ===');
+        if (response.payload == 'log_water') {
+          // App is in foreground — plugins already initialized
+          await _handleWaterLogFromNotification();
+        }
       },
       onDidReceiveBackgroundNotificationResponse: onNotificationTapBackground,
     );
@@ -171,13 +181,8 @@ class NotificationService {
 }
 
 @pragma('vm:entry-point')
-Future<void> onNotificationTapBackground(
-    NotificationResponse response) async {
-  if (response.payload != 'log_water') return;
-
+Future<void> _handleWaterLogFromNotification() async {
   try {
-    WidgetsFlutterBinding.ensureInitialized();
-
     final prefs = await SharedPreferences.getInstance();
     final cupSizeMl = prefs.getInt(AppConstants.prefLastCupSizeMl) ?? 250;
     final drinkTypeId = prefs.getInt(AppConstants.prefLastDrinkTypeId) ?? 1;
@@ -186,24 +191,26 @@ Future<void> onNotificationTapBackground(
     final unit =
         prefs.getString(AppConstants.prefSelectedUnit) ?? AppConstants.unitMl;
 
-    final db = AppDatabase();
+    final dbDir = await getApplicationDocumentsDirectory();
+    final dbPath = p.join(dbDir.path, 'hydrate_yourself.sqlite');
+    final db = AppDatabase.openWithPath(dbPath);
+
     await db.waterLogsDao.insertLog(
-      WaterLogsCompanion.insert(
-        loggedAt: DateTime.now(),
-        amountMl: cupSizeMl.toDouble(),
-        drinkTypeId: drinkTypeId,
-        note: const Value(null),
+      WaterLogsCompanion(
+        loggedAt: Value(DateTime.now()),
+        amountMl: Value(cupSizeMl.toDouble()),
+        drinkTypeId: Value(drinkTypeId),
       ),
     );
 
     final now = DateTime.now();
-    final start = DateTime(now.year, now.month, now.day);
-    final end = DateTime(now.year, now.month, now.day, 23, 59, 59);
-    final logs = await (db.select(db.waterLogs)
-          ..where((l) => l.loggedAt.isBetweenValues(start, end)))
-        .get();
+    final startOfDay = DateTime(now.year, now.month, now.day);
+    final endOfDay = DateTime(now.year, now.month, now.day, 23, 59, 59);
 
-    final newTotal = logs.fold(0.0, (sum, l) => sum + l.amountMl);
+    final todayLogs =
+        await db.waterLogsDao.getLogsForDateRange(startOfDay, endOfDay);
+    final newTotal = todayLogs.fold(0.0, (sum, l) => sum + l.amountMl);
+
     await db.close();
 
     await NotificationService().showProgressNotification(
@@ -217,7 +224,20 @@ Future<void> onNotificationTapBackground(
       AppConstants.prefLastNotificationTime,
       DateTime.now().millisecondsSinceEpoch,
     );
-  } catch (e) {
-    debugPrint('Background log error: $e');
+
+    debugPrint('=== WATER LOG COMPLETE total=${newTotal.round()}ml ===');
+  } catch (e, st) {
+    debugPrint('=== WATER LOG ERROR: $e ===');
+    debugPrint(st.toString());
   }
+}
+
+@pragma('vm:entry-point')
+Future<void> onNotificationTapBackground(
+    NotificationResponse response) async {
+  debugPrint('=== BACKGROUND HANDLER FIRED payload=${response.payload} ===');
+  if (response.payload != 'log_water') return;
+  WidgetsFlutterBinding.ensureInitialized();
+  DartPluginRegistrant.ensureInitialized();
+  await _handleWaterLogFromNotification();
 }
