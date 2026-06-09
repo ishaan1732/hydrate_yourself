@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
@@ -223,6 +224,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     const Divider(height: 1, indent: 56),
                     _buildReminderIntervalTile(
                         context, ref, profile.reminderIntervalMinutes),
+                    const Divider(height: 1, indent: 56),
+                    _buildSoundToggleTile(context),
                   ],
                 ],
               ),
@@ -930,6 +933,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final mins = minutes % 60;
     if (mins == 0) return hours == 1 ? '1 hr' : '$hours hrs';
     return '$hours hr $mins min';
+  }
+
+  Widget _buildSoundToggleTile(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: SharedPreferences.getInstance().then(
+        (prefs) => prefs.getBool(AppConstants.prefNotificationSound) ?? true,
+      ),
+      builder: (context, snapshot) {
+        final soundEnabled = snapshot.data ?? true;
+        return SwitchListTile(
+          secondary: const Icon(Icons.volume_up_outlined),
+          title: Text(
+            'Notification sound',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          value: soundEnabled,
+          onChanged: (val) async {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setBool(AppConstants.prefNotificationSound, val);
+            setState(() {});
+          },
+        );
+      },
+    );
   }
 
   String _genderEmoji(String gender) {

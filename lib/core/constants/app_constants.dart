@@ -63,4 +63,8 @@ class AppConstants {
   static const String climateHot = 'hot';
   static const String climateVeryHot = 'very_hot';
   static const String defaultClimate = 'moderate';
+
+  // Notification preferences
+  static const String prefNotificationSound = 'notification_sound';
+  static const String prefGoalAchievedDate = 'goal_achieved_date';
 }

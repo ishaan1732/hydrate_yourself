@@ -80,6 +80,7 @@ class HomeAction extends _$HomeAction {
     if (summary.isGoalAchieved && !wasAlreadyAchieved) {
       ref.read(goalPreviouslyAchievedProvider.notifier).state = true;
       ref.read(showCelebrationProvider.notifier).state = true;
+      await NotificationService().markGoalAchievedToday();
       Future.delayed(const Duration(seconds: 3), () {
         ref.read(showCelebrationProvider.notifier).state = false;
       });

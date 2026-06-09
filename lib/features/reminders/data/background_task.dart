@@ -22,6 +22,17 @@ void callbackDispatcher() {
             prefs.getInt('reminder_interval_minutes') ??
                 AppConstants.defaultReminderIntervalMinutes;
 
+        // Clear stale goal-achieved flag from a previous day
+        final now = DateTime.now();
+        final todayStr =
+            '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+        final achievedDate =
+            prefs.getString(AppConstants.prefGoalAchievedDate);
+        if (achievedDate != null && achievedDate != todayStr) {
+          await prefs.remove(AppConstants.prefGoalAchievedDate);
+        }
+        if (achievedDate == todayStr) return true;
+
         final service = NotificationService();
         await service.initialize();
         final should = await service.shouldShowReminder(intervalMinutes);

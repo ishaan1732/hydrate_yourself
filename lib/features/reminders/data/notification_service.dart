@@ -65,6 +65,17 @@ class NotificationService {
   }
 
   Future<void> showReminderNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final achievedDate = prefs.getString(AppConstants.prefGoalAchievedDate);
+    final now = DateTime.now();
+    final todayStr =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    if (achievedDate == todayStr) return;
+
+    final soundEnabled =
+        prefs.getBool(AppConstants.prefNotificationSound) ?? true;
+
     final messages = [
       'Time to hydrate! 💧 Your body needs water.',
       'Don\'t forget to drink water! 💦',
@@ -73,9 +84,9 @@ class NotificationService {
       'Small sips, big difference. Time to drink! 🥤',
     ];
 
-    final index = DateTime.now().millisecond % messages.length;
+    final index = now.millisecond % messages.length;
 
-    const AndroidNotificationDetails androidDetails =
+    final AndroidNotificationDetails androidDetails =
         AndroidNotificationDetails(
       AppConstants.notificationChannelId,
       AppConstants.notificationChannelName,
@@ -83,15 +94,25 @@ class NotificationService {
       importance: Importance.high,
       priority: Priority.high,
       icon: '@mipmap/ic_launcher',
+      playSound: soundEnabled,
+      enableVibration: soundEnabled,
     );
 
     await _plugin.show(
       AppConstants.notificationId,
       'Hydrate Yourself',
       messages[index],
-      const NotificationDetails(android: androidDetails),
+      NotificationDetails(android: androidDetails),
       payload: '/home',
     );
+  }
+
+  Future<void> markGoalAchievedToday() async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final todayStr =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+    await prefs.setString(AppConstants.prefGoalAchievedDate, todayStr);
   }
 
   Future<void> showProgressNotification({
