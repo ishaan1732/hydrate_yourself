@@ -950,7 +950,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final genders = [
       ('male', '👨', 'Male'),
       ('female', '👩', 'Female'),
-      ('other', '🧑', 'Other'),
     ];
     showDialog(
       context: context,

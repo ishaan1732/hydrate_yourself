@@ -224,13 +224,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget _buildNameWeightPage() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Tell us about you 👤',
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tell us about you 👤',
             style: theme.textTheme.headlineMedium
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
@@ -309,7 +312,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             final genders = [
               ('male', '👨', 'Male'),
               ('female', '👩', 'Female'),
-              ('other', '🧑', 'Other'),
             ];
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,6 +395,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             );
           }),
         ],
+      ),
       ),
     );
   }
@@ -505,33 +508,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             style: theme.textTheme.bodyMedium
                 ?.copyWith(color: colorScheme.onSurfaceVariant),
           ),
-          const SizedBox(height: 4),
-          Container(
-            margin: const EdgeInsets.only(top: 4, bottom: 20),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: colorScheme.tertiaryContainer.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                  color: colorScheme.tertiary.withValues(alpha: 0.3)),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info_outline,
-                    size: 16, color: colorScheme.tertiary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'This is a rough approximation based on general guidelines. '
-                    'Consult a doctor or nutritionist for a personalised recommendation.',
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: colorScheme.onTertiaryContainer),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: 16),
           Column(
             children: [
               for (final (value, emoji, label, desc) in climates) ...[

@@ -55,7 +55,6 @@ class AppConstants {
   // Gender
   static const String genderMale = 'male';
   static const String genderFemale = 'female';
-  static const String genderOther = 'other';
   static const String defaultGender = 'male';
 
   // Climate
