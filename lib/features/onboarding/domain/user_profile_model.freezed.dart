@@ -24,6 +24,9 @@ mixin _$UserProfileModel {
   int get dailyGoalMl => throw _privateConstructorUsedError;
   String get unit => throw _privateConstructorUsedError;
   String get weightUnit => throw _privateConstructorUsedError;
+  String get gender => throw _privateConstructorUsedError;
+  bool get isPregnant => throw _privateConstructorUsedError;
+  String get climateType => throw _privateConstructorUsedError;
   int get wakeHour => throw _privateConstructorUsedError;
   int get wakeMinute => throw _privateConstructorUsedError;
   int get sleepHour => throw _privateConstructorUsedError;
@@ -53,6 +56,9 @@ abstract class $UserProfileModelCopyWith<$Res> {
     int dailyGoalMl,
     String unit,
     String weightUnit,
+    String gender,
+    bool isPregnant,
+    String climateType,
     int wakeHour,
     int wakeMinute,
     int sleepHour,
@@ -84,6 +90,9 @@ class _$UserProfileModelCopyWithImpl<$Res, $Val extends UserProfileModel>
     Object? dailyGoalMl = null,
     Object? unit = null,
     Object? weightUnit = null,
+    Object? gender = null,
+    Object? isPregnant = null,
+    Object? climateType = null,
     Object? wakeHour = null,
     Object? wakeMinute = null,
     Object? sleepHour = null,
@@ -120,6 +129,18 @@ class _$UserProfileModelCopyWithImpl<$Res, $Val extends UserProfileModel>
             weightUnit: null == weightUnit
                 ? _value.weightUnit
                 : weightUnit // ignore: cast_nullable_to_non_nullable
+                      as String,
+            gender: null == gender
+                ? _value.gender
+                : gender // ignore: cast_nullable_to_non_nullable
+                      as String,
+            isPregnant: null == isPregnant
+                ? _value.isPregnant
+                : isPregnant // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            climateType: null == climateType
+                ? _value.climateType
+                : climateType // ignore: cast_nullable_to_non_nullable
                       as String,
             wakeHour: null == wakeHour
                 ? _value.wakeHour
@@ -168,6 +189,9 @@ abstract class _$$UserProfileModelImplCopyWith<$Res>
     int dailyGoalMl,
     String unit,
     String weightUnit,
+    String gender,
+    bool isPregnant,
+    String climateType,
     int wakeHour,
     int wakeMinute,
     int sleepHour,
@@ -198,6 +222,9 @@ class __$$UserProfileModelImplCopyWithImpl<$Res>
     Object? dailyGoalMl = null,
     Object? unit = null,
     Object? weightUnit = null,
+    Object? gender = null,
+    Object? isPregnant = null,
+    Object? climateType = null,
     Object? wakeHour = null,
     Object? wakeMinute = null,
     Object? sleepHour = null,
@@ -234,6 +261,18 @@ class __$$UserProfileModelImplCopyWithImpl<$Res>
         weightUnit: null == weightUnit
             ? _value.weightUnit
             : weightUnit // ignore: cast_nullable_to_non_nullable
+                  as String,
+        gender: null == gender
+            ? _value.gender
+            : gender // ignore: cast_nullable_to_non_nullable
+                  as String,
+        isPregnant: null == isPregnant
+            ? _value.isPregnant
+            : isPregnant // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        climateType: null == climateType
+            ? _value.climateType
+            : climateType // ignore: cast_nullable_to_non_nullable
                   as String,
         wakeHour: null == wakeHour
             ? _value.wakeHour
@@ -275,6 +314,9 @@ class _$UserProfileModelImpl implements _UserProfileModel {
     required this.dailyGoalMl,
     required this.unit,
     required this.weightUnit,
+    required this.gender,
+    required this.isPregnant,
+    required this.climateType,
     required this.wakeHour,
     required this.wakeMinute,
     required this.sleepHour,
@@ -298,6 +340,12 @@ class _$UserProfileModelImpl implements _UserProfileModel {
   @override
   final String weightUnit;
   @override
+  final String gender;
+  @override
+  final bool isPregnant;
+  @override
+  final String climateType;
+  @override
   final int wakeHour;
   @override
   final int wakeMinute;
@@ -312,7 +360,7 @@ class _$UserProfileModelImpl implements _UserProfileModel {
 
   @override
   String toString() {
-    return 'UserProfileModel(id: $id, name: $name, weightKg: $weightKg, activityLevel: $activityLevel, dailyGoalMl: $dailyGoalMl, unit: $unit, weightUnit: $weightUnit, wakeHour: $wakeHour, wakeMinute: $wakeMinute, sleepHour: $sleepHour, sleepMinute: $sleepMinute, reminderIntervalMinutes: $reminderIntervalMinutes, notificationsEnabled: $notificationsEnabled)';
+    return 'UserProfileModel(id: $id, name: $name, weightKg: $weightKg, activityLevel: $activityLevel, dailyGoalMl: $dailyGoalMl, unit: $unit, weightUnit: $weightUnit, gender: $gender, isPregnant: $isPregnant, climateType: $climateType, wakeHour: $wakeHour, wakeMinute: $wakeMinute, sleepHour: $sleepHour, sleepMinute: $sleepMinute, reminderIntervalMinutes: $reminderIntervalMinutes, notificationsEnabled: $notificationsEnabled)';
   }
 
   @override
@@ -331,6 +379,11 @@ class _$UserProfileModelImpl implements _UserProfileModel {
             (identical(other.unit, unit) || other.unit == unit) &&
             (identical(other.weightUnit, weightUnit) ||
                 other.weightUnit == weightUnit) &&
+            (identical(other.gender, gender) || other.gender == gender) &&
+            (identical(other.isPregnant, isPregnant) ||
+                other.isPregnant == isPregnant) &&
+            (identical(other.climateType, climateType) ||
+                other.climateType == climateType) &&
             (identical(other.wakeHour, wakeHour) ||
                 other.wakeHour == wakeHour) &&
             (identical(other.wakeMinute, wakeMinute) ||
@@ -358,6 +411,9 @@ class _$UserProfileModelImpl implements _UserProfileModel {
     dailyGoalMl,
     unit,
     weightUnit,
+    gender,
+    isPregnant,
+    climateType,
     wakeHour,
     wakeMinute,
     sleepHour,
@@ -387,6 +443,9 @@ abstract class _UserProfileModel implements UserProfileModel {
     required final int dailyGoalMl,
     required final String unit,
     required final String weightUnit,
+    required final String gender,
+    required final bool isPregnant,
+    required final String climateType,
     required final int wakeHour,
     required final int wakeMinute,
     required final int sleepHour,
@@ -409,6 +468,12 @@ abstract class _UserProfileModel implements UserProfileModel {
   String get unit;
   @override
   String get weightUnit;
+  @override
+  String get gender;
+  @override
+  bool get isPregnant;
+  @override
+  String get climateType;
   @override
   int get wakeHour;
   @override

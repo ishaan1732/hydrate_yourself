@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
+import '../../../core/utils/hydration_calculator.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import 'settings_provider.dart';
 
@@ -54,6 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Widget _buildContent(
       BuildContext context, WidgetRef ref, UserProfileModel profile) {
+    final colorScheme = Theme.of(context).colorScheme;
     return CustomScrollView(
       slivers: [
         SliverAppBar(
@@ -105,7 +107,90 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 8),
 
-              // Section B — Hydration
+              // Section B — Lifestyle
+              _buildSectionHeader(context, 'Lifestyle'),
+              _buildCard(
+                context,
+                children: [
+                  ListTile(
+                    leading: Icon(Icons.person_outlined,
+                        color: colorScheme.primary),
+                    title: Text('Gender',
+                        style: Theme.of(context).textTheme.bodyLarge),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _genderEmoji(profile.gender),
+                          style: const TextStyle(fontSize: 20),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          HydrationCalculator.genderLabel(profile.gender),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.chevron_right,
+                            size: 20, color: colorScheme.onSurfaceVariant),
+                      ],
+                    ),
+                    onTap: () =>
+                        _showGenderDialog(context, ref, profile),
+                  ),
+                  if (profile.gender == 'female') ...[
+                    const Divider(height: 1, indent: 56),
+                    SwitchListTile(
+                      secondary: const Text('🤰',
+                          style: TextStyle(fontSize: 22)),
+                      title: Text('Pregnant',
+                          style: Theme.of(context).textTheme.bodyLarge),
+                      subtitle: Text(
+                        '+300ml added to daily goal',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                      ),
+                      value: profile.isPregnant,
+                      onChanged: (val) => ref
+                          .read(settingsNotifierProvider.notifier)
+                          .updateIsPregnant(val),
+                    ),
+                  ],
+                  const Divider(height: 1, indent: 56),
+                  ListTile(
+                    leading: Text(
+                      HydrationCalculator.climateEmoji(profile.climateType),
+                      style: const TextStyle(fontSize: 20),
+                    ),
+                    title: Text('Climate',
+                        style: Theme.of(context).textTheme.bodyLarge),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          HydrationCalculator.climateLabel(profile.climateType),
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.chevron_right,
+                            size: 20, color: colorScheme.onSurfaceVariant),
+                      ],
+                    ),
+                    onTap: () =>
+                        _showClimateDialog(context, ref, profile),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Section C — Hydration
               _buildSectionHeader(context, 'Hydration'),
               _buildCard(
                 context,
@@ -118,7 +203,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 8),
 
-              // Section C — Reminders
+              // Section D — Reminders
               _buildSectionHeader(context, 'Reminders'),
               _buildCard(
                 context,
@@ -144,7 +229,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 8),
 
-              // Section D — About
+              // Section E — About
               _buildSectionHeader(context, 'About'),
               _buildCard(
                 context,
@@ -845,5 +930,117 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final mins = minutes % 60;
     if (mins == 0) return hours == 1 ? '1 hr' : '$hours hrs';
     return '$hours hr $mins min';
+  }
+
+  String _genderEmoji(String gender) {
+    switch (gender) {
+      case 'male':
+        return '👨';
+      case 'female':
+        return '👩';
+      case 'other':
+        return '🧑';
+      default:
+        return '👨';
+    }
+  }
+
+  void _showGenderDialog(
+      BuildContext context, WidgetRef ref, UserProfileModel profile) {
+    final genders = [
+      ('male', '👨', 'Male'),
+      ('female', '👩', 'Female'),
+      ('other', '🧑', 'Other'),
+    ];
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Gender'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            for (final (value, emoji, label) in genders)
+              RadioListTile<String>(
+                value: value,
+                groupValue: profile.gender,
+                title: Row(
+                  children: [
+                    Text(emoji, style: const TextStyle(fontSize: 20)),
+                    const SizedBox(width: 8),
+                    Text(label),
+                  ],
+                ),
+                onChanged: (val) {
+                  if (val == null) return;
+                  Navigator.pop(dialogContext);
+                  ref
+                      .read(settingsNotifierProvider.notifier)
+                      .updateGender(val);
+                },
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showClimateDialog(
+      BuildContext context, WidgetRef ref, UserProfileModel profile) {
+    final climates = [
+      ('cold', '🥶', 'Cold', 'Cool or cold weather'),
+      ('moderate', '🌤️', 'Moderate', 'Mild everyday conditions'),
+      ('hot', '☀️', 'Hot', 'Warm and sunny weather'),
+      ('very_hot', '🔥', 'Very Hot', 'Hot, humid or desert conditions'),
+    ];
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Climate'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final (value, emoji, label, desc) in climates)
+                RadioListTile<String>(
+                  value: value,
+                  groupValue: profile.climateType,
+                  title: Row(
+                    children: [
+                      Text(emoji, style: const TextStyle(fontSize: 20)),
+                      const SizedBox(width: 8),
+                      Text(label),
+                    ],
+                  ),
+                  subtitle: Text(
+                    desc,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  onChanged: (val) {
+                    if (val == null) return;
+                    Navigator.pop(dialogContext);
+                    ref
+                        .read(settingsNotifierProvider.notifier)
+                        .updateClimateType(val);
+                  },
+                ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
   }
 }

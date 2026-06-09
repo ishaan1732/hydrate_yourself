@@ -9,6 +9,12 @@ class UserProfile extends Table {
   IntColumn get dailyGoalMl => integer()();
   TextColumn get unit => text().withDefault(const Constant('ml'))();
   TextColumn get weightUnit => text().withDefault(const Constant('kg'))();
+  TextColumn get gender =>
+      text().withDefault(const Constant('male'))();
+  BoolColumn get isPregnant =>
+      boolean().withDefault(const Constant(false))();
+  TextColumn get climateType =>
+      text().withDefault(const Constant('moderate'))();
   IntColumn get wakeHour => integer().withDefault(const Constant(7))();
   IntColumn get sleepHour => integer().withDefault(const Constant(23))();
   IntColumn get wakeMinute => integer().withDefault(const Constant(0))();

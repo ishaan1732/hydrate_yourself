@@ -4,7 +4,7 @@ class AppConstants {
   // Hydration defaults
   static const int defaultDailyGoalMl = 2500;
   static const int minDailyGoalMl = 1500;
-  static const int maxDailyGoalMl = 4000;
+  static const int maxDailyGoalMl = 4500;
   static const double defaultWeightKg = 70.0;
   static const int defaultActivityLevel = 0;
 
@@ -51,4 +51,17 @@ class AppConstants {
   static const String prefLastCupSizeMl = 'last_cup_size_ml';
   static const String prefLastDrinkTypeId = 'last_drink_type_id';
   static const String prefTodayGoalMl = 'today_goal_ml';
+
+  // Gender
+  static const String genderMale = 'male';
+  static const String genderFemale = 'female';
+  static const String genderOther = 'other';
+  static const String defaultGender = 'male';
+
+  // Climate
+  static const String climateCold = 'cold';
+  static const String climateModerate = 'moderate';
+  static const String climateHot = 'hot';
+  static const String climateVeryHot = 'very_hot';
+  static const String defaultClimate = 'moderate';
 }

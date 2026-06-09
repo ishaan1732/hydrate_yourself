@@ -905,6 +905,43 @@ class $UserProfileTable extends UserProfile
     requiredDuringInsert: false,
     defaultValue: const Constant('kg'),
   );
+  static const VerificationMeta _genderMeta = const VerificationMeta('gender');
+  @override
+  late final GeneratedColumn<String> gender = GeneratedColumn<String>(
+    'gender',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('male'),
+  );
+  static const VerificationMeta _isPregnantMeta = const VerificationMeta(
+    'isPregnant',
+  );
+  @override
+  late final GeneratedColumn<bool> isPregnant = GeneratedColumn<bool>(
+    'is_pregnant',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_pregnant" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _climateTypeMeta = const VerificationMeta(
+    'climateType',
+  );
+  @override
+  late final GeneratedColumn<String> climateType = GeneratedColumn<String>(
+    'climate_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('moderate'),
+  );
   static const VerificationMeta _wakeHourMeta = const VerificationMeta(
     'wakeHour',
   );
@@ -1000,6 +1037,9 @@ class $UserProfileTable extends UserProfile
     dailyGoalMl,
     unit,
     weightUnit,
+    gender,
+    isPregnant,
+    climateType,
     wakeHour,
     sleepHour,
     wakeMinute,
@@ -1071,6 +1111,27 @@ class $UserProfileTable extends UserProfile
       context.handle(
         _weightUnitMeta,
         weightUnit.isAcceptableOrUnknown(data['weight_unit']!, _weightUnitMeta),
+      );
+    }
+    if (data.containsKey('gender')) {
+      context.handle(
+        _genderMeta,
+        gender.isAcceptableOrUnknown(data['gender']!, _genderMeta),
+      );
+    }
+    if (data.containsKey('is_pregnant')) {
+      context.handle(
+        _isPregnantMeta,
+        isPregnant.isAcceptableOrUnknown(data['is_pregnant']!, _isPregnantMeta),
+      );
+    }
+    if (data.containsKey('climate_type')) {
+      context.handle(
+        _climateTypeMeta,
+        climateType.isAcceptableOrUnknown(
+          data['climate_type']!,
+          _climateTypeMeta,
+        ),
       );
     }
     if (data.containsKey('wake_hour')) {
@@ -1161,6 +1222,18 @@ class $UserProfileTable extends UserProfile
         DriftSqlType.string,
         data['${effectivePrefix}weight_unit'],
       )!,
+      gender: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}gender'],
+      )!,
+      isPregnant: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_pregnant'],
+      )!,
+      climateType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}climate_type'],
+      )!,
       wakeHour: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}wake_hour'],
@@ -1206,6 +1279,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
   final int dailyGoalMl;
   final String unit;
   final String weightUnit;
+  final String gender;
+  final bool isPregnant;
+  final String climateType;
   final int wakeHour;
   final int sleepHour;
   final int wakeMinute;
@@ -1221,6 +1297,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     required this.dailyGoalMl,
     required this.unit,
     required this.weightUnit,
+    required this.gender,
+    required this.isPregnant,
+    required this.climateType,
     required this.wakeHour,
     required this.sleepHour,
     required this.wakeMinute,
@@ -1239,6 +1318,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     map['daily_goal_ml'] = Variable<int>(dailyGoalMl);
     map['unit'] = Variable<String>(unit);
     map['weight_unit'] = Variable<String>(weightUnit);
+    map['gender'] = Variable<String>(gender);
+    map['is_pregnant'] = Variable<bool>(isPregnant);
+    map['climate_type'] = Variable<String>(climateType);
     map['wake_hour'] = Variable<int>(wakeHour);
     map['sleep_hour'] = Variable<int>(sleepHour);
     map['wake_minute'] = Variable<int>(wakeMinute);
@@ -1258,6 +1340,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       dailyGoalMl: Value(dailyGoalMl),
       unit: Value(unit),
       weightUnit: Value(weightUnit),
+      gender: Value(gender),
+      isPregnant: Value(isPregnant),
+      climateType: Value(climateType),
       wakeHour: Value(wakeHour),
       sleepHour: Value(sleepHour),
       wakeMinute: Value(wakeMinute),
@@ -1281,6 +1366,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       dailyGoalMl: serializer.fromJson<int>(json['dailyGoalMl']),
       unit: serializer.fromJson<String>(json['unit']),
       weightUnit: serializer.fromJson<String>(json['weightUnit']),
+      gender: serializer.fromJson<String>(json['gender']),
+      isPregnant: serializer.fromJson<bool>(json['isPregnant']),
+      climateType: serializer.fromJson<String>(json['climateType']),
       wakeHour: serializer.fromJson<int>(json['wakeHour']),
       sleepHour: serializer.fromJson<int>(json['sleepHour']),
       wakeMinute: serializer.fromJson<int>(json['wakeMinute']),
@@ -1305,6 +1393,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       'dailyGoalMl': serializer.toJson<int>(dailyGoalMl),
       'unit': serializer.toJson<String>(unit),
       'weightUnit': serializer.toJson<String>(weightUnit),
+      'gender': serializer.toJson<String>(gender),
+      'isPregnant': serializer.toJson<bool>(isPregnant),
+      'climateType': serializer.toJson<String>(climateType),
       'wakeHour': serializer.toJson<int>(wakeHour),
       'sleepHour': serializer.toJson<int>(sleepHour),
       'wakeMinute': serializer.toJson<int>(wakeMinute),
@@ -1325,6 +1416,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     int? dailyGoalMl,
     String? unit,
     String? weightUnit,
+    String? gender,
+    bool? isPregnant,
+    String? climateType,
     int? wakeHour,
     int? sleepHour,
     int? wakeMinute,
@@ -1340,6 +1434,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     dailyGoalMl: dailyGoalMl ?? this.dailyGoalMl,
     unit: unit ?? this.unit,
     weightUnit: weightUnit ?? this.weightUnit,
+    gender: gender ?? this.gender,
+    isPregnant: isPregnant ?? this.isPregnant,
+    climateType: climateType ?? this.climateType,
     wakeHour: wakeHour ?? this.wakeHour,
     sleepHour: sleepHour ?? this.sleepHour,
     wakeMinute: wakeMinute ?? this.wakeMinute,
@@ -1364,6 +1461,13 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
       weightUnit: data.weightUnit.present
           ? data.weightUnit.value
           : this.weightUnit,
+      gender: data.gender.present ? data.gender.value : this.gender,
+      isPregnant: data.isPregnant.present
+          ? data.isPregnant.value
+          : this.isPregnant,
+      climateType: data.climateType.present
+          ? data.climateType.value
+          : this.climateType,
       wakeHour: data.wakeHour.present ? data.wakeHour.value : this.wakeHour,
       sleepHour: data.sleepHour.present ? data.sleepHour.value : this.sleepHour,
       wakeMinute: data.wakeMinute.present
@@ -1392,6 +1496,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           ..write('dailyGoalMl: $dailyGoalMl, ')
           ..write('unit: $unit, ')
           ..write('weightUnit: $weightUnit, ')
+          ..write('gender: $gender, ')
+          ..write('isPregnant: $isPregnant, ')
+          ..write('climateType: $climateType, ')
           ..write('wakeHour: $wakeHour, ')
           ..write('sleepHour: $sleepHour, ')
           ..write('wakeMinute: $wakeMinute, ')
@@ -1412,6 +1519,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
     dailyGoalMl,
     unit,
     weightUnit,
+    gender,
+    isPregnant,
+    climateType,
     wakeHour,
     sleepHour,
     wakeMinute,
@@ -1431,6 +1541,9 @@ class UserProfileData extends DataClass implements Insertable<UserProfileData> {
           other.dailyGoalMl == this.dailyGoalMl &&
           other.unit == this.unit &&
           other.weightUnit == this.weightUnit &&
+          other.gender == this.gender &&
+          other.isPregnant == this.isPregnant &&
+          other.climateType == this.climateType &&
           other.wakeHour == this.wakeHour &&
           other.sleepHour == this.sleepHour &&
           other.wakeMinute == this.wakeMinute &&
@@ -1448,6 +1561,9 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
   final Value<int> dailyGoalMl;
   final Value<String> unit;
   final Value<String> weightUnit;
+  final Value<String> gender;
+  final Value<bool> isPregnant;
+  final Value<String> climateType;
   final Value<int> wakeHour;
   final Value<int> sleepHour;
   final Value<int> wakeMinute;
@@ -1463,6 +1579,9 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     this.dailyGoalMl = const Value.absent(),
     this.unit = const Value.absent(),
     this.weightUnit = const Value.absent(),
+    this.gender = const Value.absent(),
+    this.isPregnant = const Value.absent(),
+    this.climateType = const Value.absent(),
     this.wakeHour = const Value.absent(),
     this.sleepHour = const Value.absent(),
     this.wakeMinute = const Value.absent(),
@@ -1479,6 +1598,9 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     required int dailyGoalMl,
     this.unit = const Value.absent(),
     this.weightUnit = const Value.absent(),
+    this.gender = const Value.absent(),
+    this.isPregnant = const Value.absent(),
+    this.climateType = const Value.absent(),
     this.wakeHour = const Value.absent(),
     this.sleepHour = const Value.absent(),
     this.wakeMinute = const Value.absent(),
@@ -1498,6 +1620,9 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     Expression<int>? dailyGoalMl,
     Expression<String>? unit,
     Expression<String>? weightUnit,
+    Expression<String>? gender,
+    Expression<bool>? isPregnant,
+    Expression<String>? climateType,
     Expression<int>? wakeHour,
     Expression<int>? sleepHour,
     Expression<int>? wakeMinute,
@@ -1514,6 +1639,9 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
       if (dailyGoalMl != null) 'daily_goal_ml': dailyGoalMl,
       if (unit != null) 'unit': unit,
       if (weightUnit != null) 'weight_unit': weightUnit,
+      if (gender != null) 'gender': gender,
+      if (isPregnant != null) 'is_pregnant': isPregnant,
+      if (climateType != null) 'climate_type': climateType,
       if (wakeHour != null) 'wake_hour': wakeHour,
       if (sleepHour != null) 'sleep_hour': sleepHour,
       if (wakeMinute != null) 'wake_minute': wakeMinute,
@@ -1534,6 +1662,9 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     Value<int>? dailyGoalMl,
     Value<String>? unit,
     Value<String>? weightUnit,
+    Value<String>? gender,
+    Value<bool>? isPregnant,
+    Value<String>? climateType,
     Value<int>? wakeHour,
     Value<int>? sleepHour,
     Value<int>? wakeMinute,
@@ -1550,6 +1681,9 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
       dailyGoalMl: dailyGoalMl ?? this.dailyGoalMl,
       unit: unit ?? this.unit,
       weightUnit: weightUnit ?? this.weightUnit,
+      gender: gender ?? this.gender,
+      isPregnant: isPregnant ?? this.isPregnant,
+      climateType: climateType ?? this.climateType,
       wakeHour: wakeHour ?? this.wakeHour,
       sleepHour: sleepHour ?? this.sleepHour,
       wakeMinute: wakeMinute ?? this.wakeMinute,
@@ -1584,6 +1718,15 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
     }
     if (weightUnit.present) {
       map['weight_unit'] = Variable<String>(weightUnit.value);
+    }
+    if (gender.present) {
+      map['gender'] = Variable<String>(gender.value);
+    }
+    if (isPregnant.present) {
+      map['is_pregnant'] = Variable<bool>(isPregnant.value);
+    }
+    if (climateType.present) {
+      map['climate_type'] = Variable<String>(climateType.value);
     }
     if (wakeHour.present) {
       map['wake_hour'] = Variable<int>(wakeHour.value);
@@ -1621,6 +1764,9 @@ class UserProfileCompanion extends UpdateCompanion<UserProfileData> {
           ..write('dailyGoalMl: $dailyGoalMl, ')
           ..write('unit: $unit, ')
           ..write('weightUnit: $weightUnit, ')
+          ..write('gender: $gender, ')
+          ..write('isPregnant: $isPregnant, ')
+          ..write('climateType: $climateType, ')
           ..write('wakeHour: $wakeHour, ')
           ..write('sleepHour: $sleepHour, ')
           ..write('wakeMinute: $wakeMinute, ')
@@ -2314,6 +2460,9 @@ typedef $$UserProfileTableCreateCompanionBuilder =
       required int dailyGoalMl,
       Value<String> unit,
       Value<String> weightUnit,
+      Value<String> gender,
+      Value<bool> isPregnant,
+      Value<String> climateType,
       Value<int> wakeHour,
       Value<int> sleepHour,
       Value<int> wakeMinute,
@@ -2331,6 +2480,9 @@ typedef $$UserProfileTableUpdateCompanionBuilder =
       Value<int> dailyGoalMl,
       Value<String> unit,
       Value<String> weightUnit,
+      Value<String> gender,
+      Value<bool> isPregnant,
+      Value<String> climateType,
       Value<int> wakeHour,
       Value<int> sleepHour,
       Value<int> wakeMinute,
@@ -2381,6 +2533,21 @@ class $$UserProfileTableFilterComposer
 
   ColumnFilters<String> get weightUnit => $composableBuilder(
     column: $table.weightUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get gender => $composableBuilder(
+    column: $table.gender,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPregnant => $composableBuilder(
+    column: $table.isPregnant,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get climateType => $composableBuilder(
+    column: $table.climateType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2464,6 +2631,21 @@ class $$UserProfileTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get gender => $composableBuilder(
+    column: $table.gender,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPregnant => $composableBuilder(
+    column: $table.isPregnant,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get climateType => $composableBuilder(
+    column: $table.climateType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get wakeHour => $composableBuilder(
     column: $table.wakeHour,
     builder: (column) => ColumnOrderings(column),
@@ -2536,6 +2718,19 @@ class $$UserProfileTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get gender =>
+      $composableBuilder(column: $table.gender, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPregnant => $composableBuilder(
+    column: $table.isPregnant,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get climateType => $composableBuilder(
+    column: $table.climateType,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<int> get wakeHour =>
       $composableBuilder(column: $table.wakeHour, builder: (column) => column);
 
@@ -2604,6 +2799,9 @@ class $$UserProfileTableTableManager
                 Value<int> dailyGoalMl = const Value.absent(),
                 Value<String> unit = const Value.absent(),
                 Value<String> weightUnit = const Value.absent(),
+                Value<String> gender = const Value.absent(),
+                Value<bool> isPregnant = const Value.absent(),
+                Value<String> climateType = const Value.absent(),
                 Value<int> wakeHour = const Value.absent(),
                 Value<int> sleepHour = const Value.absent(),
                 Value<int> wakeMinute = const Value.absent(),
@@ -2619,6 +2817,9 @@ class $$UserProfileTableTableManager
                 dailyGoalMl: dailyGoalMl,
                 unit: unit,
                 weightUnit: weightUnit,
+                gender: gender,
+                isPregnant: isPregnant,
+                climateType: climateType,
                 wakeHour: wakeHour,
                 sleepHour: sleepHour,
                 wakeMinute: wakeMinute,
@@ -2636,6 +2837,9 @@ class $$UserProfileTableTableManager
                 required int dailyGoalMl,
                 Value<String> unit = const Value.absent(),
                 Value<String> weightUnit = const Value.absent(),
+                Value<String> gender = const Value.absent(),
+                Value<bool> isPregnant = const Value.absent(),
+                Value<String> climateType = const Value.absent(),
                 Value<int> wakeHour = const Value.absent(),
                 Value<int> sleepHour = const Value.absent(),
                 Value<int> wakeMinute = const Value.absent(),
@@ -2651,6 +2855,9 @@ class $$UserProfileTableTableManager
                 dailyGoalMl: dailyGoalMl,
                 unit: unit,
                 weightUnit: weightUnit,
+                gender: gender,
+                isPregnant: isPregnant,
+                climateType: climateType,
                 wakeHour: wakeHour,
                 sleepHour: sleepHour,
                 wakeMinute: wakeMinute,

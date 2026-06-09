@@ -49,7 +49,12 @@ class SettingsRepository {
     final profile = await _userProfileDao.getProfile();
     if (profile == null) return;
     final newGoal = HydrationCalculator.calculateDailyGoalMl(
-        weightKg, profile.activityLevel);
+      weightKg: weightKg,
+      activityLevel: profile.activityLevel,
+      gender: profile.gender,
+      isPregnant: profile.isPregnant,
+      climateType: profile.climateType,
+    );
     await _userProfileDao.updateProfile(UserProfileCompanion(
       id: Value(profile.id),
       weightKg: Value(weightKg),
@@ -129,10 +134,66 @@ class SettingsRepository {
     final profile = await _userProfileDao.getProfile();
     if (profile == null) return;
     final newGoal = HydrationCalculator.calculateDailyGoalMl(
-        profile.weightKg, level);
+      weightKg: profile.weightKg,
+      activityLevel: level,
+      gender: profile.gender,
+      isPregnant: profile.isPregnant,
+      climateType: profile.climateType,
+    );
     await _userProfileDao.updateProfile(UserProfileCompanion(
       id: Value(profile.id),
       activityLevel: Value(level),
+      dailyGoalMl: Value(newGoal),
+    ));
+  }
+
+  Future<void> updateGender(String gender) async {
+    final profile = await _userProfileDao.getProfile();
+    if (profile == null) return;
+    final newGoal = HydrationCalculator.calculateDailyGoalMl(
+      weightKg: profile.weightKg,
+      activityLevel: profile.activityLevel,
+      gender: gender,
+      isPregnant: profile.isPregnant,
+      climateType: profile.climateType,
+    );
+    await _userProfileDao.updateProfile(UserProfileCompanion(
+      id: Value(profile.id),
+      gender: Value(gender),
+      dailyGoalMl: Value(newGoal),
+    ));
+  }
+
+  Future<void> updateIsPregnant(bool value) async {
+    final profile = await _userProfileDao.getProfile();
+    if (profile == null) return;
+    final newGoal = HydrationCalculator.calculateDailyGoalMl(
+      weightKg: profile.weightKg,
+      activityLevel: profile.activityLevel,
+      gender: profile.gender,
+      isPregnant: value,
+      climateType: profile.climateType,
+    );
+    await _userProfileDao.updateProfile(UserProfileCompanion(
+      id: Value(profile.id),
+      isPregnant: Value(value),
+      dailyGoalMl: Value(newGoal),
+    ));
+  }
+
+  Future<void> updateClimateType(String climate) async {
+    final profile = await _userProfileDao.getProfile();
+    if (profile == null) return;
+    final newGoal = HydrationCalculator.calculateDailyGoalMl(
+      weightKg: profile.weightKg,
+      activityLevel: profile.activityLevel,
+      gender: profile.gender,
+      isPregnant: profile.isPregnant,
+      climateType: climate,
+    );
+    await _userProfileDao.updateProfile(UserProfileCompanion(
+      id: Value(profile.id),
+      climateType: Value(climate),
       dailyGoalMl: Value(newGoal),
     ));
   }

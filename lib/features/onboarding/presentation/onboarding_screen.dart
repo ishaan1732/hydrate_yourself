@@ -63,7 +63,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(3, (i) {
+                children: List.generate(4, (i) {
                   final isActive = i == _currentPage - 1;
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 300),
@@ -87,6 +87,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 children: [
                   _buildNameWeightPage(),
                   _buildActivityPage(),
+                  _buildClimatePage(),
                   _buildRemindersPage(),
                 ],
               ),
@@ -101,14 +102,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                   const Spacer(),
                   FilledButton(
-                    onPressed: _currentPage < 3 ? _nextPage : _complete,
+                    onPressed: _currentPage < 4 ? _nextPage : _complete,
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 32, vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(_currentPage < 3 ? 'Next' : 'Complete'),
+                    child: Text(_currentPage < 4 ? 'Next' : 'Complete'),
                   ),
                 ],
               ),
@@ -294,6 +295,103 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 .read(onboardingNotifierProvider.notifier)
                 .updateWeightUnit(val.first),
           ),
+          const SizedBox(height: 20),
+          Text(
+            'Gender',
+            style: theme.textTheme.labelLarge
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 8),
+          Builder(builder: (context) {
+            final currentGender =
+                ref.watch(onboardingNotifierProvider).value?.gender ??
+                    AppConstants.defaultGender;
+            final genders = [
+              ('male', '👨', 'Male'),
+              ('female', '👩', 'Female'),
+              ('other', '🧑', 'Other'),
+            ];
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    for (final (value, emoji, label) in genders) ...[
+                      if (value != 'male') const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => ref
+                              .read(onboardingNotifierProvider.notifier)
+                              .updateGender(value),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: currentGender == value
+                                  ? colorScheme.primary.withValues(alpha: 0.15)
+                                  : colorScheme.surfaceContainerHighest,
+                              border: Border.all(
+                                color: currentGender == value
+                                    ? colorScheme.primary
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(emoji,
+                                    style: const TextStyle(fontSize: 28)),
+                                const SizedBox(height: 4),
+                                Text(
+                                  label,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: currentGender == value
+                                        ? colorScheme.primary
+                                        : colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                if (currentGender == 'female') ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: colorScheme.surfaceContainerHighest,
+                    ),
+                    child: SwitchListTile(
+                      title: Text('Pregnant',
+                          style: theme.textTheme.bodyLarge),
+                      subtitle: Text(
+                        'Increases daily water recommendation',
+                        style: theme.textTheme.bodySmall
+                            ?.copyWith(color: colorScheme.onSurfaceVariant),
+                      ),
+                      secondary: const Text('🤰',
+                          style: TextStyle(fontSize: 24)),
+                      value: ref
+                              .watch(onboardingNotifierProvider)
+                              .value
+                              ?.isPregnant ??
+                          false,
+                      onChanged: (val) => ref
+                          .read(onboardingNotifierProvider.notifier)
+                          .updateIsPregnant(val),
+                    ),
+                  ),
+                ],
+              ],
+            );
+          }),
         ],
       ),
     );
@@ -373,6 +471,125 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             subtitle: Text(description),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildClimatePage() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final currentClimate =
+        ref.watch(onboardingNotifierProvider).value?.climateType ??
+            AppConstants.defaultClimate;
+
+    final climates = [
+      ('cold', '🥶', 'Cold', 'Cool or cold weather'),
+      ('moderate', '🌤️', 'Moderate', 'Mild everyday conditions'),
+      ('hot', '☀️', 'Hot', 'Warm and sunny weather'),
+      ('very_hot', '🔥', 'Very Hot', 'Hot, humid or desert conditions'),
+    ];
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Your Climate 🌡️',
+            style: theme.textTheme.headlineMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'We adjust your daily water goal based on your climate',
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(color: colorScheme.onSurfaceVariant),
+          ),
+          const SizedBox(height: 4),
+          Container(
+            margin: const EdgeInsets.only(top: 4, bottom: 20),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.tertiaryContainer.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: colorScheme.tertiary.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.info_outline,
+                    size: 16, color: colorScheme.tertiary),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'This is a rough approximation based on general guidelines. '
+                    'Consult a doctor or nutritionist for a personalised recommendation.',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onTertiaryContainer),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Column(
+            children: [
+              for (final (value, emoji, label, desc) in climates) ...[
+                if (value != 'cold') const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () => ref
+                      .read(onboardingNotifierProvider.notifier)
+                      .updateClimateType(value),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      color: currentClimate == value
+                          ? colorScheme.primary.withValues(alpha: 0.12)
+                          : colorScheme.surfaceContainerHighest,
+                      border: Border.all(
+                        color: currentClimate == value
+                            ? colorScheme.primary
+                            : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Text(emoji, style: const TextStyle(fontSize: 32)),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              label,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: currentClimate == value
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface,
+                              ),
+                            ),
+                            Text(
+                              desc,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        if (currentClimate == value)
+                          Icon(Icons.check_circle_rounded,
+                              color: colorScheme.primary),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -625,6 +842,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           weightUnit: weightUnit,
           activityLevel:
               formData?.activityLevel ?? AppConstants.defaultActivityLevel,
+          gender: formData?.gender ?? AppConstants.defaultGender,
+          isPregnant: formData?.isPregnant ?? false,
+          climateType: formData?.climateType ?? AppConstants.defaultClimate,
           wakeHour: formData?.wakeHour ?? AppConstants.defaultWakeHour,
           wakeMinute: formData?.wakeMinute ?? 0,
           sleepHour: formData?.sleepHour ?? AppConstants.defaultSleepHour,

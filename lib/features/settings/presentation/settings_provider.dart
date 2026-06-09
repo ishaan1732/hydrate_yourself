@@ -70,12 +70,16 @@ class SettingsNotifier extends _$SettingsNotifier {
   Future<void> updateWeight(double inputWeight, String weightUnit) async {
     final current = state.valueOrNull;
     if (current == null) return;
-    // Convert to kg for storage if input is in lbs
     final weightKg = weightUnit == AppConstants.unitLbs
         ? inputWeight.lbsToKg
         : inputWeight;
     final newGoal = HydrationCalculator.calculateDailyGoalMl(
-        weightKg, current.activityLevel);
+      weightKg: weightKg,
+      activityLevel: current.activityLevel,
+      gender: current.gender,
+      isPregnant: current.isPregnant,
+      climateType: current.climateType,
+    );
     state = AsyncData(current.copyWith(
       weightKg: weightKg,
       dailyGoalMl: newGoal,
@@ -182,13 +186,73 @@ class SettingsNotifier extends _$SettingsNotifier {
     final current = state.valueOrNull;
     if (current == null) return;
     final newGoal = HydrationCalculator.calculateDailyGoalMl(
-        current.weightKg, level);
+      weightKg: current.weightKg,
+      activityLevel: level,
+      gender: current.gender,
+      isPregnant: current.isPregnant,
+      climateType: current.climateType,
+    );
     state = AsyncData(current.copyWith(
       activityLevel: level,
       dailyGoalMl: newGoal,
     ));
     try {
       await ref.read(settingsRepositoryProvider).updateActivityLevel(level);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> updateGender(String gender) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final newGoal = HydrationCalculator.calculateDailyGoalMl(
+      weightKg: current.weightKg,
+      activityLevel: current.activityLevel,
+      gender: gender,
+      isPregnant: current.isPregnant,
+      climateType: current.climateType,
+    );
+    state = AsyncData(current.copyWith(gender: gender, dailyGoalMl: newGoal));
+    try {
+      await ref.read(settingsRepositoryProvider).updateGender(gender);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> updateIsPregnant(bool value) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final newGoal = HydrationCalculator.calculateDailyGoalMl(
+      weightKg: current.weightKg,
+      activityLevel: current.activityLevel,
+      gender: current.gender,
+      isPregnant: value,
+      climateType: current.climateType,
+    );
+    state = AsyncData(current.copyWith(isPregnant: value, dailyGoalMl: newGoal));
+    try {
+      await ref.read(settingsRepositoryProvider).updateIsPregnant(value);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> updateClimateType(String climate) async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final newGoal = HydrationCalculator.calculateDailyGoalMl(
+      weightKg: current.weightKg,
+      activityLevel: current.activityLevel,
+      gender: current.gender,
+      isPregnant: current.isPregnant,
+      climateType: climate,
+    );
+    state = AsyncData(
+        current.copyWith(climateType: climate, dailyGoalMl: newGoal));
+    try {
+      await ref.read(settingsRepositoryProvider).updateClimateType(climate);
     } catch (e, st) {
       state = AsyncError(e, st);
     }
