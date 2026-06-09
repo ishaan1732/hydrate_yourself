@@ -152,11 +152,6 @@ class HomeScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const Spacer(),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.go('/settings'),
-          ),
         ],
       ),
     );

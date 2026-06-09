@@ -149,7 +149,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       title: Text('Pregnant',
                           style: Theme.of(context).textTheme.bodyLarge),
                       subtitle: Text(
-                        '+300ml added to daily goal',
+                        '+${(profile.weightKg * 3.5).clamp(0.0, 300.0).toStringAsFixed(0)}ml added to daily goal',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: colorScheme.onSurfaceVariant,
                             ),
@@ -197,6 +197,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 context,
                 children: [
                   _buildGoalTile(context, ref, profile),
+                  const Divider(height: 1, indent: 56),
+                  _buildGoalBreakdownTile(context, profile),
                   const Divider(height: 1, indent: 56),
                   _buildUnitToggleTile(context, ref, profile.unit),
                 ],
@@ -504,6 +506,173 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         style: const ButtonStyle(
           visualDensity: VisualDensity.compact,
         ),
+      ),
+    );
+  }
+
+  Widget _buildGoalBreakdownTile(
+      BuildContext context, UserProfileModel profile) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    return ListTile(
+      leading: Icon(Icons.calculate_outlined, color: colorScheme.primary),
+      title: Text(
+        'How is this calculated?',
+        style: theme.textTheme.bodyLarge,
+      ),
+      trailing: Icon(Icons.chevron_right,
+          size: 20, color: colorScheme.onSurfaceVariant),
+      onTap: () => _showGoalBreakdown(context, profile),
+    );
+  }
+
+  void _showGoalBreakdown(BuildContext context, UserProfileModel profile) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final unit = profile.unit;
+
+    final base = profile.weightKg * 35;
+
+    const activityLabels = ['Sedentary', 'Light', 'Moderate', 'Active'];
+    const activityMultipliers = [1.0, 1.1, 1.2, 1.4];
+    final activityMult =
+        activityMultipliers[profile.activityLevel.clamp(0, 3)];
+    final afterActivity = base * activityMult;
+
+    final genderMult = profile.gender == 'female' ? 0.92 : 1.0;
+    final afterGender = afterActivity * genderMult;
+
+    final pregnancyExtra =
+        (profile.isPregnant && profile.gender == 'female')
+            ? (profile.weightKg * 3.5).clamp(0.0, 300.0)
+            : 0.0;
+    final afterPregnancy = afterGender + pregnancyExtra;
+
+    final climateMults = {
+      'cold': 0.9,
+      'moderate': 1.0,
+      'hot': 1.15,
+      'very_hot': 1.30,
+    };
+    final climateMult = climateMults[profile.climateType] ?? 1.0;
+    final afterClimate = afterPregnancy * climateMult;
+    final finalGoal = afterClimate.round().clamp(1500, 4500);
+
+    String fmt(double ml) {
+      if (unit == 'oz') {
+        return '${(ml * 0.033814).toStringAsFixed(1)} oz';
+      }
+      return ml >= 1000
+          ? '${(ml / 1000).toStringAsFixed(1)} L'
+          : '${ml.round()} ml';
+    }
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Goal Calculation'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Your daily goal is based on:',
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
+              ),
+              const SizedBox(height: 16),
+              _breakdownRow(context, '⚖️ Base (weight × 35ml/kg)',
+                  '${profile.weightKg.toStringAsFixed(1)}kg × 35 = ${fmt(base)}'),
+              _breakdownRow(
+                context,
+                '🏃 Activity (${activityLabels[profile.activityLevel.clamp(0, 3)]})',
+                '× ${activityMult.toStringAsFixed(1)} = ${fmt(afterActivity)}',
+              ),
+              _breakdownRow(
+                context,
+                '${profile.gender == 'female' ? '👩' : '👨'} Gender',
+                profile.gender == 'female'
+                    ? '× 0.92 = ${fmt(afterGender)}'
+                    : 'No adjustment',
+              ),
+              if (profile.isPregnant && profile.gender == 'female')
+                _breakdownRow(
+                  context,
+                  '🤰 Pregnancy (${profile.weightKg.toStringAsFixed(0)}kg × 3.5)',
+                  '+ ${pregnancyExtra.toStringAsFixed(0)}ml = ${fmt(afterPregnancy)}',
+                ),
+              _breakdownRow(
+                context,
+                '${HydrationCalculator.climateEmoji(profile.climateType)} Climate (${HydrationCalculator.climateLabel(profile.climateType)})',
+                '× $climateMult = ${fmt(afterClimate)}',
+              ),
+              if (afterClimate.round() < 1500 || afterClimate.round() > 4500)
+                _breakdownRow(context, '📊 Clamped to safe range',
+                    '→ ${fmt(finalGoal.toDouble())}'),
+              const Divider(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Your daily goal',
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700)),
+                  Text(fmt(finalGoal.toDouble()),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: colorScheme.primary)),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  'General guideline based on established hydration research. '
+                  'Individual needs vary. Consult a doctor for a personalised recommendation.',
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Got it'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _breakdownRow(BuildContext context, String label, String value) {
+    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 3,
+            child: Text(label,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(color: colorScheme.onSurfaceVariant)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 2,
+            child: Text(value,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(fontWeight: FontWeight.w600),
+                textAlign: TextAlign.right),
+          ),
+        ],
       ),
     );
   }
@@ -1026,37 +1195,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showGenderDialog(
       BuildContext context, WidgetRef ref, UserProfileModel profile) {
-    final genders = [
-      ('male', '👨', 'Male'),
-      ('female', '👩', 'Female'),
-    ];
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Gender'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (final (value, emoji, label) in genders)
+        content: RadioGroup<String>(
+          groupValue: profile.gender,
+          onChanged: (val) {
+            if (val == null) return;
+            Navigator.pop(dialogContext);
+            ref.read(settingsNotifierProvider.notifier).updateGender(val);
+          },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
               RadioListTile<String>(
-                value: value,
-                groupValue: profile.gender,
-                title: Row(
-                  children: [
-                    Text(emoji, style: const TextStyle(fontSize: 20)),
-                    const SizedBox(width: 8),
-                    Text(label),
-                  ],
-                ),
-                onChanged: (val) {
-                  if (val == null) return;
-                  Navigator.pop(dialogContext);
-                  ref
-                      .read(settingsNotifierProvider.notifier)
-                      .updateGender(val);
-                },
+                value: 'male',
+                title: Row(children: [
+                  const Text('👨', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                  const Text('Male'),
+                ]),
               ),
-          ],
+              RadioListTile<String>(
+                value: 'female',
+                title: Row(children: [
+                  const Text('👩', style: TextStyle(fontSize: 20)),
+                  const SizedBox(width: 8),
+                  const Text('Female'),
+                ]),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -1070,46 +1240,61 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showClimateDialog(
       BuildContext context, WidgetRef ref, UserProfileModel profile) {
-    final climates = [
-      ('cold', '🥶', 'Cold', 'Cool or cold weather'),
-      ('moderate', '🌤️', 'Moderate', 'Mild everyday conditions'),
-      ('hot', '☀️', 'Hot', 'Warm and sunny weather'),
-      ('very_hot', '🔥', 'Very Hot', 'Hot, humid or desert conditions'),
-    ];
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Climate'),
         content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (final (value, emoji, label, desc) in climates)
+          child: RadioGroup<String>(
+            groupValue: profile.climateType,
+            onChanged: (val) {
+              if (val == null) return;
+              Navigator.pop(dialogContext);
+              ref
+                  .read(settingsNotifierProvider.notifier)
+                  .updateClimateType(val);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 RadioListTile<String>(
-                  value: value,
-                  groupValue: profile.climateType,
-                  title: Row(
-                    children: [
-                      Text(emoji, style: const TextStyle(fontSize: 20)),
-                      const SizedBox(width: 8),
-                      Text(label),
-                    ],
-                  ),
-                  subtitle: Text(
-                    desc,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                  ),
-                  onChanged: (val) {
-                    if (val == null) return;
-                    Navigator.pop(dialogContext);
-                    ref
-                        .read(settingsNotifierProvider.notifier)
-                        .updateClimateType(val);
-                  },
+                  value: 'cold',
+                  title: Row(children: [
+                    const Text('🥶', style: TextStyle(fontSize: 20)),
+                    const SizedBox(width: 8),
+                    const Text('Cold'),
+                  ]),
+                  subtitle: const Text('Cool or cold weather'),
                 ),
-            ],
+                RadioListTile<String>(
+                  value: 'moderate',
+                  title: Row(children: [
+                    const Text('🌤️', style: TextStyle(fontSize: 20)),
+                    const SizedBox(width: 8),
+                    const Text('Moderate'),
+                  ]),
+                  subtitle: const Text('Mild everyday conditions'),
+                ),
+                RadioListTile<String>(
+                  value: 'hot',
+                  title: Row(children: [
+                    const Text('☀️', style: TextStyle(fontSize: 20)),
+                    const SizedBox(width: 8),
+                    const Text('Hot'),
+                  ]),
+                  subtitle: const Text('Warm and sunny weather'),
+                ),
+                RadioListTile<String>(
+                  value: 'very_hot',
+                  title: Row(children: [
+                    const Text('🔥', style: TextStyle(fontSize: 20)),
+                    const SizedBox(width: 8),
+                    const Text('Very Hot'),
+                  ]),
+                  subtitle: const Text('Hot, humid or desert conditions'),
+                ),
+              ],
+            ),
           ),
         ),
         actions: [
