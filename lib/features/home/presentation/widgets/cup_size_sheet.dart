@@ -18,47 +18,46 @@ class CupSizeSheet extends StatefulWidget {
 
 class _CupSizeSheetState extends State<CupSizeSheet> {
   static const _mlPresets = [150, 250, 330, 500];
-  static const _ozPresets = [237, 355, 473, 591];
-  static const _ozSteps = [4, 6, 8, 10, 12, 16, 20, 24, 32];
-  static const _mlSteps = [118, 177, 237, 296, 355, 473, 591, 710, 946];
+  static const _ozPresetData = [
+    (237, '8 oz'),
+    (355, '12 oz'),
+    (473, '16 oz'),
+    (591, '20 oz'),
+  ];
 
   late int _selectedPreset;
   late int _customMl;
-  late int _ozIndex;
 
   @override
   void initState() {
     super.initState();
     _customMl = widget.currentSizeMl;
-    final presets = widget.unit == 'oz' ? _ozPresets : _mlPresets;
-    _selectedPreset = presets.contains(widget.currentSizeMl) ? widget.currentSizeMl : -1;
-    _ozIndex = _closestOzIndex(_customMl);
-  }
-
-  int _closestOzIndex(int ml) {
-    int closestIdx = 0;
-    int minDiff = (_mlSteps[0] - ml).abs();
-    for (int i = 1; i < _mlSteps.length; i++) {
-      final diff = (_mlSteps[i] - ml).abs();
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIdx = i;
-      }
+    if (widget.unit == 'oz') {
+      _selectedPreset =
+          _ozPresetData.any((e) => e.$1 == widget.currentSizeMl)
+              ? widget.currentSizeMl
+              : -1;
+    } else {
+      _selectedPreset =
+          _mlPresets.contains(widget.currentSizeMl) ? widget.currentSizeMl : -1;
     }
-    return closestIdx;
   }
 
-  String _mlToNaturalOz(int ml) {
-    final idx = _closestOzIndex(ml);
-    if ((_mlSteps[idx] - ml).abs() < 30) return _ozSteps[idx].toString();
-    return (ml * 0.0338).toStringAsFixed(0);
+  double _mlToOzDouble(int ml) => ml * 0.033814;
+
+  String _mlToDisplayOz(int ml) {
+    final oz = ml * 0.033814;
+    final rounded = (oz * 2).round() / 2.0;
+    if (rounded % 1 == 0) return rounded.toInt().toString();
+    return rounded.toStringAsFixed(1);
   }
+
+  int _ozToMl(double oz) => (oz / 0.033814).round();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final presets = widget.unit == 'oz' ? _ozPresets : _mlPresets;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -81,22 +80,123 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: presets
-                .map((ml) => Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: _buildPresetButton(context, ml),
+
+          // Preset buttons
+          if (widget.unit == 'oz')
+            Row(
+              children: [
+                for (final (ml, label) in _ozPresetData) ...[
+                  if (ml != _ozPresetData.first.$1) const SizedBox(width: 8),
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => setState(() {
+                        _customMl = ml;
+                        _selectedPreset = ml;
+                      }),
+                      child: Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: _selectedPreset == ml
+                              ? colorScheme.primary.withValues(alpha: 0.2)
+                              : colorScheme.surfaceContainerHighest,
+                          border: Border.all(
+                            color: _selectedPreset == ml
+                                ? colorScheme.primary
+                                : Colors.transparent,
+                            width: 2,
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              label,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: _selectedPreset == ml
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ))
-                .toList(),
-          ),
+                    ),
+                  ),
+                ],
+              ],
+            )
+          else
+            Row(
+              children: _mlPresets
+                  .map((ml) => Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: _buildPresetButton(context, ml),
+                        ),
+                      ))
+                  .toList(),
+            ),
+
           const SizedBox(height: 20),
-          Text('Custom',
+
+          // Custom amount section
+          if (widget.unit == 'oz') ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Custom amount',
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+                Text(
+                  '${_mlToDisplayOz(_customMl)} oz',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Slider(
+              min: 2.0,
+              max: 40.0,
+              divisions: 76,
+              value: _mlToOzDouble(_customMl).clamp(2.0, 40.0),
+              label: '${_mlToDisplayOz(_customMl)} oz',
+              onChanged: (val) {
+                final roundedOz = (val * 2).round() / 2.0;
+                setState(() {
+                  _customMl = _ozToMl(roundedOz);
+                  _selectedPreset = -1;
+                });
+              },
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('2 oz',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant)),
+                Text('20 oz',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant)),
+                Text('40 oz',
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant)),
+              ],
+            ),
+          ] else ...[
+            Text(
+              'Custom',
               style: theme.textTheme.labelLarge
-                  ?.copyWith(color: colorScheme.onSurfaceVariant)),
-          const SizedBox(height: 10),
-          if (widget.unit == 'ml')
+                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            ),
+            const SizedBox(height: 10),
             Slider(
               min: 50,
               max: 1000,
@@ -106,32 +206,19 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
                 _customMl = v.round();
                 _selectedPreset = -1;
               }),
-            )
-          else
-            Slider(
-              min: 0,
-              max: (_ozSteps.length - 1).toDouble(),
-              divisions: _ozSteps.length - 1,
-              value: _ozIndex.toDouble(),
-              label: '${_ozSteps[_ozIndex]} oz',
-              onChanged: (v) => setState(() {
-                _ozIndex = v.round();
-                _customMl = _mlSteps[_ozIndex];
-                _selectedPreset = -1;
-              }),
             ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                widget.unit == 'oz'
-                    ? '${_ozSteps[_ozIndex]} oz selected'
-                    : '$_customMl ml selected',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
-            ],
-          ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  '$_customMl ml selected',
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+              ],
+            ),
+          ],
+
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -145,7 +232,11 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
                 widget.onSizeSelected(_customMl);
                 Navigator.pop(context);
               },
-              child: const Text('Set Cup Size'),
+              child: Text(
+                widget.unit == 'oz'
+                    ? 'Set Cup Size — ${_mlToDisplayOz(_customMl)} oz'
+                    : 'Set Cup Size — $_customMl ml',
+              ),
             ),
           ),
         ],
@@ -162,7 +253,6 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
       onTap: () => setState(() {
         _selectedPreset = ml;
         _customMl = ml;
-        if (widget.unit == 'oz') _ozIndex = _closestOzIndex(ml);
       }),
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -181,7 +271,7 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              widget.unit == 'oz' ? _mlToNaturalOz(ml) : ml.toString(),
+              ml.toString(),
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 color: isSelected ? colorScheme.primary : colorScheme.onSurface,

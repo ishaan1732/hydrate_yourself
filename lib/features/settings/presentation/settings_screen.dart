@@ -148,11 +148,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           style: TextStyle(fontSize: 22)),
                       title: Text('Pregnant',
                           style: Theme.of(context).textTheme.bodyLarge),
-                      subtitle: Text(
-                        '+${(profile.weightKg * 3.5).clamp(0.0, 300.0).toStringAsFixed(0)}ml added to daily goal',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurfaceVariant,
-                            ),
+                      subtitle: Builder(
+                        builder: (ctx) {
+                          final extra = (profile.weightKg * 3.5)
+                              .clamp(0.0, 300.0);
+                          final display = profile.unit == 'oz'
+                              ? '${(extra * 0.033814).toStringAsFixed(1)}'
+                                ' fl oz added to daily goal'
+                              : '${extra.round()}ml added to daily goal';
+                          return Text(
+                            '+$display',
+                            style: Theme.of(ctx).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: Theme.of(ctx)
+                                      .colorScheme.onSurfaceVariant,
+                                ),
+                          );
+                        },
                       ),
                       value: profile.isPregnant,
                       onChanged: (val) => ref
@@ -558,6 +570,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final afterClimate = afterPregnancy * climateMult;
     final finalGoal = afterClimate.round().clamp(1500, 4500);
 
+    final weightUnit = profile.weightUnit;
+    final isOz = unit == 'oz';
+    String baseFormula;
+    if (weightUnit == 'lbs' && isOz) {
+      baseFormula =
+          '${profile.weightKg.kgToLbs.toStringAsFixed(1)}'
+          'lbs × 0.54 fl oz/lb';
+    } else if (weightUnit == 'lbs' && !isOz) {
+      baseFormula =
+          '${profile.weightKg.kgToLbs.toStringAsFixed(1)}'
+          'lbs × 15.9ml/lb';
+    } else if (weightUnit == 'kg' && isOz) {
+      baseFormula =
+          '${profile.weightKg.toStringAsFixed(1)}'
+          'kg × 1.18 fl oz/kg';
+    } else {
+      baseFormula =
+          '${profile.weightKg.toStringAsFixed(1)}'
+          'kg × 35ml/kg';
+    }
+
     String fmt(double ml) {
       if (unit == 'oz') {
         return '${(ml * 0.033814).toStringAsFixed(1)} oz';
@@ -582,34 +615,55 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ?.copyWith(color: colorScheme.onSurfaceVariant),
               ),
               const SizedBox(height: 16),
-              _breakdownRow(context, '⚖️ Base (weight × 35ml/kg)',
-                  '${profile.weightKg.toStringAsFixed(1)}kg × 35 = ${fmt(base)}'),
-              _breakdownRow(
-                context,
-                '🏃 Activity (${activityLabels[profile.activityLevel.clamp(0, 3)]})',
-                '× ${activityMult.toStringAsFixed(1)} = ${fmt(afterActivity)}',
-              ),
-              _breakdownRow(
-                context,
-                '${profile.gender == 'female' ? '👩' : '👨'} Gender',
-                profile.gender == 'female'
-                    ? '× 0.92 = ${fmt(afterGender)}'
-                    : 'No adjustment',
-              ),
-              if (profile.isPregnant && profile.gender == 'female')
-                _breakdownRow(
-                  context,
-                  '🤰 Pregnancy (${profile.weightKg.toStringAsFixed(0)}kg × 3.5)',
-                  '+ ${pregnancyExtra.toStringAsFixed(0)}ml = ${fmt(afterPregnancy)}',
+              ...[
+                _breakdownRow(context,
+                  '⚖️ Base',
+                  baseFormula,
+                  fmt(base),
                 ),
-              _breakdownRow(
-                context,
-                '${HydrationCalculator.climateEmoji(profile.climateType)} Climate (${HydrationCalculator.climateLabel(profile.climateType)})',
-                '× $climateMult = ${fmt(afterClimate)}',
-              ),
-              if (afterClimate.round() < 1500 || afterClimate.round() > 4500)
-                _breakdownRow(context, '📊 Clamped to safe range',
-                    '→ ${fmt(finalGoal.toDouble())}'),
+                Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                _breakdownRow(context,
+                  '🏃 Activity (${activityLabels[profile.activityLevel.clamp(0, 3)]})',
+                  '× ${activityMult.toStringAsFixed(1)}',
+                  fmt(afterActivity),
+                ),
+                Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                _breakdownRow(context,
+                  '${profile.gender == 'female' ? '👩' : '👨'} Gender',
+                  profile.gender == 'female'
+                      ? '× 0.92 (female adjustment)'
+                      : '',
+                  profile.gender == 'female' ? fmt(afterGender) : 'No change',
+                ),
+                if (profile.isPregnant && profile.gender == 'female') ...[
+                  Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                  _breakdownRow(
+                    context,
+                    '🤰 Pregnancy',
+                    unit == 'oz'
+                        ? '+ ${(pregnancyExtra * 0.033814).toStringAsFixed(1)} fl oz'
+                          ' (max 10.1 fl oz)'
+                        : '+ ${pregnancyExtra.toStringAsFixed(0)}ml'
+                          ' (max 300ml)',
+                    fmt(afterPregnancy),
+                  ),
+                ],
+                Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                _breakdownRow(context,
+                  '${HydrationCalculator.climateEmoji(profile.climateType)} Climate'
+                  ' (${HydrationCalculator.climateLabel(profile.climateType)})',
+                  '× $climateMult',
+                  fmt(afterClimate),
+                ),
+                if (afterClimate.round() != finalGoal) ...[
+                  Divider(height: 1, color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                  _breakdownRow(context,
+                    '📊 Adjusted',
+                    'Based on recommended guidelines for your profile',
+                    fmt(finalGoal.toDouble()),
+                  ),
+                ],
+              ],
               const Divider(height: 24),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -650,27 +704,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _breakdownRow(BuildContext context, String label, String value) {
+  Widget _breakdownRow(
+    BuildContext context,
+    String label,
+    String formula,
+    String result,
+  ) {
     final theme = Theme.of(context);
     final colorScheme = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            flex: 3,
-            child: Text(label,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(color: colorScheme.onSurfaceVariant)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                if (formula.isNotEmpty)
+                  Text(
+                    formula,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+              ],
+            ),
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 2,
-            child: Text(value,
-                style: theme.textTheme.bodySmall
-                    ?.copyWith(fontWeight: FontWeight.w600),
-                textAlign: TextAlign.right),
+          Text(
+            result,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: colorScheme.onSurface,
+            ),
           ),
         ],
       ),
