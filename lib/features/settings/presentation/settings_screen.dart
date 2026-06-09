@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -484,7 +486,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           Text(
             profile.unit == 'oz'
-                ? '${profile.dailyGoalMl.toDouble().mlToOz.toStringAsFixed(1)} oz'
+                ? '${(profile.dailyGoalMl * 0.033814).toStringAsFixed(1)} fl oz'
                 : '${profile.dailyGoalMl} ml',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -495,7 +497,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               size: 20, color: colorScheme.onSurfaceVariant),
         ],
       ),
-      onTap: () => _showGoalDialog(context, ref, profile.dailyGoalMl, profile.unit),
+      onTap: () => _showGoalDialog(context, ref, profile),
     );
   }
 
@@ -956,73 +958,244 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showGoalDialog(
-      BuildContext context, WidgetRef ref, int currentGoal, String unit) {
-    final isOz = unit == AppConstants.unitOz;
-    double sliderValue = currentGoal.toDouble();
+    BuildContext context,
+    WidgetRef ref,
+    UserProfileModel profile,
+  ) {
+    final isOz = profile.unit == 'oz';
+
+    final int smallStep = isOz ? 15 : 25;
+    final int largeStep = isOz ? 59 : 100;
+
+    final smallLabel = isOz ? '0.5 oz' : '25 ml';
+    final largeLabel = isOz ? '2 oz' : '100 ml';
+
+    const minMl = 1500;
+    const maxMl = 4500;
+
     showDialog(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) {
-          final displayValue = isOz
-              ? '${sliderValue.mlToOz.toStringAsFixed(1)} oz'
-              : '${sliderValue.round()} ml';
-          return AlertDialog(
-            title: const Text('Daily Goal'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  displayValue,
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: Theme.of(context).colorScheme.primary,
+      builder: (dialogContext) {
+        int currentMl = profile.dailyGoalMl;
+        Timer? holdTimer;
+
+        String displayValue(int ml) {
+          if (isOz) {
+            final oz = ml * 0.033814;
+            final rounded = (oz * 2).round() / 2.0;
+            return rounded % 1 == 0
+                ? '${rounded.toInt()} fl oz'
+                : '${rounded.toStringAsFixed(1)} fl oz';
+          }
+          return '${ml.toString().replaceAllMapped(
+          RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
+          (m) => '${m[1]},',
+        )} ml';
+        }
+
+        void startHold(StateSetter setState, int stepMl, bool isAdd) {
+          holdTimer = Timer.periodic(
+            const Duration(milliseconds: 120),
+            (_) {
+              setState(() {
+                currentMl = isAdd
+                    ? (currentMl + stepMl).clamp(minMl, maxMl)
+                    : (currentMl - stepMl).clamp(minMl, maxMl);
+              });
+            },
+          );
+        }
+
+        void stopHold() {
+          holdTimer?.cancel();
+          holdTimer = null;
+        }
+
+        return StatefulBuilder(
+          builder: (ctx, setState) {
+            final colorScheme = Theme.of(ctx).colorScheme;
+            final theme = Theme.of(ctx);
+
+            Widget stepButton({
+              required String label,
+              required int stepMl,
+              required bool isAdd,
+              required IconData icon,
+            }) {
+              final atLimit =
+                  isAdd ? currentMl >= maxMl : currentMl <= minMl;
+
+              return GestureDetector(
+                onTap: atLimit
+                    ? null
+                    : () {
+                        setState(() {
+                          currentMl = isAdd
+                              ? (currentMl + stepMl).clamp(minMl, maxMl)
+                              : (currentMl - stepMl).clamp(minMl, maxMl);
+                        });
+                      },
+                onLongPressStart: atLimit
+                    ? null
+                    : (_) => startHold(setState, stepMl, isAdd),
+                onLongPressEnd: (_) => stopHold(),
+                onLongPressCancel: stopHold,
+                child: AnimatedOpacity(
+                  opacity: atLimit ? 0.35 : 1.0,
+                  duration: const Duration(milliseconds: 150),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: colorScheme.outlineVariant,
                       ),
-                  textAlign: TextAlign.center,
-                ),
-                Slider(
-                  min: AppConstants.minDailyGoalMl.toDouble(),
-                  max: AppConstants.maxDailyGoalMl.toDouble(),
-                  divisions: 25,
-                  value: sliderValue,
-                  label: displayValue,
-                  onChanged: (val) => setState(() => sliderValue = val),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      isOz
-                          ? '${AppConstants.minDailyGoalMl.toDouble().mlToOz.toStringAsFixed(1)} oz'
-                          : '${AppConstants.minDailyGoalMl} ml',
-                      style: Theme.of(context).textTheme.bodySmall,
                     ),
-                    const Spacer(),
-                    Text(
-                      isOz
-                          ? '${AppConstants.maxDailyGoalMl.toDouble().mlToOz.toStringAsFixed(1)} oz'
-                          : '${AppConstants.maxDailyGoalMl} ml',
-                      style: Theme.of(context).textTheme.bodySmall,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          icon,
+                          size: 18,
+                          color: isAdd
+                              ? colorScheme.primary
+                              : colorScheme.error,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${isAdd ? '+' : '−'}$label',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: isAdd
+                                ? colorScheme.primary
+                                : colorScheme.error,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
+                ),
+              );
+            }
+
+            return AlertDialog(
+              title: const Text('Daily Goal'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: double.infinity,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 20),
+                    decoration: BoxDecoration(
+                      color:
+                          colorScheme.primary.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      displayValue(currentMl),
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.displaySmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: stepButton(
+                          label: largeLabel,
+                          stepMl: largeStep,
+                          isAdd: false,
+                          icon: Icons.remove_circle_outline,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: stepButton(
+                          label: smallLabel,
+                          stepMl: smallStep,
+                          isAdd: false,
+                          icon: Icons.remove,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: stepButton(
+                          label: smallLabel,
+                          stepMl: smallStep,
+                          isAdd: true,
+                          icon: Icons.add,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: stepButton(
+                          label: largeLabel,
+                          stepMl: largeStep,
+                          isAdd: true,
+                          icon: Icons.add_circle_outline,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        isOz ? '50.7 fl oz min' : '1,500 ml min',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Text(
+                        isOz ? '152.1 fl oz max' : '4,500 ml max',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Hold a button to change quickly',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    stopHold();
+                    Navigator.pop(dialogContext);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () {
+                    stopHold();
+                    Navigator.pop(dialogContext);
+                    ref
+                        .read(settingsNotifierProvider.notifier)
+                        .updateGoal(currentMl);
+                  },
+                  child: const Text('Save'),
                 ),
               ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final goal = sliderValue.round();
-                  Navigator.pop(dialogContext);
-                  ref.read(settingsNotifierProvider.notifier).updateGoal(goal);
-                },
-                child: const Text('Save'),
-              ),
-            ],
-          );
-        },
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
