@@ -25,6 +25,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool _hasAttemptedNext = false;
   String? _nameError;
   String? _weightError;
+  double? _lastWarnedWeight;
 
   @override
   void initState() {
@@ -274,6 +275,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ref
                       .read(onboardingNotifierProvider.notifier)
                       .updateWeight(weight);
+                }
+                if (_lastWarnedWeight != null) {
+                  setState(() {
+                    _lastWarnedWeight = null;
+                    _weightError = null;
+                  });
                 }
               },
             );
@@ -764,6 +771,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       }
       if (weight == null || weight <= 0) {
         weightErr = 'Please enter a valid weight';
+      } else if (weight > 1000) {
+        setState(() {
+          _weightError =
+              '⚠️ This seems high — tap Next again to confirm';
+        });
+        if (_lastWarnedWeight != weight) {
+          setState(() => _lastWarnedWeight = weight);
+          return;
+        }
+        setState(() {
+          _weightError = null;
+          _lastWarnedWeight = null;
+        });
       }
 
       setState(() {

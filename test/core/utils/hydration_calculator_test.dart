@@ -63,15 +63,42 @@ void main() {
       );
     });
 
-    test('female pregnant 70 kg sedentary moderate → 2554 ml', () {
+    test('female pregnant 70 kg sedentary moderate → 2499 ml', () {
       expect(
         HydrationCalculator.calculateDailyGoalMl(
           weightKg: 70,
           activityLevel: 0,
           gender: 'female',
           isPregnant: true,
+          climateType: 'moderate',
         ),
-        equals(2554),
+        equals(2499),
+      );
+    });
+
+    test('female pregnant 90 kg sedentary moderate → 3198 ml', () {
+      expect(
+        HydrationCalculator.calculateDailyGoalMl(
+          weightKg: 90,
+          activityLevel: 0,
+          gender: 'female',
+          isPregnant: true,
+          climateType: 'moderate',
+        ),
+        equals(3198),
+      );
+    });
+
+    test('female pregnant 50 kg sedentary moderate → 1785 ml', () {
+      expect(
+        HydrationCalculator.calculateDailyGoalMl(
+          weightKg: 50,
+          activityLevel: 0,
+          gender: 'female',
+          isPregnant: true,
+          climateType: 'moderate',
+        ),
+        equals(1785),
       );
     });
 

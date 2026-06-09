@@ -34,7 +34,8 @@ class HydrationCalculator {
     }
 
     if (isPregnant && gender == 'female') {
-      base += 300;
+      final pregnancyExtra = (weightKg * 3.5).clamp(0.0, 300.0);
+      base += pregnancyExtra;
     }
 
     final double climateMultiplier;

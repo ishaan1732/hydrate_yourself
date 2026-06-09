@@ -562,43 +562,95 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   void _showEditWeightDialog(
-      BuildContext context, WidgetRef ref, UserProfileModel profile) {
-    final isLbs = profile.weightUnit == AppConstants.unitLbs;
+    BuildContext context,
+    WidgetRef ref,
+    UserProfileModel profile,
+  ) {
     final controller = TextEditingController(
-      text: isLbs
+      text: profile.weightUnit == 'lbs'
           ? profile.weightKg.kgToLbs.toStringAsFixed(1)
           : profile.weightKg.toStringAsFixed(1),
     );
+    String? errorText;
+    String? warningText;
+
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Edit Weight'),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: 'Weight (${profile.weightUnit})',
-            border: const OutlineInputBorder(),
-          ),
-          keyboardType:
-              const TextInputType.numberWithOptions(decimal: true),
-          autofocus: true,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              final val = double.tryParse(controller.text);
-              if (val == null || val <= 0) return;
-              Navigator.pop(dialogContext);
-              ref.read(settingsNotifierProvider.notifier)
-                  .updateWeight(val, profile.weightUnit);
-            },
-            child: const Text('Save'),
-          ),
-        ],
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (ctx, setState) {
+          final theme = Theme.of(ctx);
+          return AlertDialog(
+            title: const Text('Edit Weight'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    labelText: 'Weight (${profile.weightUnit})',
+                    border: const OutlineInputBorder(),
+                    errorText: errorText,
+                    suffixText: profile.weightUnit,
+                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  autofocus: true,
+                  onChanged: (val) {
+                    final parsed = double.tryParse(val.trim());
+                    setState(() {
+                      errorText = null;
+                      warningText = null;
+                      if (parsed != null && parsed > 1000) {
+                        warningText =
+                            'This seems unusually high — please double-check';
+                      }
+                    });
+                  },
+                ),
+                if (warningText != null) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(Icons.warning_amber_rounded,
+                          size: 14, color: Colors.amber.shade700),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          warningText!,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                              color: Colors.amber.shade700),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final val =
+                      double.tryParse(controller.text.trim());
+                  if (val == null || val <= 0) {
+                    setState(
+                        () => errorText = 'Please enter a valid weight');
+                    return;
+                  }
+                  Navigator.pop(dialogContext);
+                  ref
+                      .read(settingsNotifierProvider.notifier)
+                      .updateWeight(val, profile.weightUnit);
+                },
+                child: Text(warningText != null ? 'Save anyway' : 'Save'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
