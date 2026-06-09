@@ -127,7 +127,7 @@ final appUnitProvider = AutoDisposeFutureProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AppUnitRef = AutoDisposeFutureProviderRef<String>;
-String _$homeActionHash() => r'07b9af066a2f2e90f0aa3ad56c968bdcec0eec7d';
+String _$homeActionHash() => r'85ff6315258194486a1982dfb291cf762f0ad550';
 
 /// See also [HomeAction].
 @ProviderFor(HomeAction)
@@ -143,5 +143,21 @@ final homeActionProvider =
     );
 
 typedef _$HomeAction = AutoDisposeNotifier<void>;
+String _$jumboTapAmountHash() => r'efd21163d77c8950c1cf20b59f5eedf76bcb338c';
+
+/// See also [JumboTapAmount].
+@ProviderFor(JumboTapAmount)
+final jumboTapAmountProvider =
+    AutoDisposeAsyncNotifierProvider<JumboTapAmount, int>.internal(
+      JumboTapAmount.new,
+      name: r'jumboTapAmountProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$jumboTapAmountHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$JumboTapAmount = AutoDisposeAsyncNotifier<int>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

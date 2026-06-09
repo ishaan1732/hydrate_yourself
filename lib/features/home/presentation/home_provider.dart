@@ -86,7 +86,7 @@ class HomeAction extends _$HomeAction {
     }
 
     ref.invalidate(lastLogProvider);
-    ref.read(jumboTapAmountProvider.notifier).state = amountMl.round();
+    await ref.read(jumboTapAmountProvider.notifier).setAmount(amountMl.round());
 
     // Store context for background notification tap handler
     final prefs = await SharedPreferences.getInstance();
@@ -144,7 +144,20 @@ class HomeAction extends _$HomeAction {
   }
 }
 
-final jumboTapAmountProvider = StateProvider<int>((ref) => 250);
+@riverpod
+class JumboTapAmount extends _$JumboTapAmount {
+  @override
+  Future<int> build() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(AppConstants.prefLastCupSizeMl) ?? 250;
+  }
+
+  Future<void> setAmount(int ml) async {
+    state = AsyncData(ml);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(AppConstants.prefLastCupSizeMl, ml);
+  }
+}
 
 @riverpod
 Future<String> appUnit(AppUnitRef ref) async {

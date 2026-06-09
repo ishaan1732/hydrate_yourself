@@ -30,7 +30,8 @@ class HomeScreen extends ConsumerWidget {
     final profile = ref.watch(userProfileProvider).valueOrNull;
     final unit = profile?.unit ?? AppConstants.unitMl;
     final showCelebration = ref.watch(showCelebrationProvider);
-    final jumboAmount = ref.watch(jumboTapAmountProvider);
+    final jumboAmountAsync = ref.watch(jumboTapAmountProvider);
+    final jumboAmount = jumboAmountAsync.valueOrNull ?? 250;
     final selectedDrinkTypeId = ref.watch(selectedDrinkTypeIdProvider);
     final lastLogAsync = ref.watch(lastLogProvider);
 
@@ -38,61 +39,32 @@ class HomeScreen extends ConsumerWidget {
       backgroundColor: colorScheme.surface,
       body: Stack(
         children: [
-          // LAYER 1: Full screen wave
-          summaryAsync.when(
-            data: (summary) => Positioned.fill(
+          // LAYER 1: Full screen wave — valueOrNull never flickers on reload
+          if (summaryAsync.valueOrNull != null)
+            Positioned.fill(
               child: WaterWave(
-                fillPercent: summary.percentage,
+                fillPercent: summaryAsync.valueOrNull!.percentage,
                 waveColor: colorScheme.primary,
               ),
             ),
-            loading: () => const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
-          ),
 
           // LAYER 2: Content
           SafeArea(
-            child: summaryAsync.when(
-              loading: () => _buildSkeleton(context),
-              error: (e, _) => Center(child: Text('Error loading: $e')),
-              data: (summary) {
-                WidgetsBinding.instance.addPostFrameCallback((_) async {
-                  final prefs = await SharedPreferences.getInstance();
-                  final cupSize =
-                      prefs.getInt(AppConstants.prefLastCupSizeMl) ??
-                          jumboAmount;
-                  await NotificationService().showProgressNotification(
-                    totalMl: summary.totalMl.round(),
-                    goalMl: summary.goalMl,
-                    unit: unit,
-                    cupSizeMl: cupSize,
-                  );
-                });
-                return Column(
-                children: [
-                  _buildHeader(context, profile),
-                  _buildProgressText(context, summary, unit),
-                  Expanded(
-                    child: Center(
-                      child: JumboWidget(
-                        tapAmount: jumboAmount,
-                        unit: unit,
-                        onTap: () => ref
-                            .read(homeActionProvider.notifier)
-                            .addQuickLog(jumboAmount.toDouble()),
-                      ),
-                    ),
-                  ),
-                  _buildActionBar(
-                    context,
-                    ref,
-                    unit,
-                    selectedDrinkTypeId,
-                    lastLogAsync,
-                    jumboAmount,
-                  ),
-                  const SizedBox(height: 8),
-                ],
+            child: Builder(
+              builder: (context) {
+                if (summaryAsync.isLoading &&
+                    summaryAsync.valueOrNull == null) {
+                  return _buildSkeleton(context);
+                }
+                if (summaryAsync.hasError &&
+                    summaryAsync.valueOrNull == null) {
+                  return Center(
+                      child: Text('Error: ${summaryAsync.error}'));
+                }
+                final summary = summaryAsync.valueOrNull!;
+                return _buildContent(
+                  context, ref, summary, unit, jumboAmount,
+                  profile, selectedDrinkTypeId, lastLogAsync,
                 );
               },
             ),
@@ -106,6 +78,55 @@ class HomeScreen extends ConsumerWidget {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildContent(
+    BuildContext context,
+    WidgetRef ref,
+    TodaySummary summary,
+    String unit,
+    int jumboAmount,
+    UserProfileModel? profile,
+    int? selectedDrinkTypeId,
+    AsyncValue<WaterLogModel?> lastLogAsync,
+  ) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final cupSize =
+          prefs.getInt(AppConstants.prefLastCupSizeMl) ?? jumboAmount;
+      await NotificationService().showProgressNotification(
+        totalMl: summary.totalMl.round(),
+        goalMl: summary.goalMl,
+        unit: unit,
+        cupSizeMl: cupSize,
+      );
+    });
+    return Column(
+      children: [
+        _buildHeader(context, profile),
+        _buildProgressText(context, summary, unit),
+        Expanded(
+          child: Center(
+            child: JumboWidget(
+              tapAmount: jumboAmount,
+              unit: unit,
+              onTap: () => ref
+                  .read(homeActionProvider.notifier)
+                  .addQuickLog(jumboAmount.toDouble()),
+            ),
+          ),
+        ),
+        _buildActionBar(
+          context,
+          ref,
+          unit,
+          selectedDrinkTypeId,
+          lastLogAsync,
+          jumboAmount,
+        ),
+        const SizedBox(height: 8),
+      ],
     );
   }
 
@@ -247,7 +268,7 @@ class HomeScreen extends ConsumerWidget {
                     currentSizeMl: jumboAmount,
                     unit: unit,
                     onSizeSelected: (ml) {
-                      ref.read(jumboTapAmountProvider.notifier).state = ml;
+                      ref.read(jumboTapAmountProvider.notifier).setAmount(ml);
                     },
                   ),
                 ),
