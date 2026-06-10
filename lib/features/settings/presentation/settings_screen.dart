@@ -972,11 +972,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   ) {
     final isOz = profile.unit == 'oz';
 
-    const smallStep = 50;
-    const largeStep = 250;
+    final smallStep = isOz ? 30 : 50;
+    final largeStep = isOz ? 148 : 250;
 
-    final smallLabel = isOz ? '~2 oz' : '50 ml';
-    final largeLabel = isOz ? '~8 oz' : '250 ml';
+    final smallLabel = isOz ? '1 oz' : '50 ml';
+    final largeLabel = isOz ? '5 oz' : '250 ml';
 
     const minMl = 1500;
     const maxMl = 4500;
@@ -1153,13 +1153,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        isOz ? '~51 oz min' : '1,500 ml min',
+                        isOz ? '51 oz min' : '1,500 ml min',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                       Text(
-                        isOz ? '~152 oz max' : '4,500 ml max',
+                        isOz ? '152 oz max' : '4,500 ml max',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
