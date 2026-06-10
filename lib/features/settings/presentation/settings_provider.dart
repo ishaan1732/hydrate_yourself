@@ -31,8 +31,25 @@ Future<UserProfileModel?> settingsProfile(SettingsProfileRef ref) =>
 @riverpod
 class SettingsNotifier extends _$SettingsNotifier {
   @override
-  Future<UserProfileModel?> build() async =>
-      ref.watch(settingsRepositoryProvider).getProfile();
+  Future<UserProfileModel?> build() async {
+    final profile = await ref
+        .watch(settingsRepositoryProvider)
+        .getProfile();
+
+    if (profile != null && profile.dailyGoalMl % 50 != 0) {
+      final roundedGoal = HydrationCalculator.calculateDailyGoalMl(
+        weightKg: profile.weightKg,
+        activityLevel: profile.activityLevel,
+        gender: profile.gender,
+        isPregnant: profile.isPregnant,
+        climateType: profile.climateType,
+      );
+      await ref.read(settingsRepositoryProvider).updateGoal(roundedGoal);
+      return profile.copyWith(dailyGoalMl: roundedGoal);
+    }
+
+    return profile;
+  }
 
   Future<void> updateGoal(int goalMl) async {
     final current = state.valueOrNull;

@@ -11,27 +11,27 @@ void main() {
       );
     });
 
-    test('active 90 kg → 4410 ml', () {
+    test('active 90 kg → 4400 ml', () {
       expect(
         HydrationCalculator.calculateDailyGoalMl(
             weightKg: 90, activityLevel: 3),
-        equals(4410),
+        equals(4400),
       );
     });
 
-    test('light activity 50 kg → 1925 ml', () {
+    test('light activity 50 kg → 1950 ml', () {
       expect(
         HydrationCalculator.calculateDailyGoalMl(
             weightKg: 50, activityLevel: 1),
-        equals(1925),
+        equals(1950),
       );
     });
 
-    test('moderate 40 kg → 1680 ml', () {
+    test('moderate 40 kg → 1700 ml', () {
       expect(
         HydrationCalculator.calculateDailyGoalMl(
             weightKg: 40, activityLevel: 2),
-        equals(1680),
+        equals(1700),
       );
     });
 
@@ -52,18 +52,18 @@ void main() {
       );
     });
 
-    test('female 70 kg sedentary moderate → 2254 ml', () {
+    test('female 70 kg sedentary moderate → 2250 ml', () {
       expect(
         HydrationCalculator.calculateDailyGoalMl(
           weightKg: 70,
           activityLevel: 0,
           gender: 'female',
         ),
-        equals(2254),
+        equals(2250),
       );
     });
 
-    test('female pregnant 70 kg sedentary moderate → 2499 ml', () {
+    test('female pregnant 70 kg sedentary moderate → 2500 ml', () {
       expect(
         HydrationCalculator.calculateDailyGoalMl(
           weightKg: 70,
@@ -72,11 +72,11 @@ void main() {
           isPregnant: true,
           climateType: 'moderate',
         ),
-        equals(2499),
+        equals(2500),
       );
     });
 
-    test('female pregnant 90 kg sedentary moderate → 3198 ml', () {
+    test('female pregnant 90 kg sedentary moderate → 3200 ml', () {
       expect(
         HydrationCalculator.calculateDailyGoalMl(
           weightKg: 90,
@@ -85,11 +85,11 @@ void main() {
           isPregnant: true,
           climateType: 'moderate',
         ),
-        equals(3198),
+        equals(3200),
       );
     });
 
-    test('female pregnant 50 kg sedentary moderate → 1785 ml', () {
+    test('female pregnant 50 kg sedentary moderate → 1800 ml', () {
       expect(
         HydrationCalculator.calculateDailyGoalMl(
           weightKg: 50,
@@ -98,18 +98,18 @@ void main() {
           isPregnant: true,
           climateType: 'moderate',
         ),
-        equals(1785),
+        equals(1800),
       );
     });
 
-    test('male 70 kg active very_hot → 4459 ml', () {
+    test('male 70 kg active very_hot → 4450 ml', () {
       expect(
         HydrationCalculator.calculateDailyGoalMl(
           weightKg: 70,
           activityLevel: 3,
           climateType: 'very_hot',
         ),
-        equals(4459),
+        equals(4450),
       );
     });
 

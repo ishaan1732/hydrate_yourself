@@ -570,7 +570,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     };
     final climateMult = climateMults[profile.climateType] ?? 1.0;
     final afterClimate = afterPregnancy * climateMult;
-    final finalGoal = afterClimate.round().clamp(1500, 4500);
+    final finalGoal = HydrationCalculator.calculateDailyGoalMl(
+      weightKg: profile.weightKg,
+      activityLevel: profile.activityLevel,
+      gender: profile.gender,
+      isPregnant: profile.isPregnant,
+      climateType: profile.climateType,
+    );
 
     final weightUnit = profile.weightUnit;
     final isOz = unit == 'oz';
@@ -964,11 +970,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   ) {
     final isOz = profile.unit == 'oz';
 
-    final int smallStep = isOz ? 15 : 25;
-    final int largeStep = isOz ? 59 : 100;
+    final int smallStep = isOz ? 59 : 50;
+    final int largeStep = isOz ? 237 : 250;
 
-    final smallLabel = isOz ? '0.5 oz' : '25 ml';
-    final largeLabel = isOz ? '2 oz' : '100 ml';
+    final smallLabel = isOz ? '2 oz' : '50 ml';
+    final largeLabel = isOz ? '8 oz' : '250 ml';
 
     const minMl = 1500;
     const maxMl = 4500;
@@ -1149,13 +1155,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        isOz ? '50.7 fl oz min' : '1,500 ml min',
+                        isOz ? '51 fl oz min' : '1,500 ml min',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                       Text(
-                        isOz ? '152.1 fl oz max' : '4,500 ml max',
+                        isOz ? '152 fl oz max' : '4,500 ml max',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

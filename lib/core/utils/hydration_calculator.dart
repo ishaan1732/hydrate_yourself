@@ -34,7 +34,8 @@ class HydrationCalculator {
     }
 
     if (isPregnant && gender == 'female') {
-      final pregnancyExtra = (weightKg * 3.5).clamp(0.0, 300.0);
+      final pregnancyExtraRaw = (weightKg * 3.5).clamp(0.0, 300.0);
+      final pregnancyExtra = ((pregnancyExtraRaw / 5).round() * 5).toDouble();
       base += pregnancyExtra;
     }
 
@@ -57,7 +58,8 @@ class HydrationCalculator {
     }
     base *= climateMultiplier;
 
-    return base.round().clamp(1500, 4500);
+    final raw = base.round().clamp(1500, 4500);
+    return ((raw / 50).round() * 50).clamp(1500, 4500);
   }
 
   static String genderLabel(String gender) {
