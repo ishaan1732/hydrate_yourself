@@ -152,8 +152,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           style: Theme.of(context).textTheme.bodyLarge),
                       subtitle: Builder(
                         builder: (ctx) {
-                          final extra = (profile.weightKg * 3.5)
+                          final extraRaw = (profile.weightKg * 3.5)
                               .clamp(0.0, 300.0);
+                          final extra =
+                              ((extraRaw / 5).round() * 5).toDouble();
                           final display = profile.unit == 'oz'
                               ? extra.toHalfOzString()
                               : '${extra.round()}ml';
@@ -555,10 +557,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final genderMult = profile.gender == 'female' ? 0.92 : 1.0;
     final afterGender = afterActivity * genderMult;
 
-    final pregnancyExtra =
+    final pregnancyExtraRaw =
         (profile.isPregnant && profile.gender == 'female')
             ? (profile.weightKg * 3.5).clamp(0.0, 300.0)
             : 0.0;
+    final pregnancyExtra =
+        ((pregnancyExtraRaw / 5).round() * 5).toDouble();
     final afterPregnancy = afterGender + pregnancyExtra;
 
     final climateMults = {
@@ -648,10 +652,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     context,
                     '🤰 Pregnancy',
                     unit == 'oz'
-                        ? '+ ${(pregnancyExtra * 0.033814).toStringAsFixed(1)} fl oz'
-                          ' (max 10.1 fl oz)'
-                        : '+ ${pregnancyExtra.toStringAsFixed(0)}ml'
-                          ' (max 300ml)',
+                        ? '+ ${(pregnancyExtra * 0.033814).toStringAsFixed(1)}'
+                          ' fl oz (max 10.1 fl oz)'
+                        : '+ ${pregnancyExtra.toInt()}ml (max 300ml)',
                     fmt(afterPregnancy),
                   ),
                 ],

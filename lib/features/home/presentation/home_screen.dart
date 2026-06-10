@@ -171,25 +171,21 @@ class HomeScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           RichText(
+            textAlign: TextAlign.center,
             text: TextSpan(
               children: [
                 TextSpan(
                   text: unit == 'oz'
-                      ? summary.totalMl.toWholeOzString().replaceAll(' oz', '')
-                      : summary.totalMl < 1000
-                          ? '${summary.totalMl.round()}'
-                          : (summary.totalMl / 1000).toStringAsFixed(1),
+                      ? '${(summary.totalMl * 0.033814).round()}'
+                      : _formatMl(summary.totalMl.round()),
                   style: theme.textTheme.displaySmall?.copyWith(
                     fontWeight: FontWeight.w800,
                     color: colorScheme.onSurface,
+                    letterSpacing: -1,
                   ),
                 ),
                 TextSpan(
-                  text: unit == 'oz'
-                      ? ' oz'
-                      : summary.totalMl < 1000
-                          ? ' ml'
-                          : ' L',
+                  text: unit == 'oz' ? ' oz' : ' ml',
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -201,15 +197,16 @@ class HomeScreen extends ConsumerWidget {
             summary.isGoalAchieved
                 ? '🎉 Goal achieved!'
                 : unit == 'oz'
-                    ? '${summary.remainingMl.toWholeOzString()} to go · '
-                        'goal ${summary.goalMl.toDouble().toWholeOzString()}'
-                    : '${summary.remainingMl.toHydrationString(unit)} to go · '
-                        'goal ${summary.goalMl.toDouble().toHydrationString(unit)}',
+                    ? '${(summary.remainingMl * 0.033814).round()} oz to go · '
+                        'goal ${(summary.goalMl * 0.033814).round()} oz'
+                    : '${_formatMl(summary.remainingMl.round())} ml to go · '
+                        'goal ${_formatMl(summary.goalMl)} ml',
             style: theme.textTheme.bodySmall?.copyWith(
               color: summary.isGoalAchieved
                   ? AppColors.goalAchieved
                   : colorScheme.onSurfaceVariant,
             ),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           LinearProgressIndicator(
@@ -394,6 +391,15 @@ class HomeScreen extends ConsumerWidget {
         ),
       ],
     );
+  }
+
+  String _formatMl(int ml) {
+    if (ml >= 1000) {
+      final thousands = ml ~/ 1000;
+      final remainder = ml % 1000;
+      return '$thousands,${remainder.toString().padLeft(3, '0')}';
+    }
+    return ml.toString();
   }
 
   String _getGreeting() {
