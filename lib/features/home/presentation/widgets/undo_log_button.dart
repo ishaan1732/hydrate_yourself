@@ -23,7 +23,9 @@ class UndoLogButton extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
 
-    final amountLabel = '+${lastLog.amountMl.toHydrationString(unit)} · ${lastLog.drinkType.name}';
+    final amountLabel = unit == 'oz'
+        ? '+${lastLog.amountMl.toDouble().toHalfOzString()} · ${lastLog.drinkType.name}'
+        : '+${lastLog.amountMl.round()}ml · ${lastLog.drinkType.name}';
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16).copyWith(bottom: 8),

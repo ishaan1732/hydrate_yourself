@@ -155,9 +155,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           final extra = (profile.weightKg * 3.5)
                               .clamp(0.0, 300.0);
                           final display = profile.unit == 'oz'
-                              ? '${(extra * 0.033814).toStringAsFixed(1)}'
-                                ' fl oz added to daily goal'
-                              : '${extra.round()}ml added to daily goal';
+                              ? extra.toHalfOzString()
+                              : '${extra.round()}ml';
                           return Text(
                             '+$display',
                             style: Theme.of(ctx).textTheme.bodySmall
@@ -486,7 +485,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         children: [
           Text(
             profile.unit == 'oz'
-                ? '${(profile.dailyGoalMl * 0.033814).toStringAsFixed(1)} fl oz'
+                ? profile.dailyGoalMl.toDouble().toWholeOzString()
                 : '${profile.dailyGoalMl} ml',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
@@ -601,7 +600,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     String fmt(double ml) {
       if (unit == 'oz') {
-        return '${(ml * 0.033814).toStringAsFixed(1)} oz';
+        return ml.toWholeOzString();
       }
       return ml >= 1000
           ? '${(ml / 1000).toStringAsFixed(1)} L'
@@ -970,11 +969,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   ) {
     final isOz = profile.unit == 'oz';
 
-    final int smallStep = isOz ? 59 : 50;
-    final int largeStep = isOz ? 237 : 250;
+    const smallStep = 50;
+    const largeStep = 250;
 
-    final smallLabel = isOz ? '2 oz' : '50 ml';
-    final largeLabel = isOz ? '8 oz' : '250 ml';
+    final smallLabel = isOz ? '~2 oz' : '50 ml';
+    final largeLabel = isOz ? '~8 oz' : '250 ml';
 
     const minMl = 1500;
     const maxMl = 4500;
@@ -987,11 +986,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
         String displayValue(int ml) {
           if (isOz) {
-            final oz = ml * 0.033814;
-            final rounded = (oz * 2).round() / 2.0;
-            return rounded % 1 == 0
-                ? '${rounded.toInt()} fl oz'
-                : '${rounded.toStringAsFixed(1)} fl oz';
+            return ml.toDouble().toWholeOzString();
           }
           return '${ml.toString().replaceAllMapped(
           RegExp(r'(\d)(?=(\d{3})+(?!\d))'),
@@ -1155,13 +1150,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        isOz ? '51 fl oz min' : '1,500 ml min',
+                        isOz ? '~51 oz min' : '1,500 ml min',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                       Text(
-                        isOz ? '152 fl oz max' : '4,500 ml max',
+                        isOz ? '~152 oz max' : '4,500 ml max',
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),

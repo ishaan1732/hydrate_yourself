@@ -52,7 +52,10 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
     return rounded.toStringAsFixed(1);
   }
 
-  int _ozToMl(double oz) => (oz / 0.033814).round();
+  int _ozToMl(double oz) {
+    final rawMl = oz / 0.033814;
+    return ((rawMl / 5).round() * 5);
+  }
 
   @override
   Widget build(BuildContext context) {

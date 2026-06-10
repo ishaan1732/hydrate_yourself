@@ -158,7 +158,7 @@ class HistoryScreen extends ConsumerWidget {
                       const Spacer(),
                       selectedLogsAsync.when(
                         data: (logs) => Text(
-                          '${logs.length} logs · ${_totalForLogs(logs).toHydrationString(unit)}',
+                          '${logs.length} logs · ${unit == 'oz' ? _totalForLogs(logs).toWholeOzString() : _totalForLogs(logs).toHydrationString('ml')}',
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),

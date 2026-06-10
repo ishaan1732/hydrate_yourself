@@ -183,7 +183,7 @@ class _JumboWidgetState extends State<JumboWidget>
                   ),
                   child: Text(
                     widget.unit == 'oz'
-                        ? 'Tap Jumbo · +${widget.tapAmount.toDouble().mlToOz.toStringAsFixed(1)}oz'
+                        ? 'Tap Jumbo · +${widget.tapAmount.toDouble().toHalfOzString()}'
                         : 'Tap Jumbo · +${widget.tapAmount}ml',
                     style: const TextStyle(
                       color: Colors.white,

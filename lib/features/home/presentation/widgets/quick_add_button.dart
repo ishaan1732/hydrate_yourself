@@ -39,7 +39,7 @@ class QuickAddButton extends StatelessWidget {
             children: [
               Text(
                 unit == 'oz'
-                    ? '+${amountMl.toDouble().mlToOz.toStringAsFixed(1)}oz'
+                    ? '+${amountMl.toDouble().toHalfOzString()}'
                     : amountMl < 1000
                         ? '+${amountMl}ml'
                         : '+${(amountMl / 1000).toStringAsFixed(1)}L',

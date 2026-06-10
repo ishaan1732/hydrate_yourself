@@ -175,7 +175,7 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 TextSpan(
                   text: unit == 'oz'
-                      ? summary.totalMl.mlToOz.toStringAsFixed(1)
+                      ? summary.totalMl.toWholeOzString().replaceAll(' oz', '')
                       : summary.totalMl < 1000
                           ? '${summary.totalMl.round()}'
                           : (summary.totalMl / 1000).toStringAsFixed(1),
@@ -201,8 +201,8 @@ class HomeScreen extends ConsumerWidget {
             summary.isGoalAchieved
                 ? '🎉 Goal achieved!'
                 : unit == 'oz'
-                    ? '${summary.remainingMl.mlToOz.toStringAsFixed(1)} oz to go · '
-                        'goal ${summary.goalMl.toDouble().mlToOz.toStringAsFixed(1)} oz'
+                    ? '${summary.remainingMl.toWholeOzString()} to go · '
+                        'goal ${summary.goalMl.toDouble().toWholeOzString()}'
                     : '${summary.remainingMl.toHydrationString(unit)} to go · '
                         'goal ${summary.goalMl.toDouble().toHydrationString(unit)}',
             style: theme.textTheme.bodySmall?.copyWith(
@@ -246,7 +246,7 @@ class HomeScreen extends ConsumerWidget {
             child: _ActionButton(
               icon: Icons.local_drink_outlined,
               label: unit == 'oz'
-                  ? '${jumboAmount.toDouble().mlToOz.toStringAsFixed(1)} oz'
+                  ? jumboAmount.toDouble().toHalfOzString()
                   : '$jumboAmount ml',
               onTap: () => showModalBottomSheet(
                 context: context,

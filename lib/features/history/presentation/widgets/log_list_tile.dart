@@ -27,7 +27,9 @@ class LogListTile extends StatelessWidget {
         ),
       ),
       title: Text(
-        log.amountMl.toHydrationString(unit),
+        unit == 'oz'
+            ? '+${log.amountMl.toDouble().toHalfOzString()}'
+            : '+${log.amountMl.round()}ml',
         style: theme.textTheme.bodyLarge?.copyWith(
           fontWeight: FontWeight.w600,
         ),

@@ -77,7 +77,9 @@ class WeeklyBarChart extends StatelessWidget {
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final summary = summaries[groupIndex];
                 return BarTooltipItem(
-                  summary.totalMl.toHydrationString(unit),
+                  unit == 'oz'
+                      ? summary.totalMl.toDouble().toWholeOzString()
+                      : summary.totalMl.toHydrationString('ml'),
                   const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,

@@ -95,13 +95,17 @@ class AnalyticsScreen extends ConsumerWidget {
                     children: [
                       StatCard(
                         label: 'Daily Average',
-                        value: summary.averageDailyMl.toHydrationString(unit),
+                        value: unit == 'oz'
+                            ? summary.averageDailyMl.toWholeOzString()
+                            : summary.averageDailyMl.toHydrationString('ml'),
                         subtitle: 'per day',
                         icon: Icons.water_drop_outlined,
                       ),
                       StatCard(
                         label: 'Best Day',
-                        value: summary.bestDayMl.toHydrationString(unit),
+                        value: unit == 'oz'
+                            ? summary.bestDayMl.toWholeOzString()
+                            : summary.bestDayMl.toHydrationString('ml'),
                         subtitle: 'single day',
                         icon: Icons.emoji_events_outlined,
                         iconColor: AppColors.goalWarning,
@@ -115,7 +119,9 @@ class AnalyticsScreen extends ConsumerWidget {
                       ),
                       StatCard(
                         label: 'Total Intake',
-                        value: summary.totalMl30Days.toHydrationString(unit),
+                        value: unit == 'oz'
+                            ? summary.totalMl30Days.toWholeOzString()
+                            : summary.totalMl30Days.toHydrationString('ml'),
                         subtitle: '30 day total',
                         icon: Icons.summarize_outlined,
                       ),
