@@ -7,7 +7,7 @@ part of 'settings_provider.dart';
 // **************************************************************************
 
 String _$settingsRepositoryHash() =>
-    r'ee4df87480999327624b071b0c4692c6f47b2363';
+    r'db73f19e1d30a09f8c268d13b29e14d5338ca3b0';
 
 /// See also [settingsRepository].
 @ProviderFor(settingsRepository)
@@ -43,7 +43,7 @@ final settingsProfileProvider =
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SettingsProfileRef = AutoDisposeFutureProviderRef<UserProfileModel?>;
-String _$settingsNotifierHash() => r'd708b1b90eb817441e16dd7ad9741bf4cca83df2';
+String _$settingsNotifierHash() => r'3a86ad842040d08b7517c09838184263cc37e1cb';
 
 /// See also [SettingsNotifier].
 @ProviderFor(SettingsNotifier)

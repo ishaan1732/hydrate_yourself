@@ -1,15 +1,26 @@
 import 'package:drift/drift.dart';
 import 'package:hydrate_yourself/database/app_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:workmanager/workmanager.dart';
 
+import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/hydration_calculator.dart';
+import '../../../database/daos/drink_types_dao.dart';
 import '../../../database/daos/user_profile_dao.dart';
+import '../../../database/daos/water_logs_dao.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 
 class SettingsRepository {
-  SettingsRepository(this._userProfileDao, this._prefs);
+  SettingsRepository(
+    this._userProfileDao,
+    this._prefs, {
+    required this._waterLogsDao,
+    required this._drinkTypesDao,
+  });
 
   final UserProfileDao _userProfileDao;
+  final WaterLogsDao _waterLogsDao;
+  final DrinkTypesDao _drinkTypesDao;
   final SharedPreferences _prefs;
 
   Future<UserProfileModel?> getProfile() async {
@@ -179,6 +190,15 @@ class SettingsRepository {
       isPregnant: Value(value),
       dailyGoalMl: Value(newGoal),
     ));
+  }
+
+  Future<void> deleteAllData() async {
+    await _waterLogsDao.deleteAllLogs();
+    await _userProfileDao.deleteProfile();
+    await _drinkTypesDao.resetToDefaults();
+    await _prefs.clear();
+    await Workmanager().cancelAll();
+    await _prefs.setBool(AppConstants.prefHasCompletedOnboarding, false);
   }
 
   Future<void> updateClimateType(String climate) async {

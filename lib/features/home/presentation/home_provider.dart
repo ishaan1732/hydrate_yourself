@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -84,6 +85,7 @@ class HomeAction extends _$HomeAction {
       Future.delayed(const Duration(seconds: 3), () {
         ref.read(showCelebrationProvider.notifier).state = false;
       });
+      _maybeRequestReview();
     }
 
     ref.invalidate(lastLogProvider);
@@ -104,6 +106,24 @@ class HomeAction extends _$HomeAction {
       unit: unit,
       cupSizeMl: amountMl.round(),
     );
+  }
+
+  Future<void> _maybeRequestReview() async {
+    final prefs = await SharedPreferences.getInstance();
+    final now = DateTime.now();
+    final todayStr = '${now.year}-${now.month}-${now.day}';
+    final lastDate = prefs.getString('last_goal_hit_for_review');
+    if (lastDate == todayStr) return;
+    final count = (prefs.getInt('goal_hit_days_count') ?? 0) + 1;
+    await prefs.setInt('goal_hit_days_count', count);
+    await prefs.setString('last_goal_hit_for_review', todayStr);
+    if (count >= 3) {
+      await prefs.setInt('goal_hit_days_count', 0);
+      final review = InAppReview.instance;
+      if (await review.isAvailable()) {
+        await review.requestReview();
+      }
+    }
   }
 
   Future<void> deleteLastLog() async {

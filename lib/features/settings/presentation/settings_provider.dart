@@ -6,6 +6,7 @@ import '../../../core/extensions/double_extensions.dart';
 import '../../../database/database_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
 import '../../onboarding/domain/user_profile_model.dart';
+import '../../onboarding/presentation/onboarding_provider.dart';
 import '../../reminders/data/background_task.dart';
 import '../data/settings_repository.dart';
 
@@ -21,6 +22,8 @@ SettingsRepository settingsRepository(SettingsRepositoryRef ref) {
   return SettingsRepository(
     ref.watch(userProfileDaoProvider),
     prefs,
+    waterLogsDao: ref.watch(waterLogsDaoProvider),
+    drinkTypesDao: ref.watch(drinkTypesDaoProvider),
   );
 }
 
@@ -251,6 +254,17 @@ class SettingsNotifier extends _$SettingsNotifier {
     state = AsyncData(current.copyWith(isPregnant: value, dailyGoalMl: newGoal));
     try {
       await ref.read(settingsRepositoryProvider).updateIsPregnant(value);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> deleteAllData() async {
+    state = const AsyncLoading();
+    try {
+      await ref.read(settingsRepositoryProvider).deleteAllData();
+      ref.read(onboardingCompleteProvider.notifier).state = false;
+      state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
     }

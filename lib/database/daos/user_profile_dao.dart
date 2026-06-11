@@ -26,6 +26,8 @@ class UserProfileDao extends DatabaseAccessor<AppDatabase>
     return rowsAffected > 0;
   }
 
+  Future<int> deleteProfile() => delete(userProfile).go();
+
   Future<bool> hasProfile() async {
     final row = await (select(userProfile)..limit(1)).getSingleOrNull();
     return row != null;

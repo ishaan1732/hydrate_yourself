@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
+import '../../../core/providers/theme_mode_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import 'settings_provider.dart';
@@ -249,11 +252,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 8),
 
-              // Section E — About
+              // Section E — Appearance
+              _buildSectionHeader(context, 'Appearance'),
+              _buildCard(
+                context,
+                children: [
+                  _buildThemeModeTile(context, ref),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Section F — About
               _buildSectionHeader(context, 'About'),
               _buildCard(
                 context,
                 children: [
+                  ListTile(
+                    leading: Icon(Icons.star_outline, color: colorScheme.primary),
+                    title: Text(
+                      'Rate the app',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    onTap: _rateApp,
+                  ),
+                  const Divider(height: 1, indent: 56),
                   ListTile(
                     leading: const Icon(Icons.info_outline),
                     title: Text(
@@ -272,11 +295,106 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ),
 
+              const SizedBox(height: 8),
+
+              // Section G — Data
+              _buildSectionHeader(context, 'Data'),
+              _buildCard(
+                context,
+                children: [
+                  ListTile(
+                    leading: Icon(
+                      Icons.delete_forever_outlined,
+                      color: colorScheme.error,
+                    ),
+                    title: Text(
+                      'Delete all data',
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: colorScheme.error,
+                          ),
+                    ),
+                    onTap: () => _confirmDeleteAllData(context, ref),
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 32),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildThemeModeTile(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final themeMode = ref.watch(themeModeNotifierProvider);
+    return ListTile(
+      leading: Icon(Icons.brightness_6_outlined, color: colorScheme.primary),
+      title: Text('Theme', style: Theme.of(context).textTheme.bodyLarge),
+      trailing: SegmentedButton<ThemeMode>(
+        segments: const [
+          ButtonSegment(value: ThemeMode.system, label: Text('System')),
+          ButtonSegment(value: ThemeMode.light, label: Text('Light')),
+          ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
+        ],
+        selected: {themeMode},
+        onSelectionChanged: (val) {
+          ref.read(themeModeNotifierProvider.notifier).setThemeMode(val.first);
+        },
+        style: const ButtonStyle(
+          visualDensity: VisualDensity.compact,
+        ),
+      ),
+    );
+  }
+
+  void _rateApp() {
+    InAppReview.instance.isAvailable().then((available) {
+      if (available) {
+        InAppReview.instance.requestReview();
+      } else {
+        InAppReview.instance.openStoreListing(
+          appStoreId: 'com.ishaansharma.hydrate_yourself',
+        );
+      }
+    });
+  }
+
+  void _confirmDeleteAllData(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        final colorScheme = Theme.of(dialogContext).colorScheme;
+        return AlertDialog(
+          title: const Text('Delete all data?'),
+          content: const Text(
+            'This will permanently delete all your water logs and reset your profile. This cannot be undone.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
+              ),
+              onPressed: () async {
+                Navigator.pop(dialogContext);
+                await ref
+                    .read(settingsNotifierProvider.notifier)
+                    .deleteAllData();
+                if (context.mounted) {
+                  context.go('/onboarding');
+                }
+              },
+              child: const Text('Delete everything'),
+            ),
+          ],
+        );
+      },
     );
   }
 
