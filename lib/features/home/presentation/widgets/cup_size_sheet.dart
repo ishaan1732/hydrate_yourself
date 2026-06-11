@@ -97,6 +97,7 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
                         _selectedPreset = ml;
                       }),
                       child: Container(
+                        width: double.infinity,
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
@@ -258,6 +259,7 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
         _customMl = ml;
       }),
       child: Container(
+        width: double.infinity,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: isSelected

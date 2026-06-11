@@ -275,17 +275,15 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(width: 10),
 
-          // Undo log button — use valueOrNull to avoid loading flash on undo
-          Expanded(
-            child: _ActionButton(
-              icon: Icons.undo_rounded,
-              label: 'Undo Log',
-              color: lastLog != null ? colorScheme.error : null,
-              isDisabled: lastLog == null,
-              onTap: lastLog != null
-                  ? () => ref.read(homeActionProvider.notifier).deleteLastLog()
-                  : null,
-            ),
+          // Undo log button — icon-only
+          IconButton(
+            icon: const Icon(Icons.undo_rounded),
+            color: colorScheme.error,
+            iconSize: 20,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            onPressed: lastLog != null
+                ? () => ref.read(homeActionProvider.notifier).deleteLastLog()
+                : null,
           ),
         ],
       ),
@@ -455,7 +453,7 @@ class _ActionButton extends StatelessWidget {
         opacity: isDisabled ? 0.35 : 1.0,
         duration: const Duration(milliseconds: 200),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(14),
@@ -472,7 +470,7 @@ class _ActionButton extends StatelessWidget {
               else
                 Icon(
                   icon!,
-                  size: 24,
+                  size: 20,
                   color: color ?? colorScheme.onSurfaceVariant,
                 ),
               const SizedBox(height: 5),
