@@ -13,7 +13,7 @@ class AppConstants {
 
   // Reminder defaults
   static const int defaultReminderIntervalMinutes = 90;
-  static const int minReminderIntervalMinutes = 30;
+  static const int minReminderIntervalMinutes = 15;
   static const int maxReminderIntervalMinutes = 240;
   static const int defaultWakeHour = 7;
   static const int defaultSleepHour = 23;

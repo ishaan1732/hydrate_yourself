@@ -32,7 +32,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.initState();
     const initMins = AppConstants.defaultReminderIntervalMinutes;
     _hourWheelCtrl = FixedExtentScrollController(initialItem: initMins ~/ 60);
-    _minuteWheelCtrl = FixedExtentScrollController(initialItem: (initMins % 60) ~/ 30);
+    _minuteWheelCtrl = FixedExtentScrollController(initialItem: (initMins % 60) ~/ 15);
   }
 
   @override
@@ -127,11 +127,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         children: [
           Container(
             decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF0090C8), Color(0xFF0077A8)],
-              ),
+              // gradient: LinearGradient(
+              //   begin: Alignment.topCenter,
+              //   end: Alignment.bottomCenter,
+              //   colors: [Color(0xFF0090C8), Color(0xFF0077A8)],
+              // ),
+              color: Colors.white,
             ),
           ),
           Positioned(
@@ -169,7 +170,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 40),
                   child: Text(
-                    'Your personal hydration companion.\nI\'ll help you drink more water every day.',
+                    'Your personal hydration companion.\nYour daily dose of wellness starts here.',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.white.withValues(alpha: 0.85),
@@ -702,8 +703,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     scrollController: _hourWheelCtrl,
                     itemExtent: 40,
                     onSelectedItemChanged: (index) {
-                      final mins = (intervalMinutes % 60 ~/ 30) * 30;
-                      final total = index * 60 + (index == 0 && mins == 0 ? 30 : mins);
+                      final mins = (intervalMinutes % 60 ~/ 15) * 15;
+                      final total = index * 60 + (index == 0 && mins == 0 ? 15 : mins);
                       ref
                           .read(onboardingNotifierProvider.notifier)
                           .updateReminderInterval(total);
@@ -719,16 +720,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     scrollController: _minuteWheelCtrl,
                     itemExtent: 40,
                     onSelectedItemChanged: (index) {
-                      final mins = index * 30;
+                      final mins = index * 15;
                       final hours = intervalMinutes ~/ 60;
                       final total = hours * 60 + mins;
                       ref
                           .read(onboardingNotifierProvider.notifier)
-                          .updateReminderInterval(total == 0 ? 30 : total);
+                          .updateReminderInterval(total == 0 ? 15 : total);
                     },
                     children: const [
                       Center(child: Text(':00')),
+                      Center(child: Text(':15')),
                       Center(child: Text(':30')),
+                      Center(child: Text(':45')),
                     ],
                   ),
                 ),

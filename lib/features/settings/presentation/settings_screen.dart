@@ -1345,13 +1345,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final colorScheme = theme.colorScheme;
 
     int selectedHours = (currentMinutes ~/ 60).clamp(0, 8);
-    int selectedHalfHour = ((currentMinutes % 60) ~/ 30).clamp(0, 1);
-    if (selectedHours == 0 && selectedHalfHour == 0) selectedHalfHour = 1;
+    int selectedQuarter = ((currentMinutes % 60) ~/ 15).clamp(0, 3);
+    if (selectedHours == 0 && selectedQuarter == 0) selectedQuarter = 1;
 
     final hourController =
         FixedExtentScrollController(initialItem: selectedHours);
     final minuteController =
-        FixedExtentScrollController(initialItem: selectedHalfHour);
+        FixedExtentScrollController(initialItem: selectedQuarter);
 
     showModalBottomSheet(
       context: context,
@@ -1363,8 +1363,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         return StatefulBuilder(
           builder: (ctx, setState) {
             int totalMinutes() {
-              final mins = selectedHours * 60 + selectedHalfHour * 30;
-              return mins == 0 ? 30 : mins;
+              final mins = selectedHours * 60 + selectedQuarter * 15;
+              return mins == 0 ? 15 : mins;
             }
 
             String formatSelected() {
@@ -1453,7 +1453,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // Minutes wheel (:00 or :30)
+                        // Minutes wheel (:00, :15, :30, :45)
                         Expanded(
                           child: Stack(
                             alignment: Alignment.center,
@@ -1471,7 +1471,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 itemExtent: 44,
                                 selectionOverlay: const SizedBox.shrink(),
                                 onSelectedItemChanged: (i) =>
-                                    setState(() => selectedHalfHour = i),
+                                    setState(() => selectedQuarter = i),
                                 children: [
                                   Center(
                                     child: Text(
@@ -1485,7 +1485,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                   ),
                                   Center(
                                     child: Text(
+                                      ':15 min',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ),
+                                  Center(
+                                    child: Text(
                                       ':30 min',
+                                      style: TextStyle(
+                                        fontSize: 22,
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ),
+                                  Center(
+                                    child: Text(
+                                      ':45 min',
                                       style: TextStyle(
                                         fontSize: 22,
                                         fontWeight: FontWeight.w600,
