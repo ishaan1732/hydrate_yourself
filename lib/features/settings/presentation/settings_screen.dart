@@ -26,6 +26,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final settingsAsync = ref.watch(settingsNotifierProvider);
+    final themeMode = ref.watch(themeModeNotifierProvider);
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -52,7 +53,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           },
           data: (profile) => profile == null
               ? const Center(child: Text('No profile found'))
-              : _buildContent(context, ref, profile),
+              : _buildContent(context, ref, profile, themeMode),
         ),
       ),
       ),
@@ -60,7 +61,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Widget _buildContent(
-      BuildContext context, WidgetRef ref, UserProfileModel profile) {
+      BuildContext context, WidgetRef ref, UserProfileModel profile,
+      ThemeMode themeMode) {
     final colorScheme = Theme.of(context).colorScheme;
     return CustomScrollView(
       slivers: [
@@ -257,7 +259,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               _buildCard(
                 context,
                 children: [
-                  _buildThemeModeTile(context, ref),
+                  _buildThemeModeTile(context, ref, themeMode),
                 ],
               ),
 
@@ -326,25 +328,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildThemeModeTile(BuildContext context, WidgetRef ref) {
+  Widget _buildThemeModeTile(
+      BuildContext context, WidgetRef ref, ThemeMode themeMode) {
     final colorScheme = Theme.of(context).colorScheme;
-    final themeMode = ref.watch(themeModeNotifierProvider);
-    return ListTile(
-      leading: Icon(Icons.brightness_6_outlined, color: colorScheme.primary),
-      title: Text('Theme', style: Theme.of(context).textTheme.bodyLarge),
-      trailing: SegmentedButton<ThemeMode>(
-        segments: const [
-          ButtonSegment(value: ThemeMode.system, label: Text('System')),
-          ButtonSegment(value: ThemeMode.light, label: Text('Light')),
-          ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Icon(Icons.brightness_6_outlined, color: colorScheme.primary),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Theme', style: Theme.of(context).textTheme.bodyLarge),
+                const SizedBox(height: 8),
+                SegmentedButton<ThemeMode>(
+                  segments: const [
+                    ButtonSegment(value: ThemeMode.system, label: Text('System')),
+                    ButtonSegment(value: ThemeMode.light, label: Text('Light')),
+                    ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
+                  ],
+                  selected: {themeMode},
+                  onSelectionChanged: (val) {
+                    ref
+                        .read(themeModeNotifierProvider.notifier)
+                        .setThemeMode(val.first);
+                  },
+                  style: const ButtonStyle(
+                    visualDensity: VisualDensity.compact,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
-        selected: {themeMode},
-        onSelectionChanged: (val) {
-          ref.read(themeModeNotifierProvider.notifier).setThemeMode(val.first);
-        },
-        style: const ButtonStyle(
-          visualDensity: VisualDensity.compact,
-        ),
       ),
     );
   }
