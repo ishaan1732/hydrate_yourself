@@ -83,22 +83,17 @@ class _WavePainter extends CustomPainter {
 
     final baseY = size.height * (1.0 - fill.clamp(0.0, 0.95));
 
-    final paint1 = Paint()
-      ..color = waveColor.withValues(alpha: 0.45)
+    // Draw back-to-front so front wave sits on top.
+    final solidPaint = Paint()
+      ..color = const Color(0xFF0277BD)
       ..style = PaintingStyle.fill;
-    final path1 = Path()..moveTo(0, baseY);
-    for (double x = 0; x <= size.width; x += 2.0) {
-      final y = baseY + sin(x / size.width * 2 * pi + phase * 2 * pi) * 10;
-      path1.lineTo(x, y);
-    }
-    path1
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(path1, paint1);
+    canvas.drawRect(
+      Rect.fromLTWH(0, baseY + 12, size.width, size.height - baseY - 12),
+      solidPaint,
+    );
 
     final paint2 = Paint()
-      ..color = waveColor.withValues(alpha: 0.28)
+      ..color = const Color(0xFF039BE5)
       ..style = PaintingStyle.fill;
     final path2 = Path()..moveTo(0, baseY + 3);
     for (double x = 0; x <= size.width; x += 2.0) {
@@ -112,13 +107,19 @@ class _WavePainter extends CustomPainter {
       ..close();
     canvas.drawPath(path2, paint2);
 
-    final solidPaint = Paint()
-      ..color = waveColor.withValues(alpha: 0.18)
+    final paint1 = Paint()
+      ..color = const Color(0xFF0288D1)
       ..style = PaintingStyle.fill;
-    canvas.drawRect(
-      Rect.fromLTWH(0, baseY + 12, size.width, size.height - baseY - 12),
-      solidPaint,
-    );
+    final path1 = Path()..moveTo(0, baseY);
+    for (double x = 0; x <= size.width; x += 2.0) {
+      final y = baseY + sin(x / size.width * 2 * pi + phase * 2 * pi) * 10;
+      path1.lineTo(x, y);
+    }
+    path1
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(path1, paint1);
   }
 
   @override

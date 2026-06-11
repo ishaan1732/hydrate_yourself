@@ -209,14 +209,61 @@ class HomeScreen extends ConsumerWidget {
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
-          LinearProgressIndicator(
-            value: summary.percentage.clamp(0.0, 1.0),
-            backgroundColor: colorScheme.surfaceContainerHighest,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              _getProgressColor(context, summary.percentage),
-            ),
-            borderRadius: BorderRadius.circular(4),
-            minHeight: 5,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final barWidth = constraints.maxWidth;
+              final pct = summary.percentage.clamp(0.0, 1.0);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text(
+                        '${(pct * 100).round()}%',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: pct,
+                      backgroundColor: colorScheme.surfaceContainerHighest,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        _getProgressColor(context, summary.percentage),
+                      ),
+                      minHeight: 8,
+                    ),
+                  ),
+                  const SizedBox(height: 3),
+                  SizedBox(
+                    height: 12,
+                    child: Stack(
+                      children: [
+                        for (final t in [0.25, 0.50, 0.75])
+                          Positioned(
+                            left: barWidth * t - 0.75,
+                            top: 0,
+                            bottom: 0,
+                            child: SizedBox(
+                              width: 1.5,
+                              child: ColoredBox(
+                                color: colorScheme.outlineVariant,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
