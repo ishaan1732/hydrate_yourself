@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
@@ -10,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../reminders/data/notification_service.dart';
 import '../../reminders/presentation/reminders_provider.dart';
+import '../domain/today_override.dart';
 import '../domain/today_summary.dart';
 import '../domain/water_log_model.dart';
 import 'home_provider.dart';
@@ -17,6 +17,7 @@ import 'widgets/celebration_overlay.dart';
 import 'widgets/cup_size_sheet.dart';
 import 'widgets/drink_type_sheet.dart';
 import 'widgets/jumbo_widget.dart';
+import 'widgets/today_conditions_sheet.dart';
 import 'widgets/water_wave.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -39,7 +40,7 @@ class HomeScreen extends ConsumerWidget {
       backgroundColor: colorScheme.surface,
       body: Stack(
         children: [
-          // LAYER 1: Full screen wave — valueOrNull never flickers on reload
+          // LAYER 1: Full screen wave
           if (summaryAsync.valueOrNull != null)
             Positioned.fill(
               child: WaterWave(
@@ -117,6 +118,7 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ),
+        _buildConditionsPill(context, ref, profile),
         _buildActionBar(
           context,
           ref,
@@ -270,6 +272,146 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+  // ── Always-visible conditions pill ─────────────────────────────────────────
+
+  Widget _buildConditionsPill(
+    BuildContext context,
+    WidgetRef ref,
+    UserProfileModel? profile,
+  ) {
+    final override = ref.watch(todayOverrideNotifierProvider);
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+
+    final profileClimate =
+        ClimateType.fromRaw(profile?.climateType ?? 'moderate');
+    final profileActivity =
+        ActivityLevel.fromRaw(profile?.activityLevel ?? 0);
+
+    final hasClimateOverride = override?.climate != null;
+    final hasActivityOverride = override?.activity != null;
+    final displayClimate = override?.climate ?? profileClimate;
+    final displayActivity = override?.activity ?? profileActivity;
+
+    final muted = theme.textTheme.labelSmall?.copyWith(
+      color: colorScheme.onSurface.withValues(alpha: 0.6),
+    );
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          GestureDetector(
+            onTap: () => _openConditionsSheet(context, ref, profile),
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceContainerHighest
+                    .withValues(alpha: 0.55),
+                borderRadius: BorderRadius.circular(50),
+                border: Border.all(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.35),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.tune_rounded,
+                    size: 13,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  ),
+                  const SizedBox(width: 6),
+
+                  // Climate slot
+                  if (hasClimateOverride)
+                    _OverrideChip(
+                      label: '${displayClimate.emoji} ${displayClimate.label}',
+                      colorScheme: colorScheme,
+                      onClear: () => ref
+                          .read(todayOverrideNotifierProvider.notifier)
+                          .clearClimate(),
+                    )
+                  else
+                    Text(
+                      '${displayClimate.emoji} ${displayClimate.label}',
+                      style: muted,
+                    ),
+
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 7),
+                    child: Text(
+                      '·',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant
+                            .withValues(alpha: 0.4),
+                      ),
+                    ),
+                  ),
+
+                  // Activity slot
+                  if (hasActivityOverride)
+                    _OverrideChip(
+                      label:
+                          '${displayActivity.emoji} ${displayActivity.label}',
+                      colorScheme: colorScheme,
+                      onClear: () => ref
+                          .read(todayOverrideNotifierProvider.notifier)
+                          .clearActivity(),
+                    )
+                  else
+                    Text(
+                      '${displayActivity.emoji} ${displayActivity.label}',
+                      style: muted,
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openConditionsSheet(
+    BuildContext context,
+    WidgetRef ref,
+    UserProfileModel? profile,
+  ) {
+    final messenger = ScaffoldMessenger.of(context);
+    final notifier = ref.read(todayOverrideNotifierProvider.notifier);
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetCtx) => TodayConditionsSheet(
+        profile: profile,
+        onDone: () {
+          Navigator.of(sheetCtx).pop();
+          final activeOverride = ref.read(todayOverrideNotifierProvider);
+          if (activeOverride != null && activeOverride.hasAny) {
+            messenger.showSnackBar(
+              SnackBar(
+                content: const Text('Override active for today'),
+                action: SnackBarAction(
+                  label: 'Apply permanently',
+                  onPressed: notifier.makePermanent,
+                ),
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  // ── Action bar ─────────────────────────────────────────────────────────────
+
   Widget _buildActionBar(
     BuildContext context,
     WidgetRef ref,
@@ -285,7 +427,6 @@ class HomeScreen extends ConsumerWidget {
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
       child: Row(
         children: [
-          // Cup size button
           Expanded(
             child: _ActionButton(
               icon: Icons.local_drink_outlined,
@@ -316,13 +457,11 @@ class HomeScreen extends ConsumerWidget {
           ),
           const SizedBox(width: 10),
 
-          // Drink type button
           Expanded(
             child: _buildDrinkTypeButton(context, ref, selectedDrinkTypeId),
           ),
           const SizedBox(width: 10),
 
-          // Undo log button — icon-only
           IconButton(
             icon: const Icon(Icons.undo_rounded),
             color: colorScheme.error,
@@ -467,10 +606,63 @@ class HomeScreen extends ConsumerWidget {
       'emoji_food_beverage' => '🍵',
       'local_drink' => '🥤',
       'sports_bar' => '🫧',
-      _ => iconName, // custom drinks store their emoji directly
+      _ => iconName,
     };
   }
 }
+
+// ── Override chip (inside pill) ───────────────────────────────────────────────
+
+class _OverrideChip extends StatelessWidget {
+  const _OverrideChip({
+    required this.label,
+    required this.colorScheme,
+    required this.onClear,
+  });
+
+  final String label;
+  final ColorScheme colorScheme;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(6, 2, 3, 2),
+      decoration: BoxDecoration(
+        color: colorScheme.tertiaryContainer,
+        borderRadius: BorderRadius.circular(50),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: colorScheme.onTertiaryContainer,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(width: 2),
+          GestureDetector(
+            onTap: onClear,
+            behavior: HitTestBehavior.opaque,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Icon(
+                Icons.close_rounded,
+                size: 12,
+                color: colorScheme.onTertiaryContainer,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Action button ─────────────────────────────────────────────────────────────
 
 class _ActionButton extends StatelessWidget {
   const _ActionButton({

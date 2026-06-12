@@ -93,7 +93,7 @@ final lastLogProvider = AutoDisposeFutureProvider<WaterLogModel?>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef LastLogRef = AutoDisposeFutureProviderRef<WaterLogModel?>;
-String _$todaySummaryHash() => r'7da71753aab521e11d9e3cb99f418ba049114d52';
+String _$todaySummaryHash() => r'cddebeb4a1aeae7538310353b119d00eb2b3d14f';
 
 /// See also [todaySummary].
 @ProviderFor(todaySummary)
@@ -127,6 +127,23 @@ final appUnitProvider = AutoDisposeFutureProvider<String>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef AppUnitRef = AutoDisposeFutureProviderRef<String>;
+String _$todayOverrideNotifierHash() =>
+    r'8d2c80cf5aee122ec3ad698274253aeab179b64b';
+
+/// See also [TodayOverrideNotifier].
+@ProviderFor(TodayOverrideNotifier)
+final todayOverrideNotifierProvider =
+    AutoDisposeNotifierProvider<TodayOverrideNotifier, TodayOverride?>.internal(
+      TodayOverrideNotifier.new,
+      name: r'todayOverrideNotifierProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$todayOverrideNotifierHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$TodayOverrideNotifier = AutoDisposeNotifier<TodayOverride?>;
 String _$homeActionHash() => r'4f8bbca5954aaab51545398aaecd926546b908ae';
 
 /// See also [HomeAction].

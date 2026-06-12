@@ -4,10 +4,13 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
+import '../../../core/utils/hydration_calculator.dart';
 import '../../../database/database_provider.dart';
 import '../../reminders/data/notification_service.dart';
+import '../../settings/presentation/settings_provider.dart';
 import '../data/home_repository.dart';
 import '../domain/drink_type_model.dart';
+import '../domain/today_override.dart';
 import '../domain/today_summary.dart';
 import '../domain/water_log_model.dart';
 import '../../onboarding/domain/user_profile_model.dart';
@@ -43,17 +46,141 @@ final showCelebrationProvider = StateProvider<bool>((ref) => false);
 Future<WaterLogModel?> lastLog(LastLogRef ref) =>
     ref.watch(homeRepositoryProvider).getLastLog();
 
+// ── Today's override ─────────────────────────────────────────────────────────
+
+@riverpod
+class TodayOverrideNotifier extends _$TodayOverrideNotifier {
+  static const _keyClimate = 'override_climate';
+  static const _keyActivity = 'override_activity';
+  static const _keyDate = 'override_date';
+
+  @override
+  TodayOverride? build() {
+    final prefs = ref.watch(sharedPreferencesProvider);
+    final now = DateTime.now();
+    final today = '${now.year}-${now.month}-${now.day}';
+
+    final savedDate = prefs.getString(_keyDate);
+    if (savedDate != today) {
+      if (savedDate != null) Future.microtask(_clearPrefs);
+      return null;
+    }
+
+    final climateRaw = prefs.getString(_keyClimate);
+    final activityRaw = prefs.getInt(_keyActivity);
+    final climate =
+        climateRaw != null ? ClimateType.fromRaw(climateRaw) : null;
+    final activity =
+        activityRaw != null ? ActivityLevel.fromRaw(activityRaw) : null;
+
+    if (climate == null && activity == null) return null;
+    return TodayOverride(climate: climate, activity: activity, date: today);
+  }
+
+  Future<void> setClimate(ClimateType climate) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final today = _todayString();
+    await prefs.setString(_keyClimate, climate.rawValue);
+    await prefs.setString(_keyDate, today);
+    state = TodayOverride(
+      climate: climate,
+      activity: state?.activity,
+      date: today,
+    );
+  }
+
+  Future<void> setActivity(ActivityLevel activity) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final today = _todayString();
+    await prefs.setInt(_keyActivity, activity.rawValue);
+    await prefs.setString(_keyDate, today);
+    state = TodayOverride(
+      climate: state?.climate,
+      activity: activity,
+      date: today,
+    );
+  }
+
+  Future<void> clearClimate() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.remove(_keyClimate);
+    final current = state;
+    if (current?.activity == null) {
+      await prefs.remove(_keyDate);
+      state = null;
+    } else {
+      state =
+          TodayOverride(climate: null, activity: current!.activity, date: current.date);
+    }
+  }
+
+  Future<void> clearActivity() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.remove(_keyActivity);
+    final current = state;
+    if (current?.climate == null) {
+      await prefs.remove(_keyDate);
+      state = null;
+    } else {
+      state =
+          TodayOverride(climate: current!.climate, activity: null, date: current.date);
+    }
+  }
+
+  Future<void> makePermanent() async {
+    final override = state;
+    if (override == null) return;
+    final repo = ref.read(settingsRepositoryProvider);
+    if (override.climate != null) {
+      await repo.updateClimateType(override.climate!.rawValue);
+    }
+    if (override.activity != null) {
+      await repo.updateActivityLevel(override.activity!.rawValue);
+    }
+    await _clearPrefs();
+    state = null;
+    ref.invalidate(userProfileProvider);
+    ref.invalidate(settingsNotifierProvider);
+  }
+
+  Future<void> _clearPrefs() async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.remove(_keyClimate);
+    await prefs.remove(_keyActivity);
+    await prefs.remove(_keyDate);
+  }
+
+  String _todayString() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month}-${now.day}';
+  }
+}
+
+// ── Summary (reacts to override) ─────────────────────────────────────────────
+
 @riverpod
 Future<TodaySummary> todaySummary(TodaySummaryRef ref) async {
   final profile = await ref.watch(userProfileProvider.future);
   final totalMl = await ref.watch(todayTotalMlProvider.future);
-  final goalMl = profile?.dailyGoalMl ?? AppConstants.defaultDailyGoalMl;
-  return TodaySummary(
-    totalMl: totalMl,
-    goalMl: goalMl,
-    logs: [],
-  );
+  final override = ref.watch(todayOverrideNotifierProvider);
+
+  final int goalMl;
+  if (profile != null && override != null && override.hasAny) {
+    goalMl = HydrationCalculator.calculateDailyGoalMl(
+      weightKg: profile.weightKg,
+      activityLevel: override.activity?.rawValue ?? profile.activityLevel,
+      gender: profile.gender,
+      isPregnant: profile.isPregnant,
+      climateType: override.climate?.rawValue ?? profile.climateType,
+    );
+  } else {
+    goalMl = profile?.dailyGoalMl ?? AppConstants.defaultDailyGoalMl;
+  }
+
+  return TodaySummary(totalMl: totalMl, goalMl: goalMl, logs: []);
 }
+
+// ── Actions ───────────────────────────────────────────────────────────────────
 
 @riverpod
 class HomeAction extends _$HomeAction {
@@ -91,13 +218,11 @@ class HomeAction extends _$HomeAction {
     ref.invalidate(lastLogProvider);
     await ref.read(jumboTapAmountProvider.notifier).setAmount(amountMl.round());
 
-    // Store context for background notification tap handler
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(AppConstants.prefLastCupSizeMl, amountMl.round());
     await prefs.setInt(AppConstants.prefLastDrinkTypeId, drinkType.id);
     await prefs.setInt(AppConstants.prefTodayGoalMl, summary.goalMl);
 
-    // Update persistent progress notification
     final profile = ref.read(userProfileProvider).valueOrNull;
     final unit = profile?.unit ?? AppConstants.unitMl;
     await NotificationService().showProgressNotification(
@@ -130,25 +255,17 @@ class HomeAction extends _$HomeAction {
     final lastLog = await ref.read(lastLogProvider.future);
     if (lastLog == null) return;
 
-    // Read current total and goal BEFORE deleting
-    // so we get accurate values, not stale stream data
     final currentTotal = await ref.read(todayTotalMlProvider.future);
     final summary = await ref.read(todaySummaryProvider.future);
-
-    // Calculate what the total will be after deletion
     final totalAfterUndo = currentTotal - lastLog.amountMl;
 
-    // Delete the log
     await ref.read(homeRepositoryProvider).deleteLog(lastLog.id);
     ref.invalidate(lastLogProvider);
 
-    // If new total drops below goal, reset celebration
-    // so it fires again when goal is re-crossed
     if (totalAfterUndo < summary.goalMl) {
       ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
     }
 
-    // Refresh persistent progress notification after undo
     try {
       final profile = ref.read(userProfileProvider).valueOrNull;
       final unit = profile?.unit ?? AppConstants.unitMl;

@@ -19,6 +19,15 @@ Future<void> main() async {
   final isOnboarded =
       prefs.getBool(AppConstants.prefHasCompletedOnboarding) ?? false;
 
+  // Clear stale today-only overrides from a previous day
+  final now = DateTime.now();
+  final today = '${now.year}-${now.month}-${now.day}';
+  if ((prefs.getString('override_date') ?? today) != today) {
+    await prefs.remove('override_climate');
+    await prefs.remove('override_activity');
+    await prefs.remove('override_date');
+  }
+
   runApp(
     ProviderScope(
       overrides: [
