@@ -143,6 +143,22 @@ class TodayOverrideNotifier extends _$TodayOverrideNotifier {
     ref.invalidate(settingsNotifierProvider);
   }
 
+  Future<void> makeClimatePermanent(ClimateType climate) async {
+    final repo = ref.read(settingsRepositoryProvider);
+    await repo.updateClimateType(climate.rawValue);
+    await clearClimate();
+    ref.invalidate(userProfileProvider);
+    ref.invalidate(settingsNotifierProvider);
+  }
+
+  Future<void> makeActivityPermanent(ActivityLevel activity) async {
+    final repo = ref.read(settingsRepositoryProvider);
+    await repo.updateActivityLevel(activity.rawValue);
+    await clearActivity();
+    ref.invalidate(userProfileProvider);
+    ref.invalidate(settingsNotifierProvider);
+  }
+
   Future<void> _clearPrefs() async {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.remove(_keyClimate);

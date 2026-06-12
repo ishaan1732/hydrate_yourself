@@ -17,7 +17,6 @@ import 'widgets/celebration_overlay.dart';
 import 'widgets/cup_size_sheet.dart';
 import 'widgets/drink_type_sheet.dart';
 import 'widgets/jumbo_widget.dart';
-import 'widgets/today_conditions_sheet.dart';
 import 'widgets/water_wave.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -103,6 +102,7 @@ class HomeScreen extends ConsumerWidget {
         cupSizeMl: cupSize,
       );
     });
+
     return Column(
       children: [
         _buildHeader(context, profile),
@@ -118,19 +118,16 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
         ),
-        _buildConditionsPill(context, ref, profile),
-        _buildActionBar(
-          context,
-          ref,
-          unit,
-          selectedDrinkTypeId,
-          lastLogAsync,
-          jumboAmount,
+        _buildBottomControls(
+          context, ref, unit, selectedDrinkTypeId, lastLogAsync,
+          jumboAmount, profile,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
       ],
     );
   }
+
+  // ── Header ──────────────────────────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context, UserProfileModel? profile) {
     final theme = Theme.of(context);
@@ -158,6 +155,8 @@ class HomeScreen extends ConsumerWidget {
       ),
     );
   }
+
+  // ── Progress text + bar ──────────────────────────────────────────────────────
 
   Widget _buildProgressText(
     BuildContext context,
@@ -272,267 +271,202 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  // ── Always-visible conditions pill ─────────────────────────────────────────
+  // ── Bottom controls ──────────────────────────────────────────────────────────
 
-  Widget _buildConditionsPill(
-    BuildContext context,
-    WidgetRef ref,
-    UserProfileModel? profile,
-  ) {
-    final override = ref.watch(todayOverrideNotifierProvider);
-    final colorScheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
-
-    final profileClimate =
-        ClimateType.fromRaw(profile?.climateType ?? 'moderate');
-    final profileActivity =
-        ActivityLevel.fromRaw(profile?.activityLevel ?? 0);
-
-    final hasClimateOverride = override?.climate != null;
-    final hasActivityOverride = override?.activity != null;
-    final displayClimate = override?.climate ?? profileClimate;
-    final displayActivity = override?.activity ?? profileActivity;
-
-    final muted = theme.textTheme.labelSmall?.copyWith(
-      color: colorScheme.onSurface.withValues(alpha: 0.6),
-    );
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          GestureDetector(
-            onTap: () => _openConditionsSheet(context, ref, profile),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest
-                    .withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(50),
-                border: Border.all(
-                  color: colorScheme.outlineVariant.withValues(alpha: 0.35),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.tune_rounded,
-                    size: 13,
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-                  ),
-                  const SizedBox(width: 6),
-
-                  // Climate slot
-                  if (hasClimateOverride)
-                    _OverrideChip(
-                      label: '${displayClimate.emoji} ${displayClimate.label}',
-                      colorScheme: colorScheme,
-                      onClear: () => ref
-                          .read(todayOverrideNotifierProvider.notifier)
-                          .clearClimate(),
-                    )
-                  else
-                    Text(
-                      '${displayClimate.emoji} ${displayClimate.label}',
-                      style: muted,
-                    ),
-
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 7),
-                    child: Text(
-                      '·',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant
-                            .withValues(alpha: 0.4),
-                      ),
-                    ),
-                  ),
-
-                  // Activity slot
-                  if (hasActivityOverride)
-                    _OverrideChip(
-                      label:
-                          '${displayActivity.emoji} ${displayActivity.label}',
-                      colorScheme: colorScheme,
-                      onClear: () => ref
-                          .read(todayOverrideNotifierProvider.notifier)
-                          .clearActivity(),
-                    )
-                  else
-                    Text(
-                      '${displayActivity.emoji} ${displayActivity.label}',
-                      style: muted,
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _openConditionsSheet(
-    BuildContext context,
-    WidgetRef ref,
-    UserProfileModel? profile,
-  ) {
-    final messenger = ScaffoldMessenger.of(context);
-    final notifier = ref.read(todayOverrideNotifierProvider.notifier);
-
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (sheetCtx) => TodayConditionsSheet(
-        profile: profile,
-        onDone: () {
-          Navigator.of(sheetCtx).pop();
-          final activeOverride = ref.read(todayOverrideNotifierProvider);
-          if (activeOverride != null && activeOverride.hasAny) {
-            messenger.showSnackBar(
-              SnackBar(
-                content: const Text('Override active for today'),
-                action: SnackBarAction(
-                  label: 'Apply permanently',
-                  onPressed: notifier.makePermanent,
-                ),
-              ),
-            );
-          }
-        },
-      ),
-    );
-  }
-
-  // ── Action bar ─────────────────────────────────────────────────────────────
-
-  Widget _buildActionBar(
+  Widget _buildBottomControls(
     BuildContext context,
     WidgetRef ref,
     String unit,
     int? selectedDrinkTypeId,
     AsyncValue<WaterLogModel?> lastLogAsync,
     int jumboAmount,
+    UserProfileModel? profile,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
     final lastLog = lastLogAsync.valueOrNull;
 
+    final drinkTypesAsync = ref.watch(drinkTypesProvider);
+    final drinkTypes = drinkTypesAsync.valueOrNull ?? [];
+    final selectedDrinkType = drinkTypes.isNotEmpty
+        ? (selectedDrinkTypeId != null
+            ? drinkTypes.firstWhere(
+                (d) => d.id == selectedDrinkTypeId,
+                orElse: () => drinkTypes.first,
+              )
+            : drinkTypes.first)
+        : null;
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Expanded(
-            child: _ActionButton(
-              icon: Icons.local_drink_outlined,
-              label: unit == 'oz'
-                  ? jumboAmount.toDouble().toHalfOzString()
-                  : '$jumboAmount ml',
-              onTap: () => showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                shape: const RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                builder: (dialogContext) => Padding(
-                  padding: EdgeInsets.only(
-                    bottom: MediaQuery.of(context).viewInsets.bottom,
+          // ── LEFT ZONE: two square glass buttons ───────────────────────────
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _GlassButton(
+                icon: Icons.local_drink_outlined,
+                label: unit == 'oz'
+                    ? jumboAmount.toDouble().toHalfOzString()
+                    : '$jumboAmount ml',
+                onTap: () => showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24)),
                   ),
-                  child: CupSizeSheet(
-                    currentSizeMl: jumboAmount,
-                    unit: unit,
-                    onSizeSelected: (ml) {
-                      ref.read(jumboTapAmountProvider.notifier).setAmount(ml);
-                    },
+                  builder: (dialogContext) => Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: CupSizeSheet(
+                      currentSizeMl: jumboAmount,
+                      unit: unit,
+                      onSizeSelected: (ml) {
+                        ref
+                            .read(jumboTapAmountProvider.notifier)
+                            .setAmount(ml);
+                      },
+                    ),
                   ),
                 ),
               ),
+              const SizedBox(width: 8),
+              _GlassButton(
+                iconWidget: selectedDrinkType != null
+                    ? Text(
+                        _emojiForDrink(selectedDrinkType.iconName),
+                        style: const TextStyle(fontSize: 18),
+                      )
+                    : null,
+                icon: selectedDrinkType == null
+                    ? Icons.water_drop_outlined
+                    : null,
+                label: selectedDrinkType?.name ?? 'Drink',
+                onTap: drinkTypes.isEmpty
+                    ? null
+                    : () => showModalBottomSheet<void>(
+                          context: context,
+                          isScrollControlled: true,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(24)),
+                          ),
+                          builder: (dialogContext) => DrinkTypeSheet(
+                            selectedDrinkTypeId:
+                                selectedDrinkTypeId ?? drinkTypes.first.id,
+                            onDrinkSelected: (drink) {
+                              ref
+                                  .read(selectedDrinkTypeIdProvider.notifier)
+                                  .state = drink.id;
+                            },
+                          ),
+                        ),
+              ),
+            ],
+          ),
+
+          // ── RIGHT ZONE: vertical icon bar ────────────────────────────────
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.28),
+              borderRadius: BorderRadius.circular(16),
             ),
-          ),
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: _buildDrinkTypeButton(context, ref, selectedDrinkTypeId),
-          ),
-          const SizedBox(width: 10),
-
-          IconButton(
-            icon: const Icon(Icons.undo_rounded),
-            color: colorScheme.error,
-            iconSize: 20,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            onPressed: lastLog != null
-                ? () => ref.read(homeActionProvider.notifier).deleteLastLog()
-                : null,
+            padding: const EdgeInsets.all(5),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Climate — FIX B: opaque so full 40×40 area is tappable
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _showClimateDialog(context, ref, profile),
+                  child: const SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Center(
+                      child: Icon(
+                        Icons.wb_sunny_outlined,
+                        size: 20,
+                        color: Color.fromRGBO(255, 255, 255, 0.85),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 28,
+                  height: 0.5,
+                  color: Colors.white.withValues(alpha: 0.15),
+                ),
+                // Activity — FIX B: opaque so full 40×40 area is tappable
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _showActivityDialog(context, ref, profile),
+                  child: const SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Center(
+                      child: Icon(
+                        Icons.directions_run_outlined,
+                        size: 20,
+                        color: Color.fromRGBO(255, 255, 255, 0.85),
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  width: 28,
+                  height: 0.5,
+                  color: Colors.white.withValues(alpha: 0.15),
+                ),
+                // Undo — FIX B: opaque + Bug 2: error color when active
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: lastLog != null
+                      ? () =>
+                          ref.read(homeActionProvider.notifier).deleteLastLog()
+                      : null,
+                  child: SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Center(
+                      child: Icon(
+                        Icons.undo_outlined,
+                        size: 20,
+                        color: lastLog != null
+                            ? colorScheme.error
+                            : Colors.white.withValues(alpha: 0.28),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDrinkTypeButton(
-    BuildContext context,
-    WidgetRef ref,
-    int? selectedId,
-  ) {
-    return ref.watch(drinkTypesProvider).when(
-          loading: () => const _ActionButton(
-            icon: Icons.water_drop_outlined,
-            label: 'Drink Type',
-            onTap: null,
-          ),
-          error: (_, _) => const _ActionButton(
-            icon: Icons.water_drop_outlined,
-            label: 'Drink Type',
-            onTap: null,
-          ),
-          data: (drinkTypes) {
-            if (drinkTypes.isEmpty) {
-              return const _ActionButton(
-                icon: Icons.water_drop_outlined,
-                label: 'Drink Type',
-                onTap: null,
-              );
-            }
-            final selected = selectedId != null
-                ? drinkTypes.firstWhere(
-                    (d) => d.id == selectedId,
-                    orElse: () => drinkTypes.first,
-                  )
-                : drinkTypes.first;
-
-            return _ActionButton(
-              iconWidget: Text(
-                _emojiForDrink(selected.iconName),
-                style: const TextStyle(fontSize: 22),
-              ),
-              label: selected.name,
-              onTap: () => showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                shape: const RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                builder: (dialogContext) => DrinkTypeSheet(
-                  selectedDrinkTypeId: selectedId ?? drinkTypes.first.id,
-                  onDrinkSelected: (drink) {
-                    ref
-                        .read(selectedDrinkTypeIdProvider.notifier)
-                        .state = drink.id;
-                  },
-                ),
-              ),
-            );
-          },
-        );
+  void _showClimateDialog(
+      BuildContext context, WidgetRef ref, UserProfileModel? profile) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => _ClimateDialog(profile: profile),
+    );
   }
+
+  void _showActivityDialog(
+      BuildContext context, WidgetRef ref, UserProfileModel? profile) {
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => _ActivityDialog(profile: profile),
+    );
+  }
+
+  // ── Skeleton ────────────────────────────────────────────────────────────────
 
   Widget _buildSkeleton(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -577,6 +511,8 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+  // ── Helpers ──────────────────────────────────────────────────────────────────
+
   String _formatMl(int ml) {
     if (ml >= 1000) {
       final thousands = ml ~/ 1000;
@@ -611,114 +547,51 @@ class HomeScreen extends ConsumerWidget {
   }
 }
 
-// ── Override chip (inside pill) ───────────────────────────────────────────────
+// ── Glass button (left zone) ──────────────────────────────────────────────────
 
-class _OverrideChip extends StatelessWidget {
-  const _OverrideChip({
-    required this.label,
-    required this.colorScheme,
-    required this.onClear,
-  });
-
-  final String label;
-  final ColorScheme colorScheme;
-  final VoidCallback onClear;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(6, 2, 3, 2),
-      decoration: BoxDecoration(
-        color: colorScheme.tertiaryContainer,
-        borderRadius: BorderRadius.circular(50),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 11,
-              color: colorScheme.onTertiaryContainer,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(width: 2),
-          GestureDetector(
-            onTap: onClear,
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Icon(
-                Icons.close_rounded,
-                size: 12,
-                color: colorScheme.onTertiaryContainer,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Action button ─────────────────────────────────────────────────────────────
-
-class _ActionButton extends StatelessWidget {
-  const _ActionButton({
+class _GlassButton extends StatelessWidget {
+  const _GlassButton({
     this.icon,
     this.iconWidget,
     required this.label,
     required this.onTap,
-    this.isDisabled = false,
-    this.color,
   });
 
   final IconData? icon;
   final Widget? iconWidget;
   final String label;
   final VoidCallback? onTap;
-  final bool isDisabled;
-  final Color? color;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final theme = Theme.of(context);
-
     return GestureDetector(
-      onTap: isDisabled ? null : onTap,
-      child: AnimatedOpacity(
-        opacity: isDisabled ? 0.35 : 1.0,
-        duration: const Duration(milliseconds: 200),
+      onTap: onTap,
+      child: SizedBox(
+        width: 52,
+        height: 52,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(14),
+            color: Colors.white.withValues(alpha: 0.15),
             border: Border.all(
-              color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+              color: Colors.white.withValues(alpha: 0.25),
+              width: 0.5,
             ),
+            borderRadius: BorderRadius.circular(14),
           ),
           child: Column(
-            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (iconWidget != null)
                 iconWidget!
               else
-                Icon(
-                  icon!,
-                  size: 20,
-                  color: color ?? colorScheme.onSurfaceVariant,
-                ),
-              const SizedBox(height: 5),
+                Icon(icon!, size: 20, color: Colors.white),
+              const SizedBox(height: 3),
               Text(
                 label,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: color ?? colorScheme.onSurfaceVariant,
+                style: TextStyle(
+                  fontSize: 8,
+                  color: Colors.white.withValues(alpha: 0.55),
                 ),
-                textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -726,6 +599,359 @@ class _ActionButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── Shared option tile (used by both dialogs) ─────────────────────────────────
+
+class _OptionTile extends StatelessWidget {
+  const _OptionTile({
+    required this.emoji,
+    required this.label,
+    required this.multiplier,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String emoji;
+  final String label;
+  final String multiplier;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? colorScheme.primaryContainer
+                : colorScheme.secondaryContainer,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.tertiary.withValues(alpha: 0.5),
+              width: isSelected ? 2.0 : 0.5,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(emoji, style: const TextStyle(fontSize: 18)),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: isSelected
+                      ? colorScheme.onPrimaryContainer
+                      : colorScheme.onSecondaryContainer,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                multiplier,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: 9,
+                  color: isSelected
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Climate dialog ────────────────────────────────────────────────────────────
+
+class _ClimateDialog extends ConsumerStatefulWidget {
+  const _ClimateDialog({required this.profile});
+  final UserProfileModel? profile;
+
+  @override
+  ConsumerState<_ClimateDialog> createState() => _ClimateDialogState();
+}
+
+class _ClimateDialogState extends ConsumerState<_ClimateDialog> {
+  late ClimateType _selected;
+  bool _applyPermanently = false;
+
+  static const _multipliers = {
+    'cold': '×0.9',
+    'moderate': '×1.0',
+    'hot': '×1.15',
+    'very_hot': '×1.30',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    final override = ref.read(todayOverrideNotifierProvider);
+    _selected = override?.climate ??
+        ClimateType.fromRaw(widget.profile?.climateType ?? 'moderate');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final types = ClimateType.values;
+
+    return AlertDialog(
+      title: const Text(
+        "Today's climate",
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 2×2 grid
+          Row(
+            children: [
+              _OptionTile(
+                emoji: types[0].emoji,
+                label: types[0].label,
+                multiplier: _multipliers[types[0].rawValue]!,
+                isSelected: _selected == types[0],
+                onTap: () => setState(() => _selected = types[0]),
+              ),
+              const SizedBox(width: 8),
+              _OptionTile(
+                emoji: types[1].emoji,
+                label: types[1].label,
+                multiplier: _multipliers[types[1].rawValue]!,
+                isSelected: _selected == types[1],
+                onTap: () => setState(() => _selected = types[1]),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _OptionTile(
+                emoji: types[2].emoji,
+                label: types[2].label,
+                multiplier: _multipliers[types[2].rawValue]!,
+                isSelected: _selected == types[2],
+                onTap: () => setState(() => _selected = types[2]),
+              ),
+              const SizedBox(width: 8),
+              _OptionTile(
+                emoji: types[3].emoji,
+                label: types[3].label,
+                multiplier: _multipliers[types[3].rawValue]!,
+                isSelected: _selected == types[3],
+                onTap: () => setState(() => _selected = types[3]),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Permanent toggle
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Apply to profile permanently',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    Text(
+                      'Changes your default, not just today',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 10,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: _applyPermanently,
+                onChanged: (v) => setState(() => _applyPermanently = v),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () async {
+            final nav = Navigator.of(context);
+            final notifier = ref.read(todayOverrideNotifierProvider.notifier);
+            if (_applyPermanently) {
+              await notifier.makeClimatePermanent(_selected);
+            } else {
+              await notifier.setClimate(_selected);
+            }
+            nav.pop();
+          },
+          child: const Text('Apply'),
+        ),
+      ],
+    );
+  }
+}
+
+// ── Activity dialog ───────────────────────────────────────────────────────────
+
+class _ActivityDialog extends ConsumerStatefulWidget {
+  const _ActivityDialog({required this.profile});
+  final UserProfileModel? profile;
+
+  @override
+  ConsumerState<_ActivityDialog> createState() => _ActivityDialogState();
+}
+
+class _ActivityDialogState extends ConsumerState<_ActivityDialog> {
+  late ActivityLevel _selected;
+  bool _applyPermanently = false;
+
+  static const _multipliers = {
+    0: '×1.0',
+    1: '×1.1',
+    2: '×1.2',
+    3: '×1.4',
+  };
+
+  static const _labels = {
+    0: 'Sedentary',
+    1: 'Light',
+    2: 'Moderate',
+    3: 'Very active',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    final override = ref.read(todayOverrideNotifierProvider);
+    _selected = override?.activity ??
+        ActivityLevel.fromRaw(widget.profile?.activityLevel ?? 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final levels = ActivityLevel.values;
+
+    return AlertDialog(
+      title: const Text(
+        "Today's activity",
+        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // 2×2 grid
+          Row(
+            children: [
+              _OptionTile(
+                emoji: levels[0].emoji,
+                label: _labels[levels[0].rawValue]!,
+                multiplier: _multipliers[levels[0].rawValue]!,
+                isSelected: _selected == levels[0],
+                onTap: () => setState(() => _selected = levels[0]),
+              ),
+              const SizedBox(width: 8),
+              _OptionTile(
+                emoji: levels[1].emoji,
+                label: _labels[levels[1].rawValue]!,
+                multiplier: _multipliers[levels[1].rawValue]!,
+                isSelected: _selected == levels[1],
+                onTap: () => setState(() => _selected = levels[1]),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _OptionTile(
+                emoji: levels[2].emoji,
+                label: _labels[levels[2].rawValue]!,
+                multiplier: _multipliers[levels[2].rawValue]!,
+                isSelected: _selected == levels[2],
+                onTap: () => setState(() => _selected = levels[2]),
+              ),
+              const SizedBox(width: 8),
+              _OptionTile(
+                emoji: levels[3].emoji,
+                label: _labels[levels[3].rawValue]!,
+                multiplier: _multipliers[levels[3].rawValue]!,
+                isSelected: _selected == levels[3],
+                onTap: () => setState(() => _selected = levels[3]),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Permanent toggle
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Apply to profile permanently',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    Text(
+                      'Changes your default, not just today',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 10,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: _applyPermanently,
+                onChanged: (v) => setState(() => _applyPermanently = v),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () async {
+            final nav = Navigator.of(context);
+            final notifier = ref.read(todayOverrideNotifierProvider.notifier);
+            if (_applyPermanently) {
+              await notifier.makeActivityPermanent(_selected);
+            } else {
+              await notifier.setActivity(_selected);
+            }
+            nav.pop();
+          },
+          child: const Text('Apply'),
+        ),
+      ],
     );
   }
 }
