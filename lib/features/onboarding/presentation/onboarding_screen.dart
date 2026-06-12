@@ -489,6 +489,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             title: Text(title),
             subtitle: Text(description),
+            trailing: isSelected
+                ? Icon(Icons.check_circle_rounded,
+                    color: colorScheme.primary)
+                : null,
           ),
         ),
       ),

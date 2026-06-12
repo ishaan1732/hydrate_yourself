@@ -345,6 +345,7 @@ class HomeScreen extends ConsumerWidget {
                 icon: selectedDrinkType == null
                     ? Icons.water_drop_outlined
                     : null,
+                iconColor: colorScheme.tertiary,
                 label: selectedDrinkType?.name ?? 'Drink',
                 onTap: drinkTypes.isEmpty
                     ? null
@@ -555,15 +556,18 @@ class _GlassButton extends StatelessWidget {
     this.iconWidget,
     required this.label,
     required this.onTap,
+    this.iconColor,
   });
 
   final IconData? icon;
   final Widget? iconWidget;
   final String label;
   final VoidCallback? onTap;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: SizedBox(
@@ -571,9 +575,9 @@ class _GlassButton extends StatelessWidget {
         height: 52,
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
+            color: colorScheme.primaryContainer,
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.25),
+              color: colorScheme.primary.withValues(alpha: 0.35),
               width: 0.5,
             ),
             borderRadius: BorderRadius.circular(14),
@@ -584,13 +588,17 @@ class _GlassButton extends StatelessWidget {
               if (iconWidget != null)
                 iconWidget!
               else
-                Icon(icon!, size: 20, color: Colors.white),
+                Icon(
+                  icon!,
+                  size: 20,
+                  color: iconColor ?? colorScheme.onPrimaryContainer,
+                ),
               const SizedBox(height: 3),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 8,
-                  color: Colors.white.withValues(alpha: 0.55),
+                  color: colorScheme.onPrimaryContainer,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
