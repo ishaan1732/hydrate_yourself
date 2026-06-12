@@ -404,6 +404,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 await ref
                     .read(settingsNotifierProvider.notifier)
                     .deleteAllData();
+                ref
+                    .read(themeModeNotifierProvider.notifier)
+                    .setThemeMode(ThemeMode.system);
                 if (context.mounted) {
                   context.go('/onboarding');
                 }

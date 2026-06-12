@@ -199,6 +199,7 @@ class SettingsRepository {
     await _prefs.clear();
     await Workmanager().cancelAll();
     await _prefs.setBool(AppConstants.prefHasCompletedOnboarding, false);
+    await _prefs.setString('theme_mode', 'system');
   }
 
   Future<void> updateClimateType(String climate) async {
