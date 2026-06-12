@@ -56,13 +56,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     if (_currentPage == 0) {
       return Scaffold(
-        backgroundColor: colorScheme.surface,
         body: _buildWelcomePage(),
       );
     }
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -135,13 +133,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         children: [
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Color(0xFF0090C8), Color(0xFF0077A8)],
-                ),
-              ),
+              // decoration: const BoxDecoration(
+              //   gradient: LinearGradient(
+              //     begin: Alignment.topCenter,
+              //     end: Alignment.bottomCenter,
+              //     colors: [Color(0xFF0090C8), Color(0xFF0077A8)],
+              //   ),
+              // ),
+              color: Theme.of(context).colorScheme.surface,
+
             ),
           ),
           Positioned(
@@ -165,12 +165,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'Hi, I\'m Jumbo!',
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.w800,
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.onSurface,
                     letterSpacing: -0.5,
                   ),
                   textAlign: TextAlign.center,
@@ -182,7 +182,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     'Your personal hydration companion.\nYour daily dose of wellness starts here.',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.white.withValues(alpha: 0.85),
+                      color: Theme.of(context).colorScheme.onSurface,
                       height: 1.5,
                     ),
                     textAlign: TextAlign.center,
