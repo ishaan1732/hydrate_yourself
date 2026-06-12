@@ -136,20 +136,28 @@ class DrinkTypeSheet extends ConsumerWidget {
           children: [
             Icon(Icons.add_rounded, color: colorScheme.primary, size: 20),
             const SizedBox(width: 12),
-            Text(
-              'Add custom drink',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            Expanded(
+              child: Text(
+                'Add custom drink',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
+              ),
             ),
-            const Spacer(),
-            Text(
-              'Set hydration index',
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall
-                  ?.copyWith(color: colorScheme.outlineVariant),
+            Expanded(
+              child: Text(
+                'Set hydration index',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                textAlign: TextAlign.end,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: colorScheme.outlineVariant),
+              ),
             ),
           ],
         ),

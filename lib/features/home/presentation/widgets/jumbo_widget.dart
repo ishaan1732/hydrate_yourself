@@ -170,6 +170,7 @@ class _JumboWidgetState extends State<JumboWidget>
                 Container(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 18, vertical: 7),
+                  clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     color: const Color(0xFF0EA5E9),
                     borderRadius: BorderRadius.circular(20),
@@ -181,14 +182,18 @@ class _JumboWidgetState extends State<JumboWidget>
                       ),
                     ],
                   ),
-                  child: Text(
-                    widget.unit == 'oz'
-                        ? 'Tap Jumbo · +${widget.tapAmount.toDouble().toHalfOzString()}'
-                        : 'Tap Jumbo · +${widget.tapAmount}ml',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      widget.unit == 'oz'
+                          ? 'Tap Jumbo · +${widget.tapAmount.toDouble().toHalfOzString()}'
+                          : 'Tap Jumbo · +${widget.tapAmount}ml',
+                      maxLines: 1,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
