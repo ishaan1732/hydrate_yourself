@@ -2,12 +2,17 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/double_extensions.dart';
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/color_utils.dart';
 
 class DrinkBreakdownChart extends StatelessWidget {
-  const DrinkBreakdownChart({super.key, required this.drinkTypeTotals});
+  const DrinkBreakdownChart({
+    super.key,
+    required this.drinkTypeTotals,
+    required this.drinkTypeColors,
+  });
 
   final Map<String, double> drinkTypeTotals;
+  final Map<String, String> drinkTypeColors;
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +54,8 @@ class DrinkBreakdownChart extends StatelessWidget {
                     color: Colors.white,
                   ),
                   radius: 55,
-                  color: _colorForDrink(entry.key),
+                  color: hexToColor(
+                      drinkTypeColors[entry.key] ?? '#9E9E9E'),
                 );
               }).toList(),
             ),
@@ -57,53 +63,48 @@ class DrinkBreakdownChart extends StatelessWidget {
         ),
         Expanded(
           flex: 1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: drinkTypeTotals.entries.map((entry) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(3),
-                        color: _colorForDrink(entry.key),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: drinkTypeTotals.entries.map((entry) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 3),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(3),
+                          color: hexToColor(
+                              drinkTypeColors[entry.key] ?? '#9E9E9E'),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        entry.key,
-                        style: theme.textTheme.labelMedium,
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          entry.key,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: theme.textTheme.labelMedium,
+                        ),
                       ),
-                    ),
-                    Text(
-                      entry.value.toHydrationString('ml'),
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                      Text(
+                        entry.value.toHydrationString('ml'),
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ),
       ],
     );
   }
 
-  Color _colorForDrink(String name) {
-    return switch (name.toLowerCase()) {
-      'water' => AppColors.primary,
-      'coffee' => AppColors.coffee,
-      'tea' => AppColors.tea,
-      'juice' => AppColors.juice,
-      'soda' => AppColors.soda,
-      _ => AppColors.drinkDefault,
-    };
-  }
 }

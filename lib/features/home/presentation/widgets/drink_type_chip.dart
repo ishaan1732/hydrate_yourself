@@ -51,11 +51,17 @@ class DrinkTypeChip extends StatelessWidget {
                         ? drinkType.color
                         : colorScheme.onSurfaceVariant,
                   ),
-            Text(
-              drinkType.name,
-              style: theme.textTheme.labelLarge?.copyWith(
-                color:
-                    isSelected ? drinkType.color : colorScheme.onSurfaceVariant,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: Text(
+                drinkType.name,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: isSelected
+                      ? drinkType.color
+                      : colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
           ],

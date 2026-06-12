@@ -87,32 +87,41 @@ class DrinkTypeSheet extends ConsumerWidget {
   Widget _buildAddCustomButton(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
-      onTap: () {
-        showModalBottomSheet(
+      onTap: () async {
+        int? newlyCreatedId;
+        await showModalBottomSheet<void>(
           context: context,
           isScrollControlled: true,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           builder: (dialogContext) => AddCustomDrinkSheet(
-              onAdd: (name, emoji, coefficient) async {
-                final dao = ref.read(drinkTypesDaoProvider);
-                final existing = await dao.getAllDrinkTypes();
-                final maxSort = existing.isEmpty
-                    ? 0
-                    : existing.map((e) => e.sortOrder).reduce(max);
-                debugPrint('Inserting custom drink: $name ($emoji) coeff=$coefficient');
-                await dao.insertDrinkType(DrinkTypesCompanion(
-                  name: Value(name),
-                  hydrationCoefficient: Value(coefficient),
-                  iconName: Value(emoji),
-                  colorHex: const Value('#0090C8'),
-                  isCustom: const Value(true),
-                  sortOrder: Value(maxSort + 1),
-                ));
-              },
-            ),
+            onAdd: (name, emoji, coefficient, colorHex) async {
+              final dao = ref.read(drinkTypesDaoProvider);
+              final existing = await dao.getAllDrinkTypes();
+              final maxSort = existing.isEmpty
+                  ? 0
+                  : existing.map((e) => e.sortOrder).reduce(max);
+
+              final newId = await dao.insertDrinkType(DrinkTypesCompanion(
+                name: Value(name),
+                hydrationCoefficient: Value(coefficient),
+                iconName: Value(emoji),
+                colorHex: Value(colorHex),
+                isCustom: const Value(true),
+                sortOrder: Value(maxSort + 1),
+              ));
+
+              ref.read(selectedDrinkTypeIdProvider.notifier).state = newId;
+              newlyCreatedId = newId;
+            },
+          ),
         );
+        // AddCustomDrinkSheet has closed; if a drink was created, also close
+        // DrinkTypeSheet so the home screen reflects the selection immediately.
+        if (context.mounted && newlyCreatedId != null) {
+          Navigator.of(context).pop();
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -190,34 +199,41 @@ class _DrinkTile extends StatelessWidget {
                 shape: BoxShape.circle,
                 color: drinkType.color.withValues(alpha: 0.2),
               ),
-              child: Center(
-                child: DrinkConstants.isEmoji(drinkType.iconName)
-                    ? Text(drinkType.iconName,
-                        style: const TextStyle(fontSize: 16))
-                    : Icon(
-                        DrinkConstants.getIconData(drinkType.iconName),
-                        color: drinkType.color,
-                        size: 18,
-                      ),
-              ),
+              child: drinkType.iconName.isEmpty
+                  ? null
+                  : Center(
+                      child: DrinkConstants.isEmoji(drinkType.iconName)
+                          ? Text(drinkType.iconName,
+                              style: const TextStyle(fontSize: 16))
+                          : Icon(
+                              DrinkConstants.getIconData(drinkType.iconName),
+                              color: drinkType.color,
+                              size: 18,
+                            ),
+                    ),
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  drinkType.name,
-                  style: theme.textTheme.bodyLarge
-                      ?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                Text(
-                  '×${drinkType.hydrationCoefficient.toStringAsFixed(1)} hydration',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
-                ),
-              ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    drinkType.name,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: theme.textTheme.bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    '×${drinkType.hydrationCoefficient.toStringAsFixed(1)} hydration',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: theme.textTheme.bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                ],
+              ),
             ),
-            const Spacer(),
             if (isSelected)
               Icon(Icons.check_circle_rounded,
                   color: drinkType.color, size: 20),

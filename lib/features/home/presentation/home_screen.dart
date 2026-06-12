@@ -146,6 +146,9 @@ class HomeScreen extends ConsumerWidget {
               ),
               Text(
                 profile?.name ?? 'there',
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                softWrap: false,
                 style: theme.textTheme.headlineSmall
                     ?.copyWith(fontWeight: FontWeight.w700),
               ),
@@ -336,13 +339,15 @@ class HomeScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               _GlassButton(
-                iconWidget: selectedDrinkType != null
+                iconWidget: selectedDrinkType != null &&
+                        selectedDrinkType.iconName.isNotEmpty
                     ? Text(
                         _emojiForDrink(selectedDrinkType.iconName),
                         style: const TextStyle(fontSize: 18),
                       )
                     : null,
-                icon: selectedDrinkType == null
+                icon: selectedDrinkType == null ||
+                        selectedDrinkType.iconName.isEmpty
                     ? Icons.water_drop_outlined
                     : null,
                 iconColor: colorScheme.tertiary,

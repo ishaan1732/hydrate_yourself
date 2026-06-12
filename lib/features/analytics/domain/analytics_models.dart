@@ -18,6 +18,7 @@ class AnalyticsSummary {
     required this.totalMl30Days,
     required this.goalMl,
     required this.drinkTypeTotals,
+    required this.drinkTypeColors,
     required this.dailyChartPoints,
   });
 
@@ -27,6 +28,7 @@ class AnalyticsSummary {
   final double totalMl30Days;
   final int goalMl;
   final Map<String, double> drinkTypeTotals;
+  final Map<String, String> drinkTypeColors;
   final List<DailyChartPoint> dailyChartPoints;
 
   factory AnalyticsSummary.empty() => const AnalyticsSummary(
@@ -36,6 +38,7 @@ class AnalyticsSummary {
         totalMl30Days: 0.0,
         goalMl: 2500,
         drinkTypeTotals: {},
+        drinkTypeColors: {},
         dailyChartPoints: [],
       );
 }

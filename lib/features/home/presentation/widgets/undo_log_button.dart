@@ -44,32 +44,41 @@ class UndoLogButton extends StatelessWidget {
                   radius: 16,
                   backgroundColor:
                       lastLog.drinkType.color.withValues(alpha: 0.15),
-                  child: Icon(
-                    DrinkConstants.getIconData(lastLog.drinkType.iconName),
-                    size: 16,
-                    color: lastLog.drinkType.color,
-                  ),
+                  child: lastLog.drinkType.iconName.isEmpty
+                      ? null
+                      : DrinkConstants.isEmoji(lastLog.drinkType.iconName)
+                          ? Text(lastLog.drinkType.iconName,
+                              style: const TextStyle(fontSize: 13))
+                          : Icon(
+                              DrinkConstants.getIconData(
+                                  lastLog.drinkType.iconName),
+                              size: 16,
+                              color: lastLog.drinkType.color,
+                            ),
                 ),
                 const SizedBox(width: 10),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      'Last logged',
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: colorScheme.onSurfaceVariant,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Last logged',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                    Text(
-                      amountLabel,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+                      Text(
+                        amountLabel,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                const Spacer(),
                 TextButton.icon(
                   onPressed: onUndo,
                   icon: const Icon(Icons.undo, size: 16),

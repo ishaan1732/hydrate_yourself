@@ -20,11 +20,16 @@ class LogListTile extends StatelessWidget {
       leading: CircleAvatar(
         backgroundColor: log.drinkType.color.withValues(alpha: 0.15),
         radius: 20,
-        child: Icon(
-          DrinkConstants.getIconData(log.drinkType.iconName),
-          color: log.drinkType.color,
-          size: 20,
-        ),
+        child: log.drinkType.iconName.isEmpty
+            ? null
+            : DrinkConstants.isEmoji(log.drinkType.iconName)
+                ? Text(log.drinkType.iconName,
+                    style: const TextStyle(fontSize: 18))
+                : Icon(
+                    DrinkConstants.getIconData(log.drinkType.iconName),
+                    color: log.drinkType.color,
+                    size: 20,
+                  ),
       ),
       title: Text(
         unit == 'oz'
@@ -36,6 +41,8 @@ class LogListTile extends StatelessWidget {
       ),
       subtitle: Text(
         log.drinkType.name,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
         style: theme.textTheme.bodySmall,
       ),
       trailing: Text(

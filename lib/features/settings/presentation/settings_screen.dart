@@ -456,11 +456,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            value,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 140),
+            child: Text(
+              value,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              textAlign: TextAlign.end,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
           ),
           const SizedBox(width: 4),
           Icon(Icons.chevron_right,

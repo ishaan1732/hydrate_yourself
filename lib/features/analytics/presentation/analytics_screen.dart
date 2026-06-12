@@ -182,6 +182,7 @@ class AnalyticsScreen extends ConsumerWidget {
                         height: 160,
                         child: DrinkBreakdownChart(
                           drinkTypeTotals: summary.drinkTypeTotals,
+                          drinkTypeColors: summary.drinkTypeColors,
                         ),
                       ),
                     ],

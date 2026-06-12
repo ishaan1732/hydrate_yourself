@@ -49,6 +49,7 @@ class AnalyticsRepository {
         logs.fold(0.0, (sum, log) => sum + log.amountMl);
 
     final drinkTypeTotals = <String, double>{};
+    final drinkTypeColors = <String, String>{};
     for (final log in logs) {
       final drinkType = allDrinkTypes.firstWhere(
         (dt) => dt.id == log.drinkTypeId,
@@ -56,6 +57,7 @@ class AnalyticsRepository {
       );
       drinkTypeTotals[drinkType.name] =
           (drinkTypeTotals[drinkType.name] ?? 0) + log.amountMl;
+      drinkTypeColors[drinkType.name] = drinkType.colorHex;
     }
 
     final dailyChartPoints = <DailyChartPoint>[];
@@ -76,6 +78,7 @@ class AnalyticsRepository {
       totalMl30Days: totalMl30Days,
       goalMl: goalMl,
       drinkTypeTotals: drinkTypeTotals,
+      drinkTypeColors: drinkTypeColors,
       dailyChartPoints: dailyChartPoints,
     );
   }
