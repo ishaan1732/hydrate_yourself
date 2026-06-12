@@ -59,7 +59,17 @@ class HomeScreen extends ConsumerWidget {
                 if (summaryAsync.hasError &&
                     summaryAsync.valueOrNull == null) {
                   return Center(
-                      child: Text('Error: ${summaryAsync.error}'));
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Error: ${summaryAsync.error}',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        softWrap: true,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
                 }
                 final summary = summaryAsync.valueOrNull!;
                 return _buildContent(

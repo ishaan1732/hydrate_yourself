@@ -216,10 +216,14 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  '$_customMl ml selected',
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                Flexible(
+                  child: Text(
+                    '$_customMl ml selected',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
                 ),
               ],
             ),

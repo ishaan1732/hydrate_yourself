@@ -848,10 +848,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Text('Your daily goal',
                       style: theme.textTheme.titleMedium
                           ?.copyWith(fontWeight: FontWeight.w700)),
-                  Text(fmt(finalGoal.toDouble()),
+                  Flexible(
+                    child: Text(
+                      fmt(finalGoal.toDouble()),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      textAlign: TextAlign.end,
                       style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w800,
-                          color: colorScheme.primary)),
+                          color: colorScheme.primary),
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 12),

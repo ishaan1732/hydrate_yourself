@@ -35,3 +35,26 @@ Any Text widget showing user-entered or calculated data must have
 overflow: TextOverflow.ellipsis and maxLines: 1. Any Text inside a
 Row must be wrapped in Expanded or Flexible. Large font numbers
 (fontSize 24+) must use FittedBox(fit: BoxFit.scaleDown).
+
+
+## UI layout rules (non-negotiable)
+
+### Structure
+- Wave/background layers use Positioned.fill inside Stack
+- Content layers use Column with Spacer() for centering — never Alignment math
+- Never use Positioned with hardcoded pixel values for content positioning
+- Use Align(alignment: Alignment.bottomCenter) for bottom-pinned content
+
+### Overflow prevention
+- Every Text showing dynamic data: overflow: TextOverflow.ellipsis, maxLines: 1
+- Every Text inside a Row: wrapped in Expanded or Flexible
+- Large numbers (fontSize 24+): wrapped in FittedBox(fit: BoxFit.scaleDown)
+- Every Container that clips: use BoxDecoration not color directly, 
+  set clipBehavior: Clip.hardEdge
+- Never use fixed height on cards — let them size to content
+
+### Responsive sizing
+- Never hardcode pixel sizes for major layout elements
+- Jumbo and similar mascot widgets: SizedBox with fixed design size (160×160)
+  — this is intentional and consistent across screen sizes
+- textScaleFactor is clamped at app level (0.8–1.3) — do not override this
