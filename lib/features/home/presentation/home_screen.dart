@@ -19,11 +19,47 @@ import 'widgets/drink_type_sheet.dart';
 import 'widgets/jumbo_widget.dart';
 import 'widgets/water_wave.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen>
+    with WidgetsBindingObserver {
+  late DateTime _lastKnownDate;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _lastKnownDate = DateTime.now();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final now = DateTime.now();
+      if (!DateUtils.isSameDay(now, _lastKnownDate)) {
+        _lastKnownDate = now;
+        ref.invalidate(todayTotalMlProvider);
+        ref.invalidate(todaySummaryProvider);
+        ref.invalidate(lastLogProvider);
+        ref.invalidate(todayOverrideNotifierProvider);
+        ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     ref.watch(notificationSetupNotifierProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final summaryAsync = ref.watch(todaySummaryProvider);
