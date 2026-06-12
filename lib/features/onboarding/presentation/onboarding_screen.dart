@@ -49,8 +49,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    final notifierState = ref.watch(onboardingNotifierProvider).value;
+    final intervalMins = notifierState?.reminderIntervalMinutes ??
+        AppConstants.defaultReminderIntervalMinutes;
+    final isIntervalInvalid = _currentPage == 4 && intervalMins == 0;
+
     if (_currentPage == 0) {
       return Scaffold(
+        backgroundColor: colorScheme.surface,
         body: _buildWelcomePage(),
       );
     }
@@ -103,7 +109,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                   const Spacer(),
                   FilledButton(
-                    onPressed: _currentPage < 4 ? _nextPage : _complete,
+                    onPressed: isIntervalInvalid
+                        ? null
+                        : (_currentPage < 4 ? _nextPage : _complete),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 32, vertical: 14),
@@ -125,14 +133,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return SizedBox.expand(
       child: Stack(
         children: [
-          Container(
-            decoration: const BoxDecoration(
-              // gradient: LinearGradient(
-              //   begin: Alignment.topCenter,
-              //   end: Alignment.bottomCenter,
-              //   colors: [Color(0xFF0090C8), Color(0xFF0077A8)],
-              // ),
-              color: Colors.white,
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF0090C8), Color(0xFF0077A8)],
+                ),
+              ),
             ),
           ),
           Positioned(
@@ -704,7 +713,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     itemExtent: 40,
                     onSelectedItemChanged: (index) {
                       final mins = (intervalMinutes % 60 ~/ 15) * 15;
-                      final total = index * 60 + (index == 0 && mins == 0 ? 15 : mins);
+                      final total = index * 60 + mins;
                       ref
                           .read(onboardingNotifierProvider.notifier)
                           .updateReminderInterval(total);
@@ -725,7 +734,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       final total = hours * 60 + mins;
                       ref
                           .read(onboardingNotifierProvider.notifier)
-                          .updateReminderInterval(total == 0 ? 15 : total);
+                          .updateReminderInterval(total);
                     },
                     children: const [
                       Center(child: Text(':00')),
@@ -738,6 +747,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               ],
             ),
           ),
+          if (intervalMinutes == 0) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Reminder interval cannot be 0. Choose at least 15 minutes.',
+              style: TextStyle(
+                color: colorScheme.error,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -751,6 +770,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   String _formatInterval(int minutes) {
+    if (minutes == 0) return 'Off';
     if (minutes < 60) return '$minutes min';
     final h = minutes ~/ 60;
     final m = minutes % 60;

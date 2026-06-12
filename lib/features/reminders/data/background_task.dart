@@ -55,9 +55,9 @@ class BackgroundTaskManager {
   static Future<void> scheduleReminders(int intervalMinutes) async {
     await Workmanager().cancelByUniqueName(reminderTaskUnique);
 
-    final frequency = Duration(
-      minutes: intervalMinutes < 15 ? 15 : intervalMinutes,
-    );
+    if (intervalMinutes <= 0) return;
+
+    final frequency = Duration(minutes: intervalMinutes);
 
     await Workmanager().registerPeriodicTask(
       reminderTaskUnique,

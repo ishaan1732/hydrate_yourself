@@ -1349,7 +1349,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
     int selectedHours = (currentMinutes ~/ 60).clamp(0, 8);
     int selectedQuarter = ((currentMinutes % 60) ~/ 15).clamp(0, 3);
-    if (selectedHours == 0 && selectedQuarter == 0) selectedQuarter = 1;
 
     final hourController =
         FixedExtentScrollController(initialItem: selectedHours);
@@ -1365,13 +1364,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (ctx, setState) {
-            int totalMinutes() {
-              final mins = selectedHours * 60 + selectedQuarter * 15;
-              return mins == 0 ? 15 : mins;
-            }
+            int totalMinutes() =>
+                selectedHours * 60 + selectedQuarter * 15;
 
             String formatSelected() {
               final t = totalMinutes();
+              if (t == 0) return 'Off';
               final h = t ~/ 60;
               final m = t % 60;
               if (h == 0) return '$m min';
@@ -1525,27 +1523,45 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Remind me every ${formatSelected()}',
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(color: colorScheme.onSurfaceVariant),
-                  ),
+                  if (totalMinutes() == 0)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        'Reminder interval cannot be 0. Choose at least 15 minutes.',
+                        style: TextStyle(
+                          color: colorScheme.error,
+                          fontSize: 12,
+                        ),
+                      ),
+                    )
+                  else
+                    Text(
+                      'Remind me every ${formatSelected()}',
+                      style: theme.textTheme.bodyMedium
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      onPressed: () {
-                        Navigator.pop(dialogContext);
-                        ref
-                            .read(settingsNotifierProvider.notifier)
-                            .updateReminderInterval(totalMinutes());
-                      },
+                      onPressed: totalMinutes() == 0
+                          ? null
+                          : () {
+                              Navigator.pop(dialogContext);
+                              ref
+                                  .read(settingsNotifierProvider.notifier)
+                                  .updateReminderInterval(totalMinutes());
+                            },
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: Text('Confirm — every ${formatSelected()}'),
+                      child: Text(
+                        totalMinutes() == 0
+                            ? 'Choose a valid interval'
+                            : 'Confirm — every ${formatSelected()}',
+                      ),
                     ),
                   ),
                 ],
@@ -1558,6 +1574,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   String _formatInterval(int minutes) {
+    if (minutes == 0) return 'Off';
     if (minutes < 60) return '$minutes min';
     final hours = minutes ~/ 60;
     final mins = minutes % 60;
