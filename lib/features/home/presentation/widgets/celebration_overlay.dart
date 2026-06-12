@@ -103,10 +103,20 @@ class _CelebrationOverlayState extends State<CelebrationOverlay>
                   return Positioned(
                     left: pos.$1 * constraints.maxWidth,
                     top: pos.$2 * constraints.maxHeight,
-                    child: Icon(
-                      Icons.water_drop,
-                      size: 20 + (index % 3) * 8.0,
-                      color: AppColors.primary.withValues(alpha: 0.6),
+                    child: Container(
+                      width: 20 + (index % 3) * 8.0,
+                      height: 20 + (index % 3) * 8.0,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.20),
+                            blurRadius: 4,
+                            spreadRadius: 0.5,
+                          ),
+                        ],
+                      ),
                     )
                         .animate()
                         .scale(

@@ -48,14 +48,7 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
 
-          // LAYER 2: Celebration (above wave, below content)
-          if (showCelebration)
-            CelebrationOverlay(
-              isVisible: showCelebration,
-              unit: unit,
-            ),
-
-          // LAYER 3: Content
+          // LAYER 2: Content
           SafeArea(
             child: Builder(
               builder: (context) {
@@ -76,6 +69,13 @@ class HomeScreen extends ConsumerWidget {
               },
             ),
           ),
+
+          // LAYER 3: Celebration (topmost — above Jumbo and all content)
+          if (showCelebration)
+            CelebrationOverlay(
+              isVisible: showCelebration,
+              unit: unit,
+            ),
         ],
       ),
     );
