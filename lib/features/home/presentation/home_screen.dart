@@ -136,23 +136,25 @@ class HomeScreen extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       child: Row(
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                _getGreeting(),
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
-              Text(
-                profile?.name ?? 'there',
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                softWrap: false,
-                style: theme.textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _getGreeting(),
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                ),
+                Text(
+                  profile?.name ?? 'there',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: theme.textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -174,27 +176,30 @@ class HomeScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: unit == 'oz'
-                      ? '${(summary.totalMl * 0.033814).round()}'
-                      : _formatMl(summary.totalMl.round()),
-                  style: theme.textTheme.displaySmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: colorScheme.onSurface,
-                    letterSpacing: -1,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: unit == 'oz'
+                        ? '${(summary.totalMl * 0.033814).round()}'
+                        : _formatMl(summary.totalMl.round()),
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: colorScheme.onSurface,
+                      letterSpacing: -1,
+                    ),
                   ),
-                ),
-                TextSpan(
-                  text: unit == 'oz' ? ' oz' : ' ml',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
+                  TextSpan(
+                    text: unit == 'oz' ? ' oz' : ' ml',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           Text(
@@ -205,6 +210,8 @@ class HomeScreen extends ConsumerWidget {
                         'goal ${(summary.goalMl * 0.033814).round()} oz'
                     : '${_formatMl(summary.remainingMl.round())} ml to go · '
                         'goal ${_formatMl(summary.goalMl)} ml',
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
             style: theme.textTheme.bodySmall?.copyWith(
               color: summary.isGoalAchieved
                   ? AppColors.goalAchieved
@@ -663,6 +670,8 @@ class _OptionTile extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 label,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: isSelected
                       ? colorScheme.onPrimaryContainer
@@ -673,6 +682,8 @@ class _OptionTile extends StatelessWidget {
               ),
               Text(
                 multiplier,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
                 style: theme.textTheme.bodySmall?.copyWith(
                   fontSize: 9,
                   color: isSelected

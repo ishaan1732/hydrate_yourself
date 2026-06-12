@@ -557,26 +557,32 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       children: [
                         Text(emoji, style: const TextStyle(fontSize: 32)),
                         const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              label,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: currentClimate == value
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurface,
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                label,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: currentClimate == value
+                                      ? colorScheme.primary
+                                      : colorScheme.onSurface,
+                                ),
                               ),
-                            ),
-                            Text(
-                              desc,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                  color: colorScheme.onSurfaceVariant),
-                            ),
-                          ],
+                              Text(
+                                desc,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant),
+                              ),
+                            ],
+                          ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         if (currentClimate == value)
                           Icon(Icons.check_circle_rounded,
                               color: colorScheme.primary),
@@ -652,8 +658,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 children: [
                   const Icon(Icons.access_time),
                   const SizedBox(width: 12),
-                  Text(_formatTime(wakeHour, wakeMinute),
-                      style: theme.textTheme.bodyLarge),
+                  Flexible(
+                    child: Text(
+                      _formatTime(wakeHour, wakeMinute),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -691,8 +703,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 children: [
                   const Icon(Icons.bedtime_outlined),
                   const SizedBox(width: 12),
-                  Text(_formatTime(sleepHour, sleepMinute),
-                      style: theme.textTheme.bodyLarge),
+                  Flexible(
+                    child: Text(
+                      _formatTime(sleepHour, sleepMinute),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -702,8 +720,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             children: [
               Text('Reminder every', style: theme.textTheme.bodyLarge),
               const Spacer(),
-              Text(_formatInterval(intervalMinutes),
-                  style: theme.textTheme.bodyLarge),
+              Flexible(
+                child: Text(
+                  _formatInterval(intervalMinutes),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),

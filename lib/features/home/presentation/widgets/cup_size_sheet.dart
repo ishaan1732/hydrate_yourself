@@ -158,6 +158,8 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
                 ),
                 Text(
                   '${_mlToDisplayOz(_customMl)} oz',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: colorScheme.primary,

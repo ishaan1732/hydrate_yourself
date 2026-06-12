@@ -133,12 +133,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           style: const TextStyle(fontSize: 20),
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          HydrationCalculator.genderLabel(profile.gender),
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                        Flexible(
+                          child: Text(
+                            HydrationCalculator.genderLabel(profile.gender),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          ),
                         ),
                         const SizedBox(width: 4),
                         Icon(Icons.chevron_right,
@@ -191,12 +194,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          HydrationCalculator.climateLabel(profile.climateType),
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
+                        Flexible(
+                          child: Text(
+                            HydrationCalculator.climateLabel(profile.climateType),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                          ),
                         ),
                         const SizedBox(width: 4),
                         Icon(Icons.chevron_right,
@@ -489,11 +495,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            labels[currentLevel.clamp(0, 3)],
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+          Flexible(
+            child: Text(
+              labels[currentLevel.clamp(0, 3)],
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
           ),
           const SizedBox(width: 4),
           Icon(Icons.chevron_right,
@@ -539,11 +549,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            _formatTime(profile.wakeHour, profile.wakeMinute),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+          Flexible(
+            child: Text(
+              _formatTime(profile.wakeHour, profile.wakeMinute),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
           ),
           const SizedBox(width: 4),
           Icon(Icons.chevron_right, size: 20, color: colorScheme.onSurfaceVariant),
@@ -569,11 +583,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            _formatTime(profile.sleepHour, profile.sleepMinute),
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+          Flexible(
+            child: Text(
+              _formatTime(profile.sleepHour, profile.sleepMinute),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
           ),
           const SizedBox(width: 4),
           Icon(Icons.chevron_right, size: 20, color: colorScheme.onSurfaceVariant),
@@ -630,13 +648,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            profile.unit == 'oz'
-                ? profile.dailyGoalMl.toDouble().toWholeOzString()
-                : '${profile.dailyGoalMl} ml',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
+          Flexible(
+            child: Text(
+              profile.unit == 'oz'
+                  ? profile.dailyGoalMl.toDouble().toWholeOzString()
+                  : '${profile.dailyGoalMl} ml',
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
           ),
           const SizedBox(width: 4),
           Icon(Icons.chevron_right,
@@ -895,6 +917,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           Text(
             result,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w700,
               color: colorScheme.onSurface,

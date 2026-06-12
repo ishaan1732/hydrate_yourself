@@ -148,17 +148,23 @@ class HistoryScreen extends ConsumerWidget {
                       horizontal: 16, vertical: 8),
                   child: Row(
                     children: [
-                      Text(
-                        _formatSelectedDate(selectedDate),
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                      Flexible(
+                        child: Text(
+                          _formatSelectedDate(selectedDate),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
                       ),
                       const Spacer(),
                       selectedLogsAsync.when(
                         data: (logs) => Text(
                           '${logs.length} logs · ${unit == 'oz' ? _totalForLogs(logs).toWholeOzString() : _totalForLogs(logs).toHydrationString('ml')}',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
