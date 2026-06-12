@@ -48,6 +48,7 @@ class WeeklyBarChart extends StatelessWidget {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
+                reservedSize: 28,
                 getTitlesWidget: (value, meta) {
                   final index = value.toInt();
                   if (index < 0 || index >= summaries.length) {
@@ -57,7 +58,7 @@ class WeeklyBarChart extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
                       summaries[index].date.weekdayShort,
-                      style: theme.textTheme.labelSmall,
+                      style: const TextStyle(fontSize: 10),
                     ),
                   );
                 },

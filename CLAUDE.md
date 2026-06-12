@@ -29,3 +29,9 @@ Run: dart run build_runner build --delete-conflicting-outputs
 - android/key.properties
 - *.jks / *.keystore
 - Any file with API keys — use --dart-define instead
+
+## Text overflow rule
+Any Text widget showing user-entered or calculated data must have
+overflow: TextOverflow.ellipsis and maxLines: 1. Any Text inside a
+Row must be wrapped in Expanded or Flexible. Large font numbers
+(fontSize 24+) must use FittedBox(fit: BoxFit.scaleDown).

@@ -25,61 +25,60 @@ class DrinkTypeSheet extends ConsumerWidget {
     final drinkTypesAsync = ref.watch(drinkTypesProvider);
     final theme = Theme.of(context);
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'Drink Type',
-                style: theme.textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          drinkTypesAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (e, _) => Text('Error: $e'),
-            data: (drinkTypes) => Column(
-              mainAxisSize: MainAxisSize.min,
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.70,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 320),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    itemCount: drinkTypes.length + 1,
-                    separatorBuilder: (_, _) => const SizedBox(height: 6),
-                    itemBuilder: (context, index) {
-                      if (index == drinkTypes.length) {
-                        return _buildAddCustomButton(context, ref);
-                      }
-                      final dt = drinkTypes[index];
-                      final isSelected = dt.id == selectedDrinkTypeId ||
-                          (selectedDrinkTypeId == null && index == 0);
-                      return _DrinkTile(
-                        drinkType: dt,
-                        isSelected: isSelected,
-                        onTap: () {
-                          onDrinkSelected(dt);
-                          Navigator.pop(context);
-                        },
-                      );
-                    },
-                  ),
+                Text(
+                  'Drink Type',
+                  style: theme.textTheme.headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            drinkTypesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Text('Error: $e'),
+              data: (drinkTypes) => Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: drinkTypes.length + 1,
+                  separatorBuilder: (_, _) => const SizedBox(height: 6),
+                  itemBuilder: (context, index) {
+                    if (index == drinkTypes.length) {
+                      return _buildAddCustomButton(context, ref);
+                    }
+                    final dt = drinkTypes[index];
+                    final isSelected = dt.id == selectedDrinkTypeId ||
+                        (selectedDrinkTypeId == null && index == 0);
+                    return _DrinkTile(
+                      drinkType: dt,
+                      isSelected: isSelected,
+                      onTap: () {
+                        onDrinkSelected(dt);
+                        Navigator.pop(context);
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
