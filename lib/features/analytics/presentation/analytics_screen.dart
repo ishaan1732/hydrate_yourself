@@ -85,45 +85,64 @@ class AnalyticsScreen extends ConsumerWidget {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  child: GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 1.3,
+                  child: Column(
                     children: [
-                      StatCard(
-                        label: 'Daily Average',
-                        value: unit == 'oz'
-                            ? summary.averageDailyMl.toWholeOzString()
-                            : summary.averageDailyMl.toHydrationString('ml'),
-                        subtitle: 'per day',
-                        icon: Icons.water_drop_outlined,
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: StatCard(
+                                label: 'Daily Average',
+                                value: unit == 'oz'
+                                    ? summary.averageDailyMl.toWholeOzString()
+                                    : summary.averageDailyMl.toHydrationString('ml'),
+                                subtitle: 'per day',
+                                icon: Icons.water_drop_outlined,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: StatCard(
+                                label: 'Best Day',
+                                value: unit == 'oz'
+                                    ? summary.bestDayMl.toWholeOzString()
+                                    : summary.bestDayMl.toHydrationString('ml'),
+                                subtitle: 'single day',
+                                icon: Icons.emoji_events_outlined,
+                                iconColor: AppColors.goalWarning,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      StatCard(
-                        label: 'Best Day',
-                        value: unit == 'oz'
-                            ? summary.bestDayMl.toWholeOzString()
-                            : summary.bestDayMl.toHydrationString('ml'),
-                        subtitle: 'single day',
-                        icon: Icons.emoji_events_outlined,
-                        iconColor: AppColors.goalWarning,
-                      ),
-                      StatCard(
-                        label: 'Goal Days',
-                        value: '${summary.daysGoalMet}/30',
-                        subtitle: 'days goal met',
-                        icon: Icons.check_circle_outline,
-                        iconColor: AppColors.goalAchieved,
-                      ),
-                      StatCard(
-                        label: 'Total Intake',
-                        value: unit == 'oz'
-                            ? summary.totalMl30Days.toWholeOzString()
-                            : summary.totalMl30Days.toHydrationString('ml'),
-                        subtitle: '30 day total',
-                        icon: Icons.summarize_outlined,
+                      const SizedBox(height: 12),
+                      IntrinsicHeight(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              child: StatCard(
+                                label: 'Goal Days',
+                                value: '${summary.daysGoalMet}/30',
+                                subtitle: 'days goal met',
+                                icon: Icons.check_circle_outline,
+                                iconColor: AppColors.goalAchieved,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: StatCard(
+                                label: 'Total Intake',
+                                value: unit == 'oz'
+                                    ? summary.totalMl30Days.toWholeOzString()
+                                    : summary.totalMl30Days.toHydrationString('ml'),
+                                subtitle: '30 day total',
+                                icon: Icons.summarize_outlined,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

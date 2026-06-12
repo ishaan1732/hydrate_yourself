@@ -108,13 +108,15 @@ class HomeScreen extends ConsumerWidget {
         _buildHeader(context, profile),
         _buildProgressText(context, summary, unit),
         Expanded(
-          child: Center(
-            child: JumboWidget(
-              tapAmount: jumboAmount,
-              unit: unit,
-              onTap: () => ref
-                  .read(homeActionProvider.notifier)
-                  .addQuickLog(jumboAmount.toDouble()),
+          child: ClipRect(
+            child: Center(
+              child: JumboWidget(
+                tapAmount: jumboAmount,
+                unit: unit,
+                onTap: () => ref
+                    .read(homeActionProvider.notifier)
+                    .addQuickLog(jumboAmount.toDouble()),
+              ),
             ),
           ),
         ),
@@ -582,41 +584,40 @@ class _GlassButton extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
-      child: SizedBox(
+      child: Container(
         width: 52,
         height: 52,
-        child: Container(
-          decoration: BoxDecoration(
-            color: colorScheme.primaryContainer,
-            border: Border.all(
-              color: colorScheme.primary.withValues(alpha: 0.35),
-              width: 0.5,
-            ),
-            borderRadius: BorderRadius.circular(14),
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: colorScheme.primaryContainer,
+          border: Border.all(
+            color: colorScheme.primary.withValues(alpha: 0.35),
+            width: 0.5,
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (iconWidget != null)
-                iconWidget!
-              else
-                Icon(
-                  icon!,
-                  size: 20,
-                  color: iconColor ?? colorScheme.onPrimaryContainer,
-                ),
-              const SizedBox(height: 3),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 8,
-                  color: colorScheme.onPrimaryContainer,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (iconWidget != null)
+              iconWidget!
+            else
+              Icon(
+                icon!,
+                size: 20,
+                color: iconColor ?? colorScheme.onPrimaryContainer,
               ),
-            ],
-          ),
+            const SizedBox(height: 3),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 8,
+                color: colorScheme.onPrimaryContainer,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );

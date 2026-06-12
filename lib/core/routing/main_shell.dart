@@ -22,6 +22,11 @@ class MainShell extends StatelessWidget {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _getIndexFromPath(location),
         onDestinationSelected: (index) {
+          final currentIndex = _getIndexFromPath(location);
+          if (index == 0 && currentIndex == 0) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+            return;
+          }
           switch (index) {
             case 0:
               context.go('/home');
