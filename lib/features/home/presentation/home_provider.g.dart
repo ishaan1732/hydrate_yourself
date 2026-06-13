@@ -128,7 +128,7 @@ final appUnitProvider = AutoDisposeFutureProvider<String>.internal(
 // ignore: unused_element
 typedef AppUnitRef = AutoDisposeFutureProviderRef<String>;
 String _$todayOverrideNotifierHash() =>
-    r'8d2c80cf5aee122ec3ad698274253aeab179b64b';
+    r'682800da8ff36db74ad0c23978ca2903d4b29056';
 
 /// See also [TodayOverrideNotifier].
 @ProviderFor(TodayOverrideNotifier)

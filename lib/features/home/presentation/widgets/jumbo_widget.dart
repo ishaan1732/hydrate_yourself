@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/extensions/double_extensions.dart';
+import '../../../../features/settings/domain/mascot_type.dart';
+import '../../../../features/settings/presentation/providers/mascot_provider.dart';
 
 class _SplashParticle {
   _SplashParticle({
@@ -163,10 +165,18 @@ class _JumboWidgetState extends State<JumboWidget>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SvgPicture.asset(
-                    'assets/images/jumbo.svg',
-                    width: 190,
-                    height: 160,
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final mascot = ref.watch(selectedMascotProvider);
+                      return SizedBox(
+                        width: 160,
+                        height: 160,
+                        child: Image.asset(
+                          mascot.assetPath,
+                          fit: BoxFit.contain,
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 6),
                   Container(

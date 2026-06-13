@@ -12,6 +12,8 @@ import '../../../core/extensions/double_extensions.dart';
 import '../../../core/providers/theme_mode_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
 import '../../onboarding/domain/user_profile_model.dart';
+import '../domain/mascot_type.dart';
+import 'providers/mascot_provider.dart';
 import 'settings_provider.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -64,6 +66,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       BuildContext context, WidgetRef ref, UserProfileModel profile,
       ThemeMode themeMode) {
     final colorScheme = Theme.of(context).colorScheme;
+    final selectedMascot = ref.watch(selectedMascotProvider);
     return CustomScrollView(
       slivers: [
         SliverAppBar(
@@ -266,6 +269,76 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 context,
                 children: [
                   _buildThemeModeTile(context, ref, themeMode),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Section E2 — Jumbo style
+              _buildSectionHeader(context, 'Jumbo style'),
+              _buildCard(
+                context,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: MascotType.values.map((mascot) {
+                          final isSelected = mascot == selectedMascot;
+                          return GestureDetector(
+                            onTap: () => ref
+                                .read(selectedMascotProvider.notifier)
+                                .setMascot(mascot),
+                            child: Container(
+                              width: 80,
+                              height: 100,
+                              margin: const EdgeInsets.only(right: 10),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? colorScheme.primary
+                                      : colorScheme.outline
+                                          .withValues(alpha: 0.3),
+                                  width: isSelected ? 2 : 0.5,
+                                ),
+                                color: isSelected
+                                    ? colorScheme.primaryContainer
+                                    : colorScheme.surface,
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 52,
+                                    height: 52,
+                                    child: Image.asset(
+                                      mascot.assetPath,
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    mascot.label,
+                                    style: const TextStyle(fontSize: 11),
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                  if (isSelected)
+                                    Icon(
+                                      Icons.check_circle,
+                                      size: 14,
+                                      color: colorScheme.primary,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
                 ],
               ),
 
