@@ -119,89 +119,92 @@ class _JumboWidgetState extends State<JumboWidget>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        ..._particles.map((p) => AnimatedBuilder(
-              animation: p.ctrl,
-              builder: (_, _) {
-                final progress = p.ctrl.value;
-                final distance = progress * 90.0;
-                final opacity = (1.0 - progress).clamp(0.0, 1.0);
-                return Positioned(
-                  left: 190 * 0.475 + p.direction.dx * distance - p.size / 2,
-                  top: 160 * 0.78 + p.direction.dy * distance - p.size / 2,
-                  child: Opacity(
-                    opacity: opacity,
-                    child: Container(
-                      width: p.size,
-                      height: p.size * 1.5,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF38BDF8),
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(p.size),
-                          topRight: Radius.circular(p.size),
-                          bottomLeft: Radius.circular(p.size * 0.3),
-                          bottomRight: Radius.circular(p.size * 0.3),
+    return FittedBox(
+    fit: BoxFit.scaleDown, // Shrinks the layout system and droplet positions together
+    child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ..._particles.map((p) => AnimatedBuilder(
+                animation: p.ctrl,
+                builder: (_, _) {
+                  final progress = p.ctrl.value;
+                  final distance = progress * 90.0;
+                  final opacity = (1.0 - progress).clamp(0.0, 1.0);
+                  return Positioned(
+                    left: 190 * 0.475 + p.direction.dx * distance - p.size / 2,
+                    top: 160 * 0.78 + p.direction.dy * distance - p.size / 2,
+                    child: Opacity(
+                      opacity: opacity,
+                      child: Container(
+                        width: p.size,
+                        height: p.size * 1.5,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF38BDF8),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(p.size),
+                            topRight: Radius.circular(p.size),
+                            bottomLeft: Radius.circular(p.size * 0.3),
+                            bottomRight: Radius.circular(p.size * 0.3),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              )),
+          GestureDetector(
+            onTap: _handleTap,
+            child: AnimatedBuilder(
+              animation: _bounceCtrl,
+              builder: (_, child) => Transform.scale(
+                scale: 1.0 - _bounceCtrl.value * 0.1,
+                child: child,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SvgPicture.asset(
+                    'assets/images/jumbo.svg',
+                    width: 190,
+                    height: 160,
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 18, vertical: 7),
+                    clipBehavior: Clip.hardEdge,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF0EA5E9),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        widget.unit == 'oz'
+                            ? 'Tap Jumbo · +${widget.tapAmount.toDouble().toHalfOzString()}'
+                            : 'Tap Jumbo · +${widget.tapAmount}ml',
+                        maxLines: 1,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
                   ),
-                );
-              },
-            )),
-        GestureDetector(
-          onTap: _handleTap,
-          child: AnimatedBuilder(
-            animation: _bounceCtrl,
-            builder: (_, child) => Transform.scale(
-              scale: 1.0 - _bounceCtrl.value * 0.1,
-              child: child,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SvgPicture.asset(
-                  'assets/images/jumbo.svg',
-                  width: 190,
-                  height: 160,
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 18, vertical: 7),
-                  clipBehavior: Clip.hardEdge,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0EA5E9),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0EA5E9).withValues(alpha: 0.35),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      widget.unit == 'oz'
-                          ? 'Tap Jumbo · +${widget.tapAmount.toDouble().toHalfOzString()}'
-                          : 'Tap Jumbo · +${widget.tapAmount}ml',
-                      maxLines: 1,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
