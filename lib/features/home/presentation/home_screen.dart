@@ -797,79 +797,93 @@ class _ClimateDialogState extends ConsumerState<_ClimateDialog> {
         "Today's climate",
         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 2×2 grid
-          Row(
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _OptionTile(
-                emoji: types[0].emoji,
-                label: types[0].label,
-                multiplier: _multipliers[types[0].rawValue]!,
-                isSelected: _selected == types[0],
-                onTap: () => setState(() => _selected = types[0]),
+              // 2×2 grid
+              Row(
+                children: [
+                  _OptionTile(
+                    emoji: types[0].emoji,
+                    label: types[0].label,
+                    multiplier: _multipliers[types[0].rawValue]!,
+                    isSelected: _selected == types[0],
+                    onTap: () => setState(() => _selected = types[0]),
+                  ),
+                  const SizedBox(width: 8),
+                  _OptionTile(
+                    emoji: types[1].emoji,
+                    label: types[1].label,
+                    multiplier: _multipliers[types[1].rawValue]!,
+                    isSelected: _selected == types[1],
+                    onTap: () => setState(() => _selected = types[1]),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              _OptionTile(
-                emoji: types[1].emoji,
-                label: types[1].label,
-                multiplier: _multipliers[types[1].rawValue]!,
-                isSelected: _selected == types[1],
-                onTap: () => setState(() => _selected = types[1]),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _OptionTile(
+                    emoji: types[2].emoji,
+                    label: types[2].label,
+                    multiplier: _multipliers[types[2].rawValue]!,
+                    isSelected: _selected == types[2],
+                    onTap: () => setState(() => _selected = types[2]),
+                  ),
+                  const SizedBox(width: 8),
+                  _OptionTile(
+                    emoji: types[3].emoji,
+                    label: types[3].label,
+                    multiplier: _multipliers[types[3].rawValue]!,
+                    isSelected: _selected == types[3],
+                    onTap: () => setState(() => _selected = types[3]),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _OptionTile(
-                emoji: types[2].emoji,
-                label: types[2].label,
-                multiplier: _multipliers[types[2].rawValue]!,
-                isSelected: _selected == types[2],
-                onTap: () => setState(() => _selected = types[2]),
-              ),
-              const SizedBox(width: 8),
-              _OptionTile(
-                emoji: types[3].emoji,
-                label: types[3].label,
-                multiplier: _multipliers[types[3].rawValue]!,
-                isSelected: _selected == types[3],
-                onTap: () => setState(() => _selected = types[3]),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Permanent toggle
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Apply to profile permanently',
-                      style: theme.textTheme.bodySmall,
+              const SizedBox(height: 16),
+              // Permanent toggle
+              Row(
+                children: [
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Apply to profile permanently',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Changes your default, not just today',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 10,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Changes your default, not just today',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 10,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: _applyPermanently,
-                onChanged: (v) => setState(() => _applyPermanently = v),
+                  ),
+                  Switch(
+                    value: _applyPermanently,
+                    onChanged: (v) => setState(() => _applyPermanently = v),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
       actions: [
         TextButton(
@@ -941,79 +955,93 @@ class _ActivityDialogState extends ConsumerState<_ActivityDialog> {
         "Today's activity",
         style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 2×2 grid
-          Row(
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _OptionTile(
-                emoji: levels[0].emoji,
-                label: _labels[levels[0].rawValue]!,
-                multiplier: _multipliers[levels[0].rawValue]!,
-                isSelected: _selected == levels[0],
-                onTap: () => setState(() => _selected = levels[0]),
+              // 2×2 grid
+              Row(
+                children: [
+                  _OptionTile(
+                    emoji: levels[0].emoji,
+                    label: _labels[levels[0].rawValue]!,
+                    multiplier: _multipliers[levels[0].rawValue]!,
+                    isSelected: _selected == levels[0],
+                    onTap: () => setState(() => _selected = levels[0]),
+                  ),
+                  const SizedBox(width: 8),
+                  _OptionTile(
+                    emoji: levels[1].emoji,
+                    label: _labels[levels[1].rawValue]!,
+                    multiplier: _multipliers[levels[1].rawValue]!,
+                    isSelected: _selected == levels[1],
+                    onTap: () => setState(() => _selected = levels[1]),
+                  ),
+                ],
               ),
-              const SizedBox(width: 8),
-              _OptionTile(
-                emoji: levels[1].emoji,
-                label: _labels[levels[1].rawValue]!,
-                multiplier: _multipliers[levels[1].rawValue]!,
-                isSelected: _selected == levels[1],
-                onTap: () => setState(() => _selected = levels[1]),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _OptionTile(
+                    emoji: levels[2].emoji,
+                    label: _labels[levels[2].rawValue]!,
+                    multiplier: _multipliers[levels[2].rawValue]!,
+                    isSelected: _selected == levels[2],
+                    onTap: () => setState(() => _selected = levels[2]),
+                  ),
+                  const SizedBox(width: 8),
+                  _OptionTile(
+                    emoji: levels[3].emoji,
+                    label: _labels[levels[3].rawValue]!,
+                    multiplier: _multipliers[levels[3].rawValue]!,
+                    isSelected: _selected == levels[3],
+                    onTap: () => setState(() => _selected = levels[3]),
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              _OptionTile(
-                emoji: levels[2].emoji,
-                label: _labels[levels[2].rawValue]!,
-                multiplier: _multipliers[levels[2].rawValue]!,
-                isSelected: _selected == levels[2],
-                onTap: () => setState(() => _selected = levels[2]),
-              ),
-              const SizedBox(width: 8),
-              _OptionTile(
-                emoji: levels[3].emoji,
-                label: _labels[levels[3].rawValue]!,
-                multiplier: _multipliers[levels[3].rawValue]!,
-                isSelected: _selected == levels[3],
-                onTap: () => setState(() => _selected = levels[3]),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          // Permanent toggle
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Apply to profile permanently',
-                      style: theme.textTheme.bodySmall,
+              const SizedBox(height: 16),
+              // Permanent toggle
+              Row(
+                children: [
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Apply to profile permanently',
+                            style: theme.textTheme.bodySmall,
+                          ),
+                        ),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Changes your default, not just today',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 10,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      'Changes your default, not just today',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        fontSize: 10,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: _applyPermanently,
-                onChanged: (v) => setState(() => _applyPermanently = v),
+                  ),
+                  Switch(
+                    value: _applyPermanently,
+                    onChanged: (v) => setState(() => _applyPermanently = v),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
       actions: [
         TextButton(
