@@ -427,6 +427,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                           ),
                         ),
               ),
+              const SizedBox(width: 8),
+              Container(
+                width: 60,
+                height: 60,
+                clipBehavior: Clip.hardEdge,
+                decoration: BoxDecoration(
+                  color: colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: colorScheme.primary.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  icon: Icon(
+                    Icons.undo_outlined,
+                    color: colorScheme.error,
+                  ),
+                  onPressed: lastLog != null
+                      ? () =>
+                          ref.read(homeActionProvider.notifier).deleteLastLog()
+                      : null,
+                ),
+              ),
             ],
           ),
 
@@ -461,7 +485,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   height: 0.5,
                   color: Colors.white.withValues(alpha: 0.15),
                 ),
-                // Activity — FIX B: opaque so full 40×40 area is tappable
+                // Activity — opaque so full 40×40 area is tappable
                 GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () => _showActivityDialog(context, ref, profile),
@@ -473,32 +497,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                         Icons.directions_run_outlined,
                         size: 20,
                         color: Color.fromRGBO(255, 255, 255, 0.85),
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  width: 28,
-                  height: 0.5,
-                  color: Colors.white.withValues(alpha: 0.15),
-                ),
-                // Undo — FIX B: opaque + Bug 2: error color when active
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: lastLog != null
-                      ? () =>
-                          ref.read(homeActionProvider.notifier).deleteLastLog()
-                      : null,
-                  child: SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: Center(
-                      child: Icon(
-                        Icons.undo_outlined,
-                        size: 20,
-                        color: lastLog != null
-                            ? colorScheme.error
-                            : Colors.white.withValues(alpha: 0.28),
                       ),
                     ),
                   ),
