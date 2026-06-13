@@ -628,11 +628,18 @@ class _GlassButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final double fontScale = MediaQuery.textScalerOf(context).scale(1.0);
+    final bool isFontTooLarge = fontScale > 1.2;
+
+    // 2. Check Physical Screen Width (Standard phones are 375-430dp, small screens are <= 360dp)
+    final double screenWidth = MediaQuery.sizeOf(context).width;
+    final bool isScreenTooSmall = screenWidth <= 360;
+    final bool shouldHideLabel = isFontTooLarge || isScreenTooSmall;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 52,
-        height: 52,
+        width: 60,
+        height: 60,
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
           color: colorScheme.primaryContainer,
@@ -653,16 +660,22 @@ class _GlassButton extends StatelessWidget {
                 size: 20,
                 color: iconColor ?? colorScheme.onPrimaryContainer,
               ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 8,
-                color: colorScheme.onPrimaryContainer,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+              if (!shouldHideLabel) ...[
+                const SizedBox(height: 3),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child:Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 8,
+                      color: colorScheme.onPrimaryContainer,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    softWrap: true,
+                  ),
+                ),
+              ]
           ],
         ),
       ),
