@@ -77,19 +77,19 @@ flutter:
     - assets/animations/
 
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: false
-  image_path: "icon_sources/app_icon.png"
-  adaptive_icon_background: "#0c1b33"
-  adaptive_icon_foreground: "icon_sources/app_icon.png"
-  adaptive_icon_factor: 0.75
+  image_path: "assets/images/jumbo_icon.png"
   min_sdk_android: 21
+  adaptive_icon_background: "#0c1b33"
+  adaptive_icon_foreground: "assets/images/jumbo_icon.png"
 
 flutter_native_splash:
   color: "#0c1b33"
-  image: icon_sources/app_icon.png
+  image: assets/images/jumbo_home.png
   android_12:
-    image: icon_sources/app_icon.png
+    image: assets/images/jumbo_home.png
     color: "#0c1b33"
+    icon_background_color: "#0c1b33"
   fullscreen: false
   web: false

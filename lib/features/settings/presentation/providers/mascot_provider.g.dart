@@ -6,7 +6,7 @@ part of 'mascot_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$selectedMascotHash() => r'a9cfd3e46c951a60facd41aa693c1f6ab0094cf6';
+String _$selectedMascotHash() => r'73413b0ac399fb2ecc7d65d5a170231f2d4fe5c8';
 
 /// See also [SelectedMascot].
 @ProviderFor(SelectedMascot)

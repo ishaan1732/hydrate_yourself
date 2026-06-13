@@ -1,5 +1,6 @@
 enum MascotType {
-  relaxed,
+  classic,
+  comfy,
   winter,
   summer,
   sports,
@@ -8,8 +9,10 @@ enum MascotType {
 extension MascotTypeExtension on MascotType {
   String get assetPath {
     switch (this) {
-      case MascotType.relaxed:
-        return 'assets/images/jumbo_relaxed.png';
+      case MascotType.classic:
+        return 'assets/images/jumbo_home.png';
+      case MascotType.comfy:
+        return 'assets/images/jumbo_comfy.png';
       case MascotType.winter:
         return 'assets/images/jumbo_winter.png';
       case MascotType.summer:
@@ -21,7 +24,9 @@ extension MascotTypeExtension on MascotType {
 
   String get label {
     switch (this) {
-      case MascotType.relaxed:
+      case MascotType.classic:
+        return 'Classic';
+      case MascotType.comfy:
         return 'Comfy';
       case MascotType.winter:
         return 'Winter';

@@ -159,7 +159,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               children: [
                 const Spacer(flex: 2),
                 Image.asset(
-                  'assets/images/jumbo_transparent.png',
+                  'assets/images/jumbo_icon.png',
                   width: 220,
                   height: 220,
                   fit: BoxFit.contain,

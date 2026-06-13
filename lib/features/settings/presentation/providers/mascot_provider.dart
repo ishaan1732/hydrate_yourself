@@ -15,7 +15,7 @@ class SelectedMascot extends _$SelectedMascot {
     final stored = prefs.getString(_key);
     return MascotType.values.firstWhere(
       (m) => m.name == stored,
-      orElse: () => MascotType.relaxed,
+      orElse: () => MascotType.classic,
     );
   }
 
