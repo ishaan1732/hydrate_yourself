@@ -248,7 +248,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Tell us about you 👤',
+              'Tell us about yourself',
             style: theme.textTheme.headlineMedium
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
