@@ -292,8 +292,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                 .setMascot(mascot),
                             child: Container(
                               width: 80,
-                              height: 100,
                               margin: const EdgeInsets.only(right: 10),
+                              clipBehavior: Clip.hardEdge,
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: 8, horizontal: 4),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
@@ -308,7 +310,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                     : colorScheme.surface,
                               ),
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
                                   SizedBox(
                                     width: 52,
@@ -318,19 +320,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                                       fit: BoxFit.contain,
                                     ),
                                   ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    mascot.label,
-                                    style: const TextStyle(fontSize: 11),
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
+                                  const SizedBox(height: 4),
+                                  FittedBox(
+                                    fit: BoxFit.scaleDown,
+                                    child: Text(
+                                      mascot.label,
+                                      style: const TextStyle(fontSize: 11),
+                                      maxLines: 1,
+                                    ),
                                   ),
-                                  if (isSelected)
+                                  if (isSelected) ...[
+                                    const SizedBox(height: 2),
                                     Icon(
                                       Icons.check_circle,
                                       size: 14,
                                       color: colorScheme.primary,
                                     ),
+                                  ],
                                 ],
                               ),
                             ),
