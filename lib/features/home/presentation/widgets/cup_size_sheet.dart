@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'cup_size_icon.dart';
+
 class CupSizeSheet extends StatefulWidget {
   const CupSizeSheet({
     super.key,
@@ -52,19 +54,18 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
     return ((rawMl / 5).round() * 5);
   }
 
-  String _emojiForMl(int ml) {
-    if (ml <= 160) return '🍵';
-    if (ml <= 270) return '☕';
-    if (ml <= 400) return '🥤';
-    if (ml <= 560) return '🍶';
-    return '🧴';
+  CupIconType _iconForMl(int ml) {
+    if (ml <= 180) return CupIconType.small;
+    if (ml <= 290) return CupIconType.mug;
+    if (ml <= 400) return CupIconType.glass;
+    return CupIconType.bottle;
   }
 
-  String _emojiForOz(int oz) {
-    if (oz <= 5) return '🍵';
-    if (oz <= 9) return '☕';
-    if (oz <= 13) return '🥤';
-    return '🍶';
+  CupIconType _iconForOz(int oz) {
+    if (oz <= 5) return CupIconType.small;
+    if (oz <= 9) return CupIconType.mug;
+    if (oz <= 13) return CupIconType.glass;
+    return CupIconType.bottle;
   }
 
   @override
@@ -114,7 +115,7 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
                             context,
                             mlValue: _ozPresets[i].$1,
                             displayAmount: '${_ozPresets[i].$2} oz',
-                            emoji: _emojiForOz(_ozPresets[i].$2),
+                            iconType: _iconForOz(_ozPresets[i].$2),
                           ),
                         ],
                       ]
@@ -125,7 +126,7 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
                             context,
                             mlValue: _mlPresets[i],
                             displayAmount: '${_mlPresets[i]} ml',
-                            emoji: _emojiForMl(_mlPresets[i]),
+                            iconType: _iconForMl(_mlPresets[i]),
                           ),
                         ],
                       ],
@@ -255,7 +256,7 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
     BuildContext context, {
     required int mlValue,
     required String displayAmount,
-    required String emoji,
+    required CupIconType iconType,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
     final isSelected = _selectedPreset == mlValue;
@@ -286,7 +287,11 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 28)),
+                CupSizeIcon(
+                  type: iconType,
+                  size: 36,
+                  buttonBackground: colorScheme.primaryContainer,
+                ),
                 const SizedBox(height: 2),
                 Text(
                   displayAmount,
