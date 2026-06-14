@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../../core/constants/app_constants.dart';
-import '../background_notification_handler.dart';
 
 class NotificationService {
   static final NotificationService instance = NotificationService._internal();
@@ -15,7 +14,16 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  Future<void> initialize() async {
+  /// Registered by HomeScreen to handle DRINK_250ML when app is in foreground.
+  void Function(int amountMl)? _foregroundDrinkCallback;
+
+  void registerForegroundDrinkCallback(void Function(int amountMl)? callback) {
+    _foregroundDrinkCallback = callback;
+  }
+
+  Future<void> initialize({
+    required void Function(NotificationResponse) onBackground,
+  }) async {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -42,9 +50,15 @@ class NotificationService {
     await _plugin.initialize(
       settings,
       onDidReceiveNotificationResponse: (response) {
-        // Foreground tap — deep link handled in app_router
+        debugPrint('=== FG HANDLER: actionId=${response.actionId} ===');
+        if (response.actionId == 'DRINK_250ML') {
+          debugPrint('=== FG HANDLER: processing DRINK_250ML ===');
+          _foregroundDrinkCallback?.call(250);
+          return;
+        }
+        // Non-action tap — deep link handled in app_router
       },
-      onDidReceiveBackgroundNotificationResponse: notificationBackgroundHandler,
+      onDidReceiveBackgroundNotificationResponse: onBackground,
     );
 
     // Scheduled reminder channel (high priority, can have sound)
@@ -165,6 +179,43 @@ class NotificationService {
     }
   }
 
+  Future<void> scheduleTestWithAction(tz.TZDateTime time) async {
+    debugPrint('=== scheduleTestWithAction called for $time ===');
+
+    final canSchedule = await _plugin
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.canScheduleExactNotifications();
+    debugPrint('=== Can schedule exact: $canSchedule ===');
+
+    await _plugin.zonedSchedule(
+      997,
+      'Debug test 💧',
+      'Tap "Drink 250ml" below to test action button',
+      time,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'water_reminders',
+          'Water Reminders',
+          importance: Importance.max,
+          priority: Priority.max,
+          actions: const <AndroidNotificationAction>[
+            AndroidNotificationAction(
+              'DRINK_250ML',
+              'Drink 250ml',
+              cancelNotification: true,
+              showsUserInterface: false,
+            ),
+          ],
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+    debugPrint('=== zonedSchedule completed ===');
+  }
+
   Future<void> markGoalAchievedToday() async {
     final prefs = await SharedPreferences.getInstance();
     final now = DateTime.now();
@@ -181,14 +232,4 @@ class NotificationService {
     );
   }
 
-}
-
-/// Legacy background tap handler for the ongoing progress notification.
-/// No longer registered as the background handler — kept for reference.
-@pragma('vm:entry-point')
-Future<void> onNotificationTapBackground(
-    NotificationResponse response) async {
-  if (response.payload != 'log_water') return;
-  // Progress notification tap brings the app to foreground; handled there.
-  debugPrint('Background notification tap: ${response.payload}');
 }

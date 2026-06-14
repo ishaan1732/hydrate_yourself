@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/battery_optimization_helper.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import '../../reminders/data/notification_service.dart';
 import '../../reminders/presentation/reminders_provider.dart';
@@ -34,12 +35,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _lastKnownDate = DateTime.now();
+    NotificationService().registerForegroundDrinkCallback(_onForegroundDrinkAction);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (await BatteryOptimizationHelper.shouldShowDialog()) {
+        if (mounted) {
+          BatteryOptimizationHelper.showSetupDialog(context);
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
+    NotificationService().registerForegroundDrinkCallback(null);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _onForegroundDrinkAction(int amountMl) {
+    if (!mounted) return;
+    debugPrint('=== FG HANDLER: calling addQuickLog($amountMl) ===');
+    ref.read(homeActionProvider.notifier).addQuickLog(amountMl.toDouble());
   }
 
   @override
@@ -66,15 +82,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // PART 6 — flush pending logs from the background isolate into Drift
   Future<void> _syncPendingBackgroundLogs() async {
-    debugPrint('Checking pending bg logs...');
+    debugPrint('=== SYNC: starting ===');
     // Force reload from disk — the main isolate caches SharedPreferences in
     // memory and won't see writes made by the background isolate otherwise.
     final prefs = await SharedPreferences.getInstance();
     await prefs.reload();
 
     final pending = prefs.getStringList('pending_bg_logs') ?? [];
-    debugPrint('Found ${pending.length} pending logs');
-    if (pending.isEmpty) return;
+    debugPrint('=== SYNC: found ${pending.length} pending logs ===');
+    debugPrint('=== SYNC: pending = $pending ===');
+
+    if (pending.isEmpty) {
+      debugPrint('=== SYNC: nothing to sync ===');
+      return;
+    }
 
     final repo = ref.read(homeRepositoryProvider);
     for (final entry in pending) {
@@ -89,19 +110,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           drinkTypeId: drinkTypeId,
           loggedAt: DateTime.fromMillisecondsSinceEpoch(timestamp),
         );
-        debugPrint('Synced log: $amountMl ml at $timestamp');
+        debugPrint('=== SYNC: inserted $amountMl ml ===');
       }
     }
 
     // Clear only after all logs written successfully
     await prefs.remove('pending_bg_logs');
     await prefs.remove('today_total_ml_cache');
+    debugPrint('=== SYNC: cleared pending logs ===');
 
     ref.invalidate(todayTotalMlProvider);
     ref.invalidate(todaySummaryProvider);
     ref.invalidate(lastLogProvider);
-
-    debugPrint('Sync complete — providers invalidated');
+    debugPrint('=== SYNC: providers invalidated ===');
   }
 
   // TRIGGER 1 — reschedule notifications with fresh progress values on resume

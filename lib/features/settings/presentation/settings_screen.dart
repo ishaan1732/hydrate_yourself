@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -14,6 +15,7 @@ import '../../../core/extensions/double_extensions.dart';
 import '../../../core/providers/theme_mode_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
 import '../../onboarding/domain/user_profile_model.dart';
+import '../../reminders/data/notification_service.dart';
 import '../domain/mascot_type.dart';
 import 'providers/mascot_provider.dart';
 import 'settings_provider.dart';
@@ -460,6 +462,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           ),
                     ),
                     onTap: () => _confirmDeleteAllData(context, ref),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // TEMPORARY DEBUG — remove before Play Store release
+              // To test BACKGROUND handler: build APK, install,
+              //   CLOSE APP COMPLETELY, tap action button
+              // To test FOREGROUND handler: use flutter run,
+              //   keep app open, tap action button
+              // Both paths must work independently
+              _buildCard(
+                context,
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.bug_report_outlined),
+                    title: const Text('Debug: test notification (30s)'),
+                    onTap: () async {
+                      final now = tz.TZDateTime.now(tz.local);
+                      final testTime =
+                          now.add(const Duration(seconds: 30));
+                      debugPrint(
+                          '=== DEBUG: Scheduling test at $testTime ===');
+                      debugPrint(
+                          '=== DEBUG: Local timezone: ${tz.local.name} ===');
+                      try {
+                        await NotificationService()
+                            .scheduleTestWithAction(testTime);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Test notification in 30 seconds — lock phone now',
+                              ),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        debugPrint('=== DEBUG ERROR: $e ===');
+                      }
+                    },
                   ),
                 ],
               ),
