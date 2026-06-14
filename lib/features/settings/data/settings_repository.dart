@@ -1,7 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:hydrate_yourself/database/app_database.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:workmanager/workmanager.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/hydration_calculator.dart';
@@ -197,7 +196,6 @@ class SettingsRepository {
     await _userProfileDao.deleteProfile();
     await _drinkTypesDao.resetToDefaults();
     await _prefs.clear();
-    await Workmanager().cancelAll();
     await _prefs.setBool(AppConstants.prefHasCompletedOnboarding, false);
     await _prefs.setString('theme_mode', 'system');
   }

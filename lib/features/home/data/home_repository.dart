@@ -43,6 +43,18 @@ class HomeRepository {
         note: const Value(null),
       ));
 
+  Future<void> addLogAtTime({
+    required double amountMl,
+    required int drinkTypeId,
+    required DateTime loggedAt,
+  }) =>
+      _waterLogsDao.insertLog(WaterLogsCompanion.insert(
+        loggedAt: loggedAt,
+        amountMl: amountMl,
+        drinkTypeId: drinkTypeId,
+        note: const Value(null),
+      ));
+
   Future<WaterLogModel?> getLastLog() async {
     final db = _waterLogsDao.attachedDatabase;
     final result = await (db.select(db.waterLogs)

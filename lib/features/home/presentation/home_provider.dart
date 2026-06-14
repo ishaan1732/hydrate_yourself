@@ -241,12 +241,30 @@ class HomeAction extends _$HomeAction {
 
     final profile = ref.read(userProfileProvider).valueOrNull;
     final unit = profile?.unit ?? AppConstants.unitMl;
+    final newTotal = await ref.read(todayTotalMlProvider.future);
     await NotificationService().showProgressNotification(
-      totalMl: (await ref.read(todayTotalMlProvider.future)).round(),
+      totalMl: newTotal.round(),
       goalMl: summary.goalMl,
       unit: unit,
       cupSizeMl: amountMl.round(),
     );
+
+    // PART 7: keep the SharedPreferences cache in sync for the background isolate
+    await prefs.setInt('today_total_ml_cache', newTotal.round());
+
+    // TRIGGER 2: reschedule so remaining notifications show updated progress
+    if (profile != null) {
+      await NotificationService().scheduleRemindersForToday(
+        wakeHour: profile.wakeHour,
+        wakeMinute: profile.wakeMinute,
+        sleepHour: profile.sleepHour,
+        sleepMinute: profile.sleepMinute,
+        intervalMinutes: profile.reminderIntervalMinutes,
+        currentTotalMl: newTotal.round(),
+        goalMl: summary.goalMl,
+        notificationsEnabled: profile.notificationsEnabled,
+      );
+    }
   }
 
   Future<void> _maybeRequestReview() async {

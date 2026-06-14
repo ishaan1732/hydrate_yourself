@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../onboarding/domain/user_profile_model.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../reminders/data/notification_service.dart';
 import '../../reminders/presentation/reminders_provider.dart';
 import '../domain/today_override.dart';
@@ -49,13 +48,68 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       final now = DateTime.now();
       if (!DateUtils.isSameDay(now, _lastKnownDate)) {
         _lastKnownDate = now;
+        // Reset the background-isolate cache for the new day
+        SharedPreferences.getInstance()
+            .then((p) => p.setInt('today_total_ml_cache', 0));
         ref.invalidate(todayTotalMlProvider);
         ref.invalidate(todaySummaryProvider);
         ref.invalidate(lastLogProvider);
         ref.invalidate(todayOverrideNotifierProvider);
         ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
       }
+      // PART 6: flush any logs written by the background action button
+      _syncPendingBackgroundLogs();
+      // TRIGGER 1: reschedule with current progress values
+      _rescheduleNotifications();
     }
+  }
+
+  // PART 6 — flush pending logs from the background isolate into Drift
+  Future<void> _syncPendingBackgroundLogs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final pending = prefs.getStringList('pending_bg_logs') ?? [];
+    if (pending.isEmpty) return;
+
+    final repo = ref.read(homeRepositoryProvider);
+    for (final entry in pending) {
+      final parts = entry.split(',');
+      if (parts.length != 3) continue;
+      final amountMl = int.tryParse(parts[0]) ?? 0;
+      final timestamp = int.tryParse(parts[1]) ?? 0;
+      final drinkTypeId = int.tryParse(parts[2]) ?? 1;
+      if (amountMl > 0 && timestamp > 0) {
+        await repo.addLogAtTime(
+          amountMl: amountMl.toDouble(),
+          drinkTypeId: drinkTypeId,
+          loggedAt: DateTime.fromMillisecondsSinceEpoch(timestamp),
+        );
+      }
+    }
+
+    await prefs.remove('pending_bg_logs');
+    ref.invalidate(todayTotalMlProvider);
+    ref.invalidate(todaySummaryProvider);
+    ref.invalidate(lastLogProvider);
+  }
+
+  // TRIGGER 1 — reschedule notifications with fresh progress values on resume
+  Future<void> _rescheduleNotifications() async {
+    final profile = ref.read(userProfileProvider).valueOrNull;
+    if (profile == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final currentTotal = prefs.getInt('today_total_ml_cache') ?? 0;
+
+    await NotificationService().scheduleRemindersForToday(
+      wakeHour: profile.wakeHour,
+      wakeMinute: profile.wakeMinute,
+      sleepHour: profile.sleepHour,
+      sleepMinute: profile.sleepMinute,
+      intervalMinutes: profile.reminderIntervalMinutes,
+      currentTotalMl: currentTotal,
+      goalMl: profile.dailyGoalMl,
+      notificationsEnabled: profile.notificationsEnabled,
+    );
   }
 
   @override

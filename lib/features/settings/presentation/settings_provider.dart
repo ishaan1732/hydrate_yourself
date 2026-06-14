@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -7,7 +8,7 @@ import '../../../database/database_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import '../../onboarding/presentation/onboarding_provider.dart';
-import '../../reminders/data/background_task.dart';
+import '../../reminders/data/notification_service.dart';
 import '../data/settings_repository.dart';
 
 part 'settings_provider.g.dart';
@@ -151,6 +152,7 @@ class SettingsNotifier extends _$SettingsNotifier {
     state = AsyncData(current.copyWith(wakeHour: hour, wakeMinute: minute));
     try {
       await ref.read(settingsRepositoryProvider).updateWakeTime(hour, minute);
+      await _reschedule();
     } catch (e, st) {
       state = AsyncError(e, st);
     }
@@ -162,6 +164,7 @@ class SettingsNotifier extends _$SettingsNotifier {
     state = AsyncData(current.copyWith(sleepHour: hour, sleepMinute: minute));
     try {
       await ref.read(settingsRepositoryProvider).updateSleepTime(hour, minute);
+      await _reschedule();
     } catch (e, st) {
       state = AsyncError(e, st);
     }
@@ -175,14 +178,7 @@ class SettingsNotifier extends _$SettingsNotifier {
       await ref
           .read(settingsRepositoryProvider)
           .updateNotificationsEnabled(enabled);
-      if (enabled) {
-        final prefs = ref.read(sharedPreferencesProvider);
-        final interval = prefs.getInt('reminder_interval_minutes') ??
-            AppConstants.defaultReminderIntervalMinutes;
-        await BackgroundTaskManager.scheduleReminders(interval);
-      } else {
-        await BackgroundTaskManager.cancelReminders();
-      }
+      await _reschedule();
     } catch (e, st) {
       state = AsyncError(e, st);
     }
@@ -196,9 +192,30 @@ class SettingsNotifier extends _$SettingsNotifier {
       await ref
           .read(settingsRepositoryProvider)
           .updateReminderInterval(minutes);
-      await BackgroundTaskManager.scheduleReminders(minutes);
+      await _reschedule();
     } catch (e, st) {
       state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> _reschedule() async {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    final prefs = ref.read(sharedPreferencesProvider);
+    final currentTotal = prefs.getInt('today_total_ml_cache') ?? 0;
+    try {
+      await NotificationService().scheduleRemindersForToday(
+        wakeHour: current.wakeHour,
+        wakeMinute: current.wakeMinute,
+        sleepHour: current.sleepHour,
+        sleepMinute: current.sleepMinute,
+        intervalMinutes: current.reminderIntervalMinutes,
+        currentTotalMl: currentTotal,
+        goalMl: current.dailyGoalMl,
+        notificationsEnabled: current.notificationsEnabled,
+      );
+    } catch (e) {
+      debugPrint('Notification reschedule failed: $e');
     }
   }
 
