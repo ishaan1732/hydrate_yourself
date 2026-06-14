@@ -144,7 +144,7 @@ final todayOverrideNotifierProvider =
     );
 
 typedef _$TodayOverrideNotifier = AutoDisposeNotifier<TodayOverride?>;
-String _$homeActionHash() => r'4f8bbca5954aaab51545398aaecd926546b908ae';
+String _$homeActionHash() => r'a71f0fbe969b3a7c9f721ded0a3ba0a47afb938d';
 
 /// See also [HomeAction].
 @ProviderFor(HomeAction)

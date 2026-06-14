@@ -34,6 +34,7 @@ class DrinkBreakdownChart extends StatelessWidget {
     }
 
     final total = drinkTypeTotals.values.reduce((a, b) => a + b);
+    final showSliceLabels = drinkTypeTotals.length <= 4;
 
     return Row(
       children: [
@@ -47,7 +48,7 @@ class DrinkBreakdownChart extends StatelessWidget {
                 final percentage = entry.value / total * 100;
                 return PieChartSectionData(
                   value: entry.value,
-                  title: '${percentage.round()}%',
+                  title: showSliceLabels ? '${percentage.round()}%' : '',
                   titleStyle: const TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w700,

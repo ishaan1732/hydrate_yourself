@@ -6,22 +6,21 @@ import 'package:flutter/material.dart';
 import '../../domain/analytics_models.dart';
 
 class TrendChart extends StatelessWidget {
-  const TrendChart({super.key, required this.points, this.unit = 'ml'});
+  const TrendChart({super.key, required this.bars, this.unit = 'ml'});
 
-  final List<DailyChartPoint> points;
+  final List<ChartBar> bars;
   final String unit;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final allZero = points.every((p) => p.totalMl == 0.0);
-    if (allZero) {
+    if (bars.isEmpty || bars.every((b) => b.totalMl == 0)) {
       return SizedBox(
         height: 160,
         child: Center(
           child: Text(
-            'Start tracking to see trends',
+            'No data for this period',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                 ),
@@ -30,15 +29,22 @@ class TrendChart extends StatelessWidget {
       );
     }
 
-    final maxY = points
-            .map((p) => max(p.totalMl, p.goalMl.toDouble()))
-            .reduce(max) *
-        1.2;
+    final maxY = bars.map((b) => b.totalMl).reduce(max) * 1.2;
+    final barWidth = bars.length <= 4
+        ? 32.0
+        : bars.length <= 7
+            ? 22.0
+            : bars.length <= 12
+                ? 14.0
+                : 10.0;
 
     return SizedBox(
       height: 160,
-      child: LineChart(
-        LineChartData(
+      child: BarChart(
+        BarChartData(
+          alignment: BarChartAlignment.spaceAround,
+          maxY: maxY,
+          barTouchData: BarTouchData(enabled: false),
           gridData: const FlGridData(show: false),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
@@ -54,17 +60,16 @@ class TrendChart extends StatelessWidget {
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                interval: 7,
+                reservedSize: 24,
                 getTitlesWidget: (value, meta) {
                   final index = value.toInt();
-                  if (index < 0 || index >= points.length) {
+                  if (index < 0 || index >= bars.length) {
                     return const SizedBox();
                   }
-                  if (index % 7 != 0) return const SizedBox();
                   return Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      '${points[index].date.day}/${points[index].date.month}',
+                      bars[index].label,
                       style: const TextStyle(fontSize: 10),
                     ),
                   );
@@ -72,42 +77,21 @@ class TrendChart extends StatelessWidget {
               ),
             ),
           ),
-          minY: 0,
-          maxY: maxY,
-          lineBarsData: [
-            LineChartBarData(
-              spots: points
-                  .asMap()
-                  .entries
-                  .map((e) => FlSpot(e.key.toDouble(), e.value.totalMl))
-                  .toList(),
-              isCurved: true,
-              curveSmoothness: 0.3,
-              color: colorScheme.primary,
-              barWidth: 2.5,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              belowBarData: BarAreaData(
-                show: true,
-                color: colorScheme.primary.withValues(alpha: 0.08),
-              ),
-            ),
-            LineChartBarData(
-              spots: points
-                  .asMap()
-                  .entries
-                  .map((e) =>
-                      FlSpot(e.key.toDouble(), e.value.goalMl.toDouble()))
-                  .toList(),
-              isCurved: false,
-              color: colorScheme.outline.withValues(alpha: 0.5),
-              barWidth: 1.5,
-              isStrokeCapRound: true,
-              dotData: const FlDotData(show: false),
-              dashArray: [6, 4],
-              belowBarData: BarAreaData(show: false),
-            ),
-          ],
+          barGroups: bars.asMap().entries.map((e) {
+            return BarChartGroupData(
+              x: e.key,
+              barRods: [
+                BarChartRodData(
+                  toY: e.value.totalMl,
+                  color: colorScheme.primary,
+                  width: barWidth,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(4),
+                  ),
+                ),
+              ],
+            );
+          }).toList(),
         ),
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
