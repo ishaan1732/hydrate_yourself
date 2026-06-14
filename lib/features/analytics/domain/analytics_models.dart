@@ -1,19 +1,13 @@
-class ChartBar {
-  const ChartBar({required this.label, required this.totalMl});
-  final String label;
-  final double totalMl;
-}
-
-class DailyChartPoint {
-  const DailyChartPoint({
-    required this.date,
-    required this.totalMl,
-    required this.goalMl,
+class ChartDataPoint {
+  const ChartDataPoint({
+    required this.x,
+    required this.y,
+    required this.label,
   });
 
-  final DateTime date;
-  final double totalMl;
-  final int goalMl;
+  final double x;
+  final double y;     // ml (daily) or average daily ml (weekly/monthly)
+  final String label; // x-axis label; empty string = no label shown
 }
 
 class AnalyticsSummary {
@@ -26,7 +20,7 @@ class AnalyticsSummary {
     required this.goalMl,
     required this.drinkTypeTotals,
     required this.drinkTypeColors,
-    required this.chartBars,
+    required this.chartPoints,
   });
 
   final double averageDailyMl;
@@ -37,7 +31,7 @@ class AnalyticsSummary {
   final int goalMl;
   final Map<String, double> drinkTypeTotals;
   final Map<String, String> drinkTypeColors;
-  final List<ChartBar> chartBars;
+  final List<ChartDataPoint> chartPoints;
 
   factory AnalyticsSummary.empty() => const AnalyticsSummary(
         averageDailyMl: 0.0,
@@ -48,6 +42,6 @@ class AnalyticsSummary {
         goalMl: 2500,
         drinkTypeTotals: {},
         drinkTypeColors: {},
-        chartBars: [],
+        chartPoints: [],
       );
 }

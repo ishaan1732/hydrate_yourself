@@ -35,12 +35,13 @@ class AnalyticsRepository {
       dailyTotals[date] = (dailyTotals[date] ?? 0) + log.amountMl;
     }
 
-    final int daysInPeriod;
-    if (period == AnalyticsPeriod.allTime) {
-      daysInPeriod = max(dailyTotals.length, 1);
-    } else {
-      daysInPeriod = end.difference(start).inDays + 1;
-    }
+    final int daysInPeriod = switch (period) {
+      AnalyticsPeriod.week        => 7,
+      AnalyticsPeriod.month       => 30,
+      AnalyticsPeriod.threeMonths => 90,
+      AnalyticsPeriod.year        => 365,
+      AnalyticsPeriod.allTime     => max(dailyTotals.length, 1),
+    };
 
     final averageDailyMl = dailyTotals.values.isEmpty
         ? 0.0
@@ -66,7 +67,7 @@ class AnalyticsRepository {
       drinkTypeColors[drinkType.name] = drinkType.colorHex;
     }
 
-    final chartBars = _buildChartBars(period, dailyTotals);
+    final chartPoints = _buildChartPoints(period, dailyTotals);
 
     return AnalyticsSummary(
       averageDailyMl: averageDailyMl,
@@ -77,11 +78,11 @@ class AnalyticsRepository {
       goalMl: goalMl,
       drinkTypeTotals: drinkTypeTotals,
       drinkTypeColors: drinkTypeColors,
-      chartBars: chartBars,
+      chartPoints: chartPoints,
     );
   }
 
-  List<ChartBar> _buildChartBars(
+  List<ChartDataPoint> _buildChartPoints(
     AnalyticsPeriod period,
     Map<DateTime, double> dailyTotals,
   ) {
@@ -89,54 +90,88 @@ class AnalyticsRepository {
     final today = DateTime(now.year, now.month, now.day);
 
     switch (period) {
+      // DAILY: one point per day, y = total ml that day
       case AnalyticsPeriod.week:
         return List.generate(7, (i) {
           final date = today.subtract(Duration(days: 6 - i));
-          return ChartBar(
+          return ChartDataPoint(
+            x: i.toDouble(),
+            y: dailyTotals[date] ?? 0.0,
             label: _dayAbbr(date.weekday),
-            totalMl: dailyTotals[date] ?? 0.0,
           );
         });
 
       case AnalyticsPeriod.month:
-        return List.generate(4, (w) {
+        const labelIndices = {0, 6, 13, 20, 27};
+        return List.generate(30, (i) {
+          final date = today.subtract(Duration(days: 29 - i));
+          return ChartDataPoint(
+            x: i.toDouble(),
+            y: dailyTotals[date] ?? 0.0,
+            label: labelIndices.contains(i)
+                ? '${_monthAbbr(date.month)} ${date.day}'
+                : '',
+          );
+        });
+
+      // WEEKLY: 13 buckets of 7 days, y = average daily ml per bucket
+      case AnalyticsPeriod.threeMonths:
+        final startDay = today.subtract(const Duration(days: 90));
+        return List.generate(13, (w) {
           var total = 0.0;
           for (var d = 0; d < 7; d++) {
-            final date = today.subtract(Duration(days: 29 - (w * 7 + d)));
-            total += dailyTotals[date] ?? 0.0;
+            final date = startDay.add(Duration(days: w * 7 + d));
+            if (!date.isAfter(today)) total += dailyTotals[date] ?? 0.0;
           }
-          return ChartBar(label: 'Wk ${w + 1}', totalMl: total);
+          return ChartDataPoint(
+            x: w.toDouble(),
+            y: total / 7,
+            label: 'W${w + 1}',
+          );
         });
 
-      case AnalyticsPeriod.threeMonths:
-        return List.generate(3, (i) {
-          final month = DateTime(now.year, now.month - (2 - i), 1);
-          final total = dailyTotals.entries
-              .where((e) =>
-                  e.key.year == month.year && e.key.month == month.month)
-              .fold(0.0, (sum, e) => sum + e.value);
-          return ChartBar(label: _monthAbbr(month.month), totalMl: total);
-        });
-
+      // MONTHLY: calendar months, y = average daily ml per month
       case AnalyticsPeriod.year:
         return List.generate(12, (i) {
           final month = DateTime(now.year, now.month - (11 - i), 1);
+          final isCurrentMonth =
+              month.year == now.year && month.month == now.month;
+          final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+          final effectiveDays = isCurrentMonth ? now.day : daysInMonth;
           final total = dailyTotals.entries
-              .where((e) =>
-                  e.key.year == month.year && e.key.month == month.month)
+              .where(
+                  (e) => e.key.year == month.year && e.key.month == month.month)
               .fold(0.0, (sum, e) => sum + e.value);
-          return ChartBar(label: _monthAbbr(month.month), totalMl: total);
+          return ChartDataPoint(
+            x: i.toDouble(),
+            y: effectiveDays > 0 ? total / effectiveDays : 0.0,
+            label: _monthAbbr(month.month),
+          );
         });
 
       case AnalyticsPeriod.allTime:
         if (dailyTotals.isEmpty) return [];
-        final years =
-            dailyTotals.keys.map((d) => d.year).toSet().toList()..sort();
-        return years.map((y) {
+        final months = dailyTotals.keys
+            .map((d) => DateTime(d.year, d.month, 1))
+            .toSet()
+            .toList()
+          ..sort();
+        return months.asMap().entries.map((entry) {
+          final i = entry.key;
+          final month = entry.value;
+          final isCurrentMonth =
+              month.year == now.year && month.month == now.month;
+          final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+          final effectiveDays = isCurrentMonth ? now.day : daysInMonth;
           final total = dailyTotals.entries
-              .where((e) => e.key.year == y)
+              .where((e) =>
+                  e.key.year == month.year && e.key.month == month.month)
               .fold(0.0, (sum, e) => sum + e.value);
-          return ChartBar(label: '$y', totalMl: total);
+          return ChartDataPoint(
+            x: i.toDouble(),
+            y: effectiveDays > 0 ? total / effectiveDays : 0.0,
+            label: '${_monthAbbr(month.month)} ${month.year}',
+          );
         }).toList();
     }
   }

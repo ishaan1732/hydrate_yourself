@@ -236,7 +236,9 @@ class AnalyticsScreen extends ConsumerWidget {
                           ),
                           const SizedBox(height: 16),
                           TrendChart(
-                            bars: summary.chartBars,
+                            points: summary.chartPoints,
+                            period: selectedPeriod,
+                            goalMl: summary.goalMl,
                             unit: unit,
                           ),
                         ],
