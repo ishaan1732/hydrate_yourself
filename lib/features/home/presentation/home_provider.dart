@@ -260,9 +260,13 @@ class HomeAction extends _$HomeAction {
     await prefs.setString('last_goal_hit_for_review', todayStr);
     if (count >= 3) {
       await prefs.setInt('goal_hit_days_count', 0);
-      final review = InAppReview.instance;
-      if (await review.isAvailable()) {
-        await review.requestReview();
+      final promptCount = prefs.getInt('review_prompt_count') ?? 0;
+      if (promptCount < 2) {
+        await prefs.setInt('review_prompt_count', promptCount + 1);
+        final review = InAppReview.instance;
+        if (await review.isAvailable()) {
+          await review.requestReview();
+        }
       }
     }
   }

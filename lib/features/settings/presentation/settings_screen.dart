@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:in_app_review/in_app_review.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
@@ -350,8 +352,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 8),
 
-              // Section F — About
-              _buildSectionHeader(context, 'About'),
+              // Section F — Support
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                child: Text(
+                  'Support',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ),
               _buildCard(
                 context,
                 children: [
@@ -364,6 +376,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     onTap: _rateApp,
                   ),
                   const Divider(height: 1, indent: 56),
+                  ListTile(
+                    leading: Icon(Icons.share_outlined, color: colorScheme.primary),
+                    title: Text(
+                      'Share with friends',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    onTap: () => Share.share(
+                      'Stay hydrated with Jumbo! 🐘💧\n\n'
+                      'Hydrate Yourself helps you track your daily '
+                      'water intake with smart reminders\n\n '
+                      'Download it free on Google Play:\n'
+                      'https://play.google.com/store/apps/details'
+                      '?id=com.ishaansharma.hydrate_yourself',
+                      subject: 'Check out Hydrate Yourself',
+                    ),
+                  ),
+                  const Divider(height: 1, indent: 56),
+                  ListTile(
+                    leading: Icon(Icons.mail_outline, color: colorScheme.primary),
+                    title: Text(
+                      'Contact developer',
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    subtitle: const Text('Questions, feedback or bugs'),
+                    onTap: () async {
+                      final uri = Uri(
+                        scheme: 'mailto',
+                        path: 'sarthiindia2020@gmail.com',
+                        queryParameters: {
+                          'subject': 'Hydrate Yourself — Feedback',
+                        },
+                      );
+                      if (await canLaunchUrl(uri)) {
+                        await launchUrl(uri);
+                      }
+                    },
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Section G — About
+              _buildSectionHeader(context, 'About'),
+              _buildCard(
+                context,
+                children: [
                   ListTile(
                     leading: const Icon(Icons.info_outline),
                     title: Text(
