@@ -15,7 +15,7 @@ class OnboardingFormData {
     this.weightKg = AppConstants.defaultWeightKg,
     this.weightUnit = AppConstants.unitKg,
     this.activityLevel = AppConstants.defaultActivityLevel,
-    this.gender = AppConstants.defaultGender,
+    this.gender,
     this.isPregnant = false,
     this.climateType = AppConstants.defaultClimate,
     this.wakeHour = AppConstants.defaultWakeHour,
@@ -29,7 +29,7 @@ class OnboardingFormData {
   final double weightKg;
   final String weightUnit;
   final int activityLevel;
-  final String gender;
+  final String? gender;
   final bool isPregnant;
   final String climateType;
   final int wakeHour;

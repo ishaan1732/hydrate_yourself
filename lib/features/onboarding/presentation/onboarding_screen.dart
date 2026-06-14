@@ -25,6 +25,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   bool _hasAttemptedNext = false;
   String? _nameError;
   String? _weightError;
+  String? _genderError;
   double? _lastWarnedWeight;
 
   @override
@@ -33,6 +34,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     const initMins = AppConstants.defaultReminderIntervalMinutes;
     _hourWheelCtrl = FixedExtentScrollController(initialItem: initMins ~/ 60);
     _minuteWheelCtrl = FixedExtentScrollController(initialItem: (initMins % 60) ~/ 15);
+    _nameController.addListener(() => setState(() {}));
+    _weightController.addListener(() => setState(() {}));
   }
 
   @override
@@ -53,6 +56,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final intervalMins = notifierState?.reminderIntervalMinutes ??
         AppConstants.defaultReminderIntervalMinutes;
     final isIntervalInvalid = _currentPage == 4 && intervalMins == 0;
+
+    final weightInput = double.tryParse(_weightController.text.trim());
+    final canProceedPage1 = _nameController.text.trim().isNotEmpty &&
+        weightInput != null &&
+        weightInput > 0 &&
+        notifierState?.gender != null;
+    final buttonDisabled =
+        isIntervalInvalid || (_currentPage == 1 && !canProceedPage1);
 
     if (_currentPage == 0) {
       return Scaffold(
@@ -107,7 +118,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                   const Spacer(),
                   FilledButton(
-                    onPressed: isIntervalInvalid
+                    onPressed: buttonDisabled
                         ? null
                         : (_currentPage < 4 ? _nextPage : _complete),
                     style: FilledButton.styleFrom(
@@ -328,8 +339,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           const SizedBox(height: 8),
           Builder(builder: (context) {
             final currentGender =
-                ref.watch(onboardingNotifierProvider).value?.gender ??
-                    AppConstants.defaultGender;
+                ref.watch(onboardingNotifierProvider).value?.gender;
             final genders = [
               ('male', '👨', 'Male'),
               ('female', '👩', 'Female'),
@@ -343,9 +353,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       if (value != 'male') const SizedBox(width: 8),
                       Expanded(
                         child: GestureDetector(
-                          onTap: () => ref
-                              .read(onboardingNotifierProvider.notifier)
-                              .updateGender(value),
+                          onTap: () {
+                            setState(() => _genderError = null);
+                            ref
+                                .read(onboardingNotifierProvider.notifier)
+                                .updateGender(value);
+                          },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             padding: const EdgeInsets.all(12),
@@ -384,6 +397,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     ],
                   ],
                 ),
+                if (_hasAttemptedNext && _genderError != null) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _genderError!,
+                    style: TextStyle(
+                      color: colorScheme.error,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
                 if (currentGender == 'female') ...[
                   const SizedBox(height: 12),
                   Container(
@@ -817,9 +840,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
       final name = _nameController.text.trim();
       final weight = double.tryParse(_weightController.text.trim());
+      final gender = ref.read(onboardingNotifierProvider).value?.gender;
 
       String? nameErr;
       String? weightErr;
+      String? genderErr;
 
       if (name.isEmpty) {
         nameErr = 'Please enter your name';
@@ -841,9 +866,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         });
       }
 
+      if (gender == null) {
+        genderErr = 'Please select your gender';
+      }
+
       setState(() {
         _nameError = nameErr;
         _weightError = weightErr;
+        _genderError = genderErr;
       });
 
       if (name.isNotEmpty) {
@@ -853,7 +883,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         ref.read(onboardingNotifierProvider.notifier).updateWeight(weight);
       }
 
-      if (nameErr != null || weightErr != null) return;
+      if (nameErr != null || weightErr != null || genderErr != null) return;
     }
 
     _pageController.nextPage(
