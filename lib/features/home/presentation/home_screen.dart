@@ -195,6 +195,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       children: [
         _buildHeader(context, profile),
         _buildProgressText(context, summary, unit),
+        ElevatedButton(
+          onPressed: () async {
+            await ref.read(notificationServiceProvider).debugScheduleInfo();
+          },
+          child: const Text('Debug notifications'),
+        ),
         Expanded(
           child: ClipRect(
             child: Center(

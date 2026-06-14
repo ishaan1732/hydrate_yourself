@@ -245,17 +245,24 @@ class HomeAction extends _$HomeAction {
     await prefs.setInt('today_total_ml_cache', newTotal.round());
 
     // TRIGGER 2: reschedule so remaining notifications show updated progress
+    // Throttled to once per 5 minutes — prevents cancelAll() on every tap
     if (profile != null) {
-      await NotificationService().scheduleRemindersForToday(
-        wakeHour: profile.wakeHour,
-        wakeMinute: profile.wakeMinute,
-        sleepHour: profile.sleepHour,
-        sleepMinute: profile.sleepMinute,
-        intervalMinutes: profile.reminderIntervalMinutes,
-        currentTotalMl: newTotal.round(),
-        goalMl: summary.goalMl,
-        notificationsEnabled: profile.notificationsEnabled,
-      );
+      final lastReschedule = prefs.getInt('last_reschedule_ms') ?? 0;
+      final nowMs = DateTime.now().millisecondsSinceEpoch;
+      const fiveMinutes = 5 * 60 * 1000;
+      if (nowMs - lastReschedule > fiveMinutes) {
+        await prefs.setInt('last_reschedule_ms', nowMs);
+        await NotificationService().scheduleRemindersForToday(
+          wakeHour: profile.wakeHour,
+          wakeMinute: profile.wakeMinute,
+          sleepHour: profile.sleepHour,
+          sleepMinute: profile.sleepMinute,
+          intervalMinutes: profile.reminderIntervalMinutes,
+          currentTotalMl: newTotal.round(),
+          goalMl: summary.goalMl,
+          notificationsEnabled: profile.notificationsEnabled,
+        );
+      }
     }
   }
 

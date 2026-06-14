@@ -23,6 +23,9 @@ Future<void> main() async {
 
   await NotificationService().initialize();
 
+  // Request exact alarm permission if not already granted (Android 12+)
+  await NotificationService().requestExactAlarmPermissionIfNeeded();
+
   final prefs = await SharedPreferences.getInstance();
   final isOnboarded =
       prefs.getBool(AppConstants.prefHasCompletedOnboarding) ?? false;
