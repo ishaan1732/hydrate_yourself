@@ -2,8 +2,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:hydrate_yourself/database/app_database.dart';
 
-import '../../../database/tables/drink_types_table.dart';
-import '../../../database/tables/water_logs_table.dart';
 import 'drink_type_model.dart';
 
 part 'water_log_model.freezed.dart';

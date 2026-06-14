@@ -2,8 +2,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:hydrate_yourself/database/app_database.dart';
 
-import '../../../database/tables/user_profile_table.dart';
-
 part 'user_profile_model.freezed.dart';
 
 @freezed

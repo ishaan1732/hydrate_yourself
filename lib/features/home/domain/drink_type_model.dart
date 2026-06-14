@@ -3,8 +3,6 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'package:hydrate_yourself/database/app_database.dart';
 
-import '../../../database/tables/drink_types_table.dart';
-
 part 'drink_type_model.freezed.dart';
 
 @freezed

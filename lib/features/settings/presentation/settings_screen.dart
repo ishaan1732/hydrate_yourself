@@ -428,20 +428,35 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Text('Theme', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 8),
-                SegmentedButton<ThemeMode>(
-                  segments: const [
-                    ButtonSegment(value: ThemeMode.system, label: Text('System')),
-                    ButtonSegment(value: ThemeMode.light, label: Text('Light')),
-                    ButtonSegment(value: ThemeMode.dark, label: Text('Dark')),
-                  ],
-                  selected: {themeMode},
-                  onSelectionChanged: (val) {
-                    ref
-                        .read(themeModeNotifierProvider.notifier)
-                        .setThemeMode(val.first);
-                  },
-                  style: const ButtonStyle(
-                    visualDensity: VisualDensity.compact,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 240),
+                  child: SegmentedButton<ThemeMode>(
+                    segments: const [
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        icon: Icon(Icons.brightness_auto_outlined, size: 16),
+                        label: Text('Auto'),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        icon: Icon(Icons.light_mode_outlined, size: 16),
+                        label: Text('Light'),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        icon: Icon(Icons.dark_mode_outlined, size: 16),
+                        label: Text('Dark'),
+                      ),
+                    ],
+                    selected: {themeMode},
+                    onSelectionChanged: (val) {
+                      ref
+                          .read(themeModeNotifierProvider.notifier)
+                          .setThemeMode(val.first);
+                    },
+                    style: const ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                 ),
               ],
@@ -949,10 +964,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Your daily goal',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w700)),
                   Flexible(
+                    flex: 2,
+                    child: Text(
+                      'Your daily goal',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    flex: 3,
                     child: Text(
                       fmt(finalGoal.toDouble()),
                       overflow: TextOverflow.ellipsis,
@@ -1213,13 +1237,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _showActivityDialog(
       BuildContext context, WidgetRef ref, int currentLevel) {
-    const labels = ['Sedentary', 'Light', 'Moderate', 'Active'];
-    const icons = [
-      Icons.chair,
-      Icons.directions_walk,
-      Icons.directions_run,
-      Icons.fitness_center,
-    ];
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
