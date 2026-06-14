@@ -251,22 +251,26 @@ class HomeAction extends _$HomeAction {
 
   Future<void> _maybeRequestReview() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // Hard cap — bail immediately if limit already reached
+    final promptCount = prefs.getInt('review_prompt_count') ?? 0;
+    if (promptCount >= 2) return;
+
     final now = DateTime.now();
     final todayStr = '${now.year}-${now.month}-${now.day}';
     final lastDate = prefs.getString('last_goal_hit_for_review');
     if (lastDate == todayStr) return;
+
     final count = (prefs.getInt('goal_hit_days_count') ?? 0) + 1;
     await prefs.setInt('goal_hit_days_count', count);
     await prefs.setString('last_goal_hit_for_review', todayStr);
+
     if (count >= 3) {
       await prefs.setInt('goal_hit_days_count', 0);
-      final promptCount = prefs.getInt('review_prompt_count') ?? 0;
-      if (promptCount < 2) {
-        await prefs.setInt('review_prompt_count', promptCount + 1);
-        final review = InAppReview.instance;
-        if (await review.isAvailable()) {
-          await review.requestReview();
-        }
+      await prefs.setInt('review_prompt_count', promptCount + 1);
+      final review = InAppReview.instance;
+      if (await review.isAvailable()) {
+        await review.requestReview();
       }
     }
   }

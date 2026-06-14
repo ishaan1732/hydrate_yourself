@@ -526,16 +526,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  void _rateApp() {
-    InAppReview.instance.isAvailable().then((available) {
-      if (available) {
-        InAppReview.instance.requestReview();
-      } else {
-        InAppReview.instance.openStoreListing(
-          appStoreId: 'com.ishaansharma.hydrate_yourself',
+  Future<void> _rateApp() async {
+    try {
+      await InAppReview.instance.openStoreListing(
+        appStoreId: 'com.ishaansharma.hydrate_yourself',
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Could not open Play Store')),
         );
       }
-    });
+    }
   }
 
   void _confirmDeleteAllData(BuildContext context, WidgetRef ref) {
