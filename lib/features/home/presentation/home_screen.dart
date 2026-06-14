@@ -66,8 +66,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // PART 6 — flush pending logs from the background isolate into Drift
   Future<void> _syncPendingBackgroundLogs() async {
+    debugPrint('Checking pending bg logs...');
+    // Force reload from disk — the main isolate caches SharedPreferences in
+    // memory and won't see writes made by the background isolate otherwise.
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+
     final pending = prefs.getStringList('pending_bg_logs') ?? [];
+    debugPrint('Found ${pending.length} pending logs');
     if (pending.isEmpty) return;
 
     final repo = ref.read(homeRepositoryProvider);
@@ -83,13 +89,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           drinkTypeId: drinkTypeId,
           loggedAt: DateTime.fromMillisecondsSinceEpoch(timestamp),
         );
+        debugPrint('Synced log: $amountMl ml at $timestamp');
       }
     }
 
+    // Clear only after all logs written successfully
     await prefs.remove('pending_bg_logs');
+    await prefs.remove('today_total_ml_cache');
+
     ref.invalidate(todayTotalMlProvider);
     ref.invalidate(todaySummaryProvider);
     ref.invalidate(lastLogProvider);
+
+    debugPrint('Sync complete — providers invalidated');
   }
 
   // TRIGGER 1 — reschedule notifications with fresh progress values on resume
@@ -195,12 +207,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       children: [
         _buildHeader(context, profile),
         _buildProgressText(context, summary, unit),
-        ElevatedButton(
-          onPressed: () async {
-            await ref.read(notificationServiceProvider).debugScheduleInfo();
-          },
-          child: const Text('Debug notifications'),
-        ),
         Expanded(
           child: ClipRect(
             child: Center(

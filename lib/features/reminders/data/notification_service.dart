@@ -181,48 +181,6 @@ class NotificationService {
     );
   }
 
-  Future<void> debugScheduleInfo() async {
-    final now = tz.TZDateTime.now(tz.local);
-    final minTime = now.add(const Duration(minutes: 2));
-
-    debugPrint('=== NOTIFICATION DEBUG ===');
-    debugPrint('Now (tz.local): $now');
-    debugPrint('Min schedule time: $minTime');
-    debugPrint('Local timezone: ${tz.local.name}');
-
-    final plugin = _plugin.resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>();
-    final granted = await plugin?.canScheduleExactNotifications();
-    debugPrint('Can schedule exact: $granted');
-
-    // Schedule a test notification 30 seconds from now
-    // using the simplest possible approach
-    final testTime = now.add(const Duration(seconds: 30));
-    debugPrint('Scheduling test at: $testTime');
-
-    try {
-      await _plugin.zonedSchedule(
-        997,
-        'Debug test',
-        'zonedSchedule is working if you see this',
-        testTime,
-        const NotificationDetails(
-          android: AndroidNotificationDetails(
-            'water_reminders',
-            'Water Reminders',
-            importance: Importance.max,
-            priority: Priority.max,
-          ),
-        ),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-      );
-      debugPrint('zonedSchedule call succeeded');
-    } catch (e) {
-      debugPrint('zonedSchedule FAILED: $e');
-    }
-  }
 }
 
 /// Legacy background tap handler for the ongoing progress notification.
