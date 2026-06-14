@@ -240,15 +240,7 @@ class HomeAction extends _$HomeAction {
     await prefs.setInt(AppConstants.prefTodayGoalMl, summary.goalMl);
 
     final profile = ref.read(userProfileProvider).valueOrNull;
-    final unit = profile?.unit ?? AppConstants.unitMl;
     final newTotal = await ref.read(todayTotalMlProvider.future);
-    await NotificationService().showProgressNotification(
-      totalMl: newTotal.round(),
-      goalMl: summary.goalMl,
-      unit: unit,
-      cupSizeMl: amountMl.round(),
-    );
-
     // PART 7: keep the SharedPreferences cache in sync for the background isolate
     await prefs.setInt('today_total_ml_cache', newTotal.round());
 
@@ -308,19 +300,6 @@ class HomeAction extends _$HomeAction {
       ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
     }
 
-    try {
-      final profile = ref.read(userProfileProvider).valueOrNull;
-      final unit = profile?.unit ?? AppConstants.unitMl;
-      final prefs = await SharedPreferences.getInstance();
-      final cupSize = prefs.getInt(AppConstants.prefLastCupSizeMl) ?? 250;
-      final newTotal = await ref.read(todayTotalMlProvider.future);
-      await NotificationService().showProgressNotification(
-        totalMl: newTotal.round(),
-        goalMl: summary.goalMl,
-        unit: unit,
-        cupSizeMl: cupSize,
-      );
-    } catch (_) {}
   }
 }
 

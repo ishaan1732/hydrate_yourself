@@ -191,18 +191,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     int? selectedDrinkTypeId,
     AsyncValue<WaterLogModel?> lastLogAsync,
   ) {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final prefs = await SharedPreferences.getInstance();
-      final cupSize =
-          prefs.getInt(AppConstants.prefLastCupSizeMl) ?? jumboAmount;
-      await NotificationService().showProgressNotification(
-        totalMl: summary.totalMl.round(),
-        goalMl: summary.goalMl,
-        unit: unit,
-        cupSizeMl: cupSize,
-      );
-    });
-
     return Column(
       children: [
         _buildHeader(context, profile),

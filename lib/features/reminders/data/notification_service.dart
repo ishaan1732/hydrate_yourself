@@ -47,21 +47,6 @@ class NotificationService {
       onDidReceiveBackgroundNotificationResponse: notificationBackgroundHandler,
     );
 
-    // Ongoing progress notification channel (low priority, no sound)
-    const AndroidNotificationChannel progressChannel = AndroidNotificationChannel(
-      AppConstants.progressChannelId,
-      AppConstants.progressChannelName,
-      description: AppConstants.progressChannelDesc,
-      importance: Importance.low,
-      playSound: false,
-      enableVibration: false,
-      showBadge: false,
-    );
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(progressChannel);
-
     // Scheduled reminder channel (high priority, can have sound)
     const AndroidNotificationChannel reminderChannel = AndroidNotificationChannel(
       'water_reminders',
@@ -74,17 +59,6 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(reminderChannel);
 
-    // Legacy high-priority channel kept for the progress tap notification
-    const AndroidNotificationChannel legacyChannel = AndroidNotificationChannel(
-      AppConstants.notificationChannelId,
-      AppConstants.notificationChannelName,
-      description: AppConstants.notificationChannelDesc,
-      importance: Importance.high,
-    );
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(legacyChannel);
   }
 
   Future<bool> requestPermissions() async {
@@ -114,6 +88,7 @@ class NotificationService {
     if (!notificationsEnabled || intervalMinutes == 0) return;
 
     final now = tz.TZDateTime.now(tz.local);
+    final minScheduleTime = now.add(const Duration(minutes: 2));
     final todayWake = tz.TZDateTime(
         tz.local, now.year, now.month, now.day, wakeHour, wakeMinute);
     final todaySleep = tz.TZDateTime(
@@ -123,7 +98,7 @@ class NotificationService {
     tz.TZDateTime scheduledTime = todayWake;
 
     while (scheduledTime.isBefore(todaySleep)) {
-      if (scheduledTime.isAfter(now)) {
+      if (scheduledTime.isAfter(minScheduleTime)) {
         final percentage =
             goalMl > 0 ? ((currentTotalMl / goalMl) * 100).round() : 0;
         final remaining = goalMl - currentTotalMl;
@@ -167,64 +142,6 @@ class NotificationService {
       scheduledTime =
           scheduledTime.add(Duration(minutes: intervalMinutes));
     }
-  }
-
-  Future<void> showProgressNotification({
-    required int totalMl,
-    required int goalMl,
-    required String unit,
-    required int cupSizeMl,
-  }) async {
-    final percentage = ((totalMl / goalMl) * 100).clamp(0, 100).round();
-
-    final totalStr = unit == 'oz'
-        ? '${(totalMl * 0.033814).toStringAsFixed(1)}oz'
-        : totalMl >= 1000
-            ? '${(totalMl / 1000).toStringAsFixed(1)}L'
-            : '${totalMl}ml';
-
-    final goalStr = unit == 'oz'
-        ? '${(goalMl * 0.033814).toStringAsFixed(1)}oz'
-        : goalMl >= 1000
-            ? '${(goalMl / 1000).toStringAsFixed(1)}L'
-            : '${goalMl}ml';
-
-    final cupStr = unit == 'oz'
-        ? '${(cupSizeMl * 0.033814).toStringAsFixed(1)}oz'
-        : '${cupSizeMl}ml';
-
-    final AndroidNotificationDetails androidDetails =
-        AndroidNotificationDetails(
-      AppConstants.progressChannelId,
-      AppConstants.progressChannelName,
-      channelDescription: AppConstants.progressChannelDesc,
-      importance: Importance.low,
-      priority: Priority.low,
-      ongoing: true,
-      autoCancel: false,
-      showProgress: true,
-      maxProgress: goalMl,
-      progress: totalMl.clamp(0, goalMl),
-      icon: '@mipmap/ic_launcher',
-      playSound: false,
-      enableVibration: false,
-      styleInformation: BigTextStyleInformation(
-        '$totalStr of $goalStr · $percentage%',
-      ),
-      subText: 'Tap to log +$cupStr',
-    );
-
-    await _plugin.show(
-      AppConstants.progressNotificationId,
-      '💧 Hydrate Yourself',
-      '$totalStr of $goalStr · $percentage%',
-      NotificationDetails(android: androidDetails),
-      payload: 'log_water',
-    );
-  }
-
-  Future<void> dismissProgressNotification() async {
-    await _plugin.cancel(AppConstants.progressNotificationId);
   }
 
   Future<void> markGoalAchievedToday() async {
