@@ -708,6 +708,7 @@ class _OptionTile extends StatelessWidget {
         onTap: onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
+          clipBehavior: Clip.hardEdge,
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
             color: isSelected
@@ -724,19 +725,30 @@ class _OptionTile extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(emoji, style: const TextStyle(fontSize: 18)),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: isSelected
-                      ? colorScheme.onPrimaryContainer
-                      : colorScheme.onSecondaryContainer,
-                  fontWeight: FontWeight.w600,
+              SizedBox(
+                width: 28,
+                height: 28,
+                child: FittedBox(
+                  fit: BoxFit.contain,
+                  child: Text(emoji, style: const TextStyle(fontSize: 18)),
                 ),
-                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                  softWrap: false,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: isSelected
+                        ? colorScheme.onPrimaryContainer
+                        : colorScheme.onSecondaryContainer,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ),
               Text(
                 multiplier,
@@ -793,9 +805,13 @@ class _ClimateDialogState extends ConsumerState<_ClimateDialog> {
     final types = ClimateType.values;
 
     return AlertDialog(
-      title: const Text(
-        "Today's climate",
-        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      title: const FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text(
+          "Today's Weather",
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
       ),
       content: SizedBox(
         width: double.maxFinite,
@@ -933,7 +949,7 @@ class _ActivityDialogState extends ConsumerState<_ActivityDialog> {
     0: 'Sedentary',
     1: 'Light',
     2: 'Moderate',
-    3: 'Very active',
+    3: 'Active',
   };
 
   @override
@@ -951,9 +967,13 @@ class _ActivityDialogState extends ConsumerState<_ActivityDialog> {
     final levels = ActivityLevel.values;
 
     return AlertDialog(
-      title: const Text(
-        "Today's activity",
-        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      title: const FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerLeft,
+        child: Text(
+          "Today's activity",
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
       ),
       content: SizedBox(
         width: double.maxFinite,

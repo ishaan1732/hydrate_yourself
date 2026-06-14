@@ -58,3 +58,18 @@ Row must be wrapped in Expanded or Flexible. Large font numbers
 - Jumbo and similar mascot widgets: SizedBox with fixed design size (160×160)
   — this is intentional and consistent across screen sizes
 - textScaleFactor is clamped at app level (0.8–1.3) — do not override this
+
+## Dialog and bottom sheet rules (non-negotiable)
+
+### AlertDialog
+- `title:` always wrapped in `FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(...))`
+- `content:` always wrapped in `SizedBox(width: double.maxFinite, child: SingleChildScrollView(child: ...))`
+  — `double.maxFinite` prevents the dialog collapsing to content width when scrollable
+- Static section label Texts inside content wrapped in `FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text(...))`
+- Do NOT wrap multi-line body text (meant to flow/wrap) in FittedBox
+
+### Bottom sheets (showModalBottomSheet)
+- Title row: `Text('Title', ...) + const Spacer()` pattern replaced with
+  `Expanded(child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerLeft, child: Text('Title', ...)))`
+- Column content wrapped in `SingleChildScrollView(child: Column(...))` inside the container
+- Static label Texts inside wrapped in FittedBox as above

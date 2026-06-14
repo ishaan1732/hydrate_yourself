@@ -470,9 +470,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       builder: (dialogContext) {
         final colorScheme = Theme.of(dialogContext).colorScheme;
         return AlertDialog(
-          title: const Text('Delete all data?'),
-          content: const Text(
-            'This will permanently delete all your water logs and reset your profile. This cannot be undone.',
+          title: const FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text('Delete all data?'),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'This will permanently delete all your water logs and reset your profile. This cannot be undone.',
+                  ),
+                ],
+              ),
+            ),
           ),
           actions: [
             TextButton(
@@ -860,17 +875,27 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Goal Calculation'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Your daily goal is based on:',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: colorScheme.onSurfaceVariant),
-              ),
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text('Goal Calculation'),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Your daily goal is based on:',
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                ),
               const SizedBox(height: 16),
               ...[
                 _breakdownRow(context,
@@ -957,6 +982,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ],
           ),
         ),
+        ),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -1040,14 +1066,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Edit Name'),
-        content: TextField(
-          controller: controller,
-          decoration: const InputDecoration(
-            labelText: 'Name',
-            border: OutlineInputBorder(),
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text('Edit Name'),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(
+                    labelText: 'Name',
+                    border: OutlineInputBorder(),
+                  ),
+                  autofocus: true,
+                ),
+              ],
+            ),
           ),
-          autofocus: true,
         ),
         actions: [
           TextButton(
@@ -1087,12 +1127,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         builder: (ctx, setState) {
           final theme = Theme.of(ctx);
           return AlertDialog(
-            title: const Text('Edit Weight'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
+            title: const FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text('Edit Weight'),
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
                   controller: controller,
                   decoration: InputDecoration(
                     labelText: 'Weight (${profile.weightUnit})',
@@ -1134,6 +1181,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ],
               ],
             ),
+          ),
+        ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
@@ -1174,8 +1223,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Activity Level'),
-        content: RadioGroup<int>(
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text('Activity Level'),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: RadioGroup<int>(
           groupValue: currentLevel,
           onChanged: (val) {
             if (val == null) return;
@@ -1209,6 +1265,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
             ],
           ),
+        ),
+        ),
         ),
         actions: [
           TextButton(
@@ -1303,6 +1361,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   opacity: atLimit ? 0.35 : 1.0,
                   duration: const Duration(milliseconds: 150),
                   child: Container(
+                    clipBehavior: Clip.hardEdge,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 10),
                     decoration: BoxDecoration(
@@ -1323,13 +1382,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               : colorScheme.error,
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          '${isAdd ? '+' : '−'}$label',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: isAdd
-                                ? colorScheme.primary
-                                : colorScheme.error,
-                            fontWeight: FontWeight.w600,
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '${isAdd ? '+' : '−'}$label',
+                            maxLines: 1,
+                            softWrap: false,
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: isAdd
+                                  ? colorScheme.primary
+                                  : colorScheme.error,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
@@ -1340,11 +1404,18 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             }
 
             return AlertDialog(
-              title: const Text('Daily Goal'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
+              title: const FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text('Daily Goal'),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
                     width: double.infinity,
                     padding:
                         const EdgeInsets.symmetric(vertical: 20),
@@ -1353,12 +1424,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           colorScheme.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Text(
-                      displayValue(currentMl),
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: colorScheme.primary,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        displayValue(currentMl),
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: colorScheme.primary,
+                        ),
                       ),
                     ),
                   ),
@@ -1407,31 +1481,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     mainAxisAlignment:
                         MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        isOz ? '51 oz min' : '1,500 ml min',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                      Flexible(
+                        child: Text(
+                          isOz ? '51 oz min' : '1,500 ml min',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
-                      Text(
-                        isOz ? '152 oz max' : '4,500 ml max',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurfaceVariant,
+                      Flexible(
+                        child: Text(
+                          isOz ? '152 oz max' : '4,500 ml max',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    'Hold a button to change quickly',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: colorScheme.onSurfaceVariant,
-                      fontStyle: FontStyle.italic,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'Hold a button to change quickly',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ],
               ),
+            ),
+          ),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -1496,7 +1583,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             return Container(
               padding: const EdgeInsets.only(
                   top: 20, left: 24, right: 24, bottom: 24),
-              child: Column(
+              child: SingleChildScrollView(
+                child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
@@ -1510,12 +1598,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   Row(
                     children: [
-                      Text(
-                        'Reminder every',
-                        style: theme.textTheme.headlineSmall
-                            ?.copyWith(fontWeight: FontWeight.w700),
+                      Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Reminder every',
+                            style: theme.textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ),
                       ),
-                      const Spacer(),
                       IconButton(
                         icon: const Icon(Icons.close),
                         onPressed: () => Navigator.pop(dialogContext),
@@ -1523,10 +1616,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ],
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    "Remind you to drink when you haven't logged",
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      "Remind you to drink when you haven't logged",
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
                   ),
                   const SizedBox(height: 24),
                   SizedBox(
@@ -1682,6 +1779,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ],
               ),
+              ),
             );
           },
         );
@@ -1740,8 +1838,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Gender'),
-        content: RadioGroup<String>(
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text('Gender'),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: RadioGroup<String>(
           groupValue: profile.gender,
           onChanged: (val) {
             if (val == null) return;
@@ -1754,21 +1859,47 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               RadioListTile<String>(
                 value: 'male',
                 title: Row(children: [
-                  const Text('👨', style: TextStyle(fontSize: 20)),
+                  const SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Text('👨', style: TextStyle(fontSize: 20)),
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  const Text('Male'),
+                  const Flexible(
+                    child: Text('Male',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        softWrap: false),
+                  ),
                 ]),
               ),
               RadioListTile<String>(
                 value: 'female',
                 title: Row(children: [
-                  const Text('👩', style: TextStyle(fontSize: 20)),
+                  const SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: FittedBox(
+                      fit: BoxFit.contain,
+                      child: Text('👩', style: TextStyle(fontSize: 20)),
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  const Text('Female'),
+                  const Flexible(
+                    child: Text('Female',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                        softWrap: false),
+                  ),
                 ]),
               ),
             ],
           ),
+        ),
+        ),
         ),
         actions: [
           TextButton(
@@ -1785,8 +1916,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Climate'),
-        content: SingleChildScrollView(
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text('Climate'),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
           child: RadioGroup<String>(
             groupValue: profile.climateType,
             onChanged: (val) {
@@ -1802,42 +1939,91 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 RadioListTile<String>(
                   value: 'cold',
                   title: Row(children: [
-                    const Text('🥶', style: TextStyle(fontSize: 20)),
+                    const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: Text('🥶', style: TextStyle(fontSize: 20)),
+                      ),
+                    ),
                     const SizedBox(width: 8),
-                    const Text('Cold'),
+                    const Flexible(
+                      child: Text('Cold',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          softWrap: false),
+                    ),
                   ]),
                   subtitle: const Text('Cool or cold weather'),
                 ),
                 RadioListTile<String>(
                   value: 'moderate',
                   title: Row(children: [
-                    const Text('🌤️', style: TextStyle(fontSize: 20)),
+                    const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: Text('🌤️', style: TextStyle(fontSize: 20)),
+                      ),
+                    ),
                     const SizedBox(width: 8),
-                    const Text('Moderate'),
+                    const Flexible(
+                      child: Text('Moderate',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          softWrap: false),
+                    ),
                   ]),
                   subtitle: const Text('Mild everyday conditions'),
                 ),
                 RadioListTile<String>(
                   value: 'hot',
                   title: Row(children: [
-                    const Text('☀️', style: TextStyle(fontSize: 20)),
+                    const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: Text('☀️', style: TextStyle(fontSize: 20)),
+                      ),
+                    ),
                     const SizedBox(width: 8),
-                    const Text('Hot'),
+                    const Flexible(
+                      child: Text('Hot',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          softWrap: false),
+                    ),
                   ]),
                   subtitle: const Text('Warm and sunny weather'),
                 ),
                 RadioListTile<String>(
                   value: 'very_hot',
                   title: Row(children: [
-                    const Text('🔥', style: TextStyle(fontSize: 20)),
+                    const SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: FittedBox(
+                        fit: BoxFit.contain,
+                        child: Text('🔥', style: TextStyle(fontSize: 20)),
+                      ),
+                    ),
                     const SizedBox(width: 8),
-                    const Text('Very Hot'),
+                    const Flexible(
+                      child: Text('Very Hot',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          softWrap: false),
+                    ),
                   ]),
                   subtitle: const Text('Hot, humid or desert conditions'),
                 ),
               ],
             ),
           ),
+        ),
         ),
         actions: [
           TextButton(

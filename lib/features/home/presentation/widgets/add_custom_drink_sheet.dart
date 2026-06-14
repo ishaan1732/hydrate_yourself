@@ -86,9 +86,13 @@ class _AddCustomDrinkSheetState extends State<AddCustomDrinkSheet> {
             const SizedBox(height: 16),
 
             // ── Color picker ─────────────────────────────────────────────────
-            Text('Color',
-                style: theme.textTheme.labelLarge
-                    ?.copyWith(color: colorScheme.onSurfaceVariant)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text('Color',
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(color: colorScheme.onSurfaceVariant)),
+            ),
             const SizedBox(height: 8),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -121,9 +125,13 @@ class _AddCustomDrinkSheetState extends State<AddCustomDrinkSheet> {
             const SizedBox(height: 16),
 
             // ── Emoji picker ─────────────────────────────────────────────────
-            Text('Choose emoji',
-                style: theme.textTheme.labelLarge
-                    ?.copyWith(color: colorScheme.onSurfaceVariant)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text('Choose emoji',
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(color: colorScheme.onSurfaceVariant)),
+            ),
             const SizedBox(height: 8),
             Wrap(
               spacing: 8,
@@ -197,9 +205,13 @@ class _AddCustomDrinkSheetState extends State<AddCustomDrinkSheet> {
             const SizedBox(height: 16),
 
             // ── Hydration coefficient ────────────────────────────────────────
-            Text('Hydration coefficient',
-                style: theme.textTheme.labelLarge
-                    ?.copyWith(color: colorScheme.onSurfaceVariant)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text('Hydration coefficient',
+                  style: theme.textTheme.labelLarge
+                      ?.copyWith(color: colorScheme.onSurfaceVariant)),
+            ),
             const SizedBox(height: 4),
             Text(
               'How much this drink counts toward hydration (1.0 = same as water)',

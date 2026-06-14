@@ -64,18 +64,24 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      child: Column(
+      child: SingleChildScrollView(
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text(
-                'Cup Size',
-                style: theme.textTheme.headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w700),
+              Expanded(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Cup Size',
+                    style: theme.textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ),
               ),
-              const Spacer(),
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.pop(context),
@@ -151,10 +157,14 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  'Custom amount',
-                  style: theme.textTheme.labelLarge
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                Flexible(
+                  child: Text(
+                    'Custom amount',
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    style: theme.textTheme.labelLarge
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
                 ),
                 Text(
                   '${_mlToDisplayOz(_customMl)} oz',
@@ -197,10 +207,14 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
               ],
             ),
           ] else ...[
-            Text(
-              'Custom',
-              style: theme.textTheme.labelLarge
-                  ?.copyWith(color: colorScheme.onSurfaceVariant),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Custom',
+                style: theme.textTheme.labelLarge
+                    ?.copyWith(color: colorScheme.onSurfaceVariant),
+              ),
             ),
             const SizedBox(height: 10),
             Slider(
@@ -250,6 +264,7 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
             ),
           ),
         ],
+      ),
       ),
     );
   }
