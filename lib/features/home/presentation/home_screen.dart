@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../../core/utils/battery_optimization_helper.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import '../../reminders/data/notification_service.dart';
 import '../../reminders/presentation/reminders_provider.dart';
@@ -35,13 +34,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _lastKnownDate = DateTime.now();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (await BatteryOptimizationHelper.shouldShowDialog()) {
-        if (mounted) {
-          BatteryOptimizationHelper.showSetupDialog(context);
-        }
-      }
-    });
   }
 
   @override

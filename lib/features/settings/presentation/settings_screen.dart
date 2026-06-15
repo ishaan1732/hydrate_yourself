@@ -22,6 +22,16 @@ import '../domain/mascot_type.dart';
 import 'providers/mascot_provider.dart';
 import 'settings_provider.dart';
 
+Future<void> openBatteryOptimizationSettings() async {
+  try {
+    const channel =
+        MethodChannel('com.ishaansharma.hydrate_yourself/device_info');
+    await channel.invokeMethod('openBatterySettings');
+  } catch (e) {
+    debugPrint('Could not open battery settings: $e');
+  }
+}
+
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
@@ -260,6 +270,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         context, ref, profile.reminderIntervalMinutes),
                     const Divider(height: 1, indent: 56),
                     _buildSoundToggleTile(context),
+                    const Divider(height: 1, indent: 56),
+                    ListTile(
+                      leading: Icon(
+                        Icons.battery_alert_outlined,
+                        color: colorScheme.primary,
+                      ),
+                      title: const Text('Notifications not arriving on time?'),
+                      subtitle: const Text(
+                        'Allow Hydrate Yourself to bypass battery '
+                        'optimization for reliable delivery',
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: colorScheme.outline,
+                      ),
+                      onTap: () => _showBatteryOptimizationDialog(context),
+                    ),
                   ],
                 ],
               ),
@@ -2437,6 +2465,107 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showBatteryOptimizationDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text('Getting reminders late?'),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Some phones aggressively manage battery '
+                  'to save power, which can delay or block '
+                  'notifications from apps like Hydrate '
+                  'Yourself.',
+                ),
+                const SizedBox(height: 16),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'To fix this:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildStep(context, '1.', 'Tap "Open settings" below'),
+                const SizedBox(height: 6),
+                _buildStep(context, '2.',
+                    'Find Hydrate Yourself in the list'),
+                const SizedBox(height: 6),
+                _buildStep(context, '3.', "Select \"Don't optimize\""),
+                const SizedBox(height: 16),
+                Text(
+                  'This has minimal battery impact — '
+                  'the app only wakes briefly to show '
+                  'a notification.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await openBatteryOptimizationSettings();
+            },
+            child: const Text('Open settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep(
+      BuildContext context, String number, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 24,
+          child: Text(
+            number,
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(height: 1.4),
+          ),
+        ),
+      ],
     );
   }
 }

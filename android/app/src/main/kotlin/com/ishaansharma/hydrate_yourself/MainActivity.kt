@@ -1,7 +1,6 @@
 package com.ishaansharma.hydrate_yourself
 
 import android.content.Intent
-import android.os.Build
 import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -15,7 +14,6 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channel)
             .setMethodCallHandler { call, result ->
                 when (call.method) {
-                    "getManufacturer" -> result.success(Build.MANUFACTURER)
                     "openBatterySettings" -> {
                         val intent = Intent(
                             Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS
