@@ -135,11 +135,8 @@ class TrendChart extends StatelessWidget {
             touchTooltipData: LineTouchTooltipData(
               getTooltipColor: (spot) => colorScheme.surfaceContainerHighest,
               getTooltipItems: (spots) => spots.map((s) {
-                final tip = unit == 'oz'
-                    ? s.y.toWholeOzString()
-                    : s.y.toMlAmountString();
                 return LineTooltipItem(
-                  tip,
+                  formatAnalyticsTotal(s.y.toInt(), unit == 'oz'),
                   TextStyle(
                     fontSize: 12,
                     color: colorScheme.onSurface,

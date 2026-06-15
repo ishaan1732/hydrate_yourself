@@ -193,11 +193,10 @@ class AnalyticsScreen extends ConsumerWidget {
                                 Expanded(
                                   child: StatCard(
                                     label: 'Total Intake',
-                                    value: unit == 'oz'
-                                        ? summary.totalMl
-                                            .toWholeOzString()
-                                        : summary.totalMl
-                                            .toMlAmountString(),
+                                    value: formatAnalyticsTotal(
+                                      summary.totalMl.round(),
+                                      unit == 'oz',
+                                    ),
                                     subtitle:
                                         '${selectedPeriod.label} total',
                                     icon: Icons.summarize_outlined,

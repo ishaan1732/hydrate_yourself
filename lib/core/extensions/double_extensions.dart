@@ -45,3 +45,36 @@ extension HydrationExtensions on double {
     return '${toStringAsFixed(1)} kg';
   }
 }
+
+// Adaptive formatter for the analytics Total Intake stat card and tooltip.
+// Under 10,000 ml → comma-formatted ml ("8,400 ml").
+// 10,000 ml and above → litres with 1 decimal ("22.4 L", "1,642.5 L").
+String formatAnalyticsTotal(int totalMl, bool isOzMode) {
+  if (isOzMode) {
+    final oz = totalMl / 29.5735;
+    return '${oz.toStringAsFixed(1)} oz';
+  }
+  if (totalMl < 10000) {
+    return totalMl.toDouble().toMlAmountString();
+  }
+  final litres = totalMl / 1000.0;
+  if (litres >= 1000) {
+    final formatted = litres.toStringAsFixed(1);
+    final dotIndex = formatted.indexOf('.');
+    final intPart = int.parse(formatted.substring(0, dotIndex));
+    final decPart = formatted.substring(dotIndex + 1);
+    return '${_commaInt(intPart)}.$decPart L';
+  }
+  return '${litres.toStringAsFixed(1)} L';
+}
+
+String _commaInt(int value) {
+  var str = value.toString();
+  final parts = <String>[];
+  while (str.length > 3) {
+    parts.insert(0, str.substring(str.length - 3));
+    str = str.substring(0, str.length - 3);
+  }
+  if (str.isNotEmpty) parts.insert(0, str);
+  return parts.join(',');
+}
