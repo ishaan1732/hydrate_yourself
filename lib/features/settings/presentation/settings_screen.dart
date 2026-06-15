@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -401,15 +402,53 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     subtitle: const Text('Questions, feedback or bugs'),
                     onTap: () async {
-                      final uri = Uri(
+                      final Uri emailUri = Uri(
                         scheme: 'mailto',
                         path: 'sarthiindia2020@gmail.com',
                         queryParameters: {
                           'subject': 'Hydrate Yourself — Feedback',
                         },
                       );
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(uri);
+                      try {
+                        final launched = await launchUrl(
+                          emailUri,
+                          mode: LaunchMode.externalApplication,
+                        );
+                        if (!launched && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                  'sarthiindia2020@gmail.com'),
+                              action: SnackBarAction(
+                                label: 'Copy',
+                                onPressed: () => Clipboard.setData(
+                                  const ClipboardData(
+                                      text:
+                                          'sarthiindia2020@gmail.com'),
+                                ),
+                              ),
+                              duration: const Duration(seconds: 5),
+                            ),
+                          );
+                        }
+                      } catch (_) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: const Text(
+                                  'sarthiindia2020@gmail.com'),
+                              action: SnackBarAction(
+                                label: 'Copy',
+                                onPressed: () => Clipboard.setData(
+                                  const ClipboardData(
+                                      text:
+                                          'sarthiindia2020@gmail.com'),
+                                ),
+                              ),
+                              duration: const Duration(seconds: 5),
+                            ),
+                          );
+                        }
                       }
                     },
                   ),
@@ -537,6 +576,88 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   }
                 },
               ),
+              ListTile(
+                leading: Icon(Icons.star_outline,
+                    color: colorScheme.outline),
+                title: const Text('Debug: review prompt status'),
+                subtitle: const Text('Shows current counters'),
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.reload();
+                  final promptCount =
+                      prefs.getInt('review_prompt_count') ?? 0;
+                  final goalDays =
+                      prefs.getInt('goal_hit_days_count') ?? 0;
+                  final lastDate =
+                      prefs.getString('last_goal_hit_for_review') ??
+                          'never';
+                  if (context.mounted) {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text('Review prompt status'),
+                        ),
+                        content: SizedBox(
+                          width: double.maxFinite,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment:
+                                  CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    'Auto-prompts shown: $promptCount / 2'),
+                                const SizedBox(height: 8),
+                                Text(
+                                    'Goal days this cycle: $goalDays / 3'),
+                                const SizedBox(height: 8),
+                                Text('Last goal hit date: $lastDate'),
+                                if (promptCount >= 2) ...[
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    '⚠ Cap reached — auto-prompt '
+                                    'will never fire again.\n'
+                                    'Tap Reset below to test again.',
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('Close'),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final nav = Navigator.of(ctx);
+                              final messenger =
+                                  ScaffoldMessenger.of(context);
+                              await prefs.setInt(
+                                  'review_prompt_count', 0);
+                              await prefs.setInt(
+                                  'goal_hit_days_count', 0);
+                              await prefs.remove(
+                                  'last_goal_hit_for_review');
+                              nav.pop();
+                              messenger.showSnackBar(const SnackBar(
+                                content:
+                                    Text('Review counters reset'),
+                              ));
+                            },
+                            child: const Text('Reset (test only)'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                },
+              ),
               // ── END DEBUG TESTING ──
 
               const SizedBox(height: 32),
@@ -614,41 +735,102 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               children: [
                 Text('Theme', style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 8),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 240),
-                  child: SegmentedButton<ThemeMode>(
-                    segments: const [
-                      ButtonSegment(
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _themeChip(
+                        label: 'Auto',
+                        icon: Icons.brightness_auto_outlined,
                         value: ThemeMode.system,
-                        icon: Icon(Icons.brightness_auto_outlined, size: 16),
-                        label: Text('Auto'),
+                        selected: themeMode,
+                        onTap: (v) => ref
+                            .read(themeModeNotifierProvider.notifier)
+                            .setThemeMode(v),
                       ),
-                      ButtonSegment(
+                      const SizedBox(width: 8),
+                      _themeChip(
+                        label: 'Light',
+                        icon: Icons.light_mode_outlined,
                         value: ThemeMode.light,
-                        icon: Icon(Icons.light_mode_outlined, size: 16),
-                        label: Text('Light'),
+                        selected: themeMode,
+                        onTap: (v) => ref
+                            .read(themeModeNotifierProvider.notifier)
+                            .setThemeMode(v),
                       ),
-                      ButtonSegment(
+                      const SizedBox(width: 8),
+                      _themeChip(
+                        label: 'Dark',
+                        icon: Icons.dark_mode_outlined,
                         value: ThemeMode.dark,
-                        icon: Icon(Icons.dark_mode_outlined, size: 16),
-                        label: Text('Dark'),
+                        selected: themeMode,
+                        onTap: (v) => ref
+                            .read(themeModeNotifierProvider.notifier)
+                            .setThemeMode(v),
                       ),
                     ],
-                    selected: {themeMode},
-                    onSelectionChanged: (val) {
-                      ref
-                          .read(themeModeNotifierProvider.notifier)
-                          .setThemeMode(val.first);
-                    },
-                    style: const ButtonStyle(
-                      visualDensity: VisualDensity.compact,
-                    ),
                   ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _themeChip({
+    required String label,
+    required IconData icon,
+    required ThemeMode value,
+    required ThemeMode selected,
+    required void Function(ThemeMode) onTap,
+  }) {
+    final isSelected = value == selected;
+    final colorScheme = Theme.of(context).colorScheme;
+    return GestureDetector(
+      onTap: () => onTap(value),
+      child: Container(
+        padding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(99),
+          color: isSelected
+              ? colorScheme.primaryContainer
+              : colorScheme.surface,
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outline.withValues(alpha: 0.3),
+            width: isSelected ? 1.5 : 0.5,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon,
+                size: 16,
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.onSurface),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              maxLines: 1,
+              softWrap: false,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: isSelected
+                    ? FontWeight.w500
+                    : FontWeight.normal,
+                color: isSelected
+                    ? colorScheme.primary
+                    : colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
