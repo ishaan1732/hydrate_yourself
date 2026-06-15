@@ -9,10 +9,12 @@ class DrinkBreakdownChart extends StatelessWidget {
     super.key,
     required this.drinkTypeTotals,
     required this.drinkTypeColors,
+    this.unit = 'ml',
   });
 
   final Map<String, double> drinkTypeTotals;
   final Map<String, String> drinkTypeColors;
+  final String unit;
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +94,9 @@ class DrinkBreakdownChart extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        entry.value.toHydrationString('ml'),
+                        unit == 'oz'
+                            ? entry.value.toHalfOzString()
+                            : entry.value.toMlAmountString(),
                         style: theme.textTheme.labelMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),

@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/extensions/double_extensions.dart';
 import '../../domain/analytics_models.dart';
 import '../../domain/analytics_period.dart';
 
@@ -81,14 +82,27 @@ class TrendChart extends StatelessWidget {
                   if (index < 0 || index >= points.length) {
                     return const SizedBox.shrink();
                   }
+                  final totalPoints = points.length;
+                  // For short series show every label; for longer ones apply
+                  // an interval so labels don't crowd. First and last always show.
+                  if (totalPoints > 14) {
+                    final interval =
+                        totalPoints <= 30 ? 5 : 7;
+                    final isFirst = index == 0;
+                    final isLast = index == totalPoints - 1;
+                    final isInterval = index % interval == 0;
+                    if (!isFirst && !isLast && !isInterval) {
+                      return const SizedBox.shrink();
+                    }
+                  }
                   final label = points[index].label;
                   if (label.isEmpty) return const SizedBox.shrink();
                   return Padding(
-                    padding: const EdgeInsets.only(top: 6),
+                    padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       label,
                       style: TextStyle(
-                        fontSize: 9,
+                        fontSize: 10,
                         color: colorScheme.onSurfaceVariant,
                       ),
                     ),
@@ -120,18 +134,19 @@ class TrendChart extends StatelessWidget {
           lineTouchData: LineTouchData(
             touchTooltipData: LineTouchTooltipData(
               getTooltipColor: (spot) => colorScheme.surfaceContainerHighest,
-              getTooltipItems: (spots) => spots
-                  .map(
-                    (s) => LineTooltipItem(
-                      '${s.y.toInt()} ml',
-                      TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onSurface,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  )
-                  .toList(),
+              getTooltipItems: (spots) => spots.map((s) {
+                final tip = unit == 'oz'
+                    ? s.y.toWholeOzString()
+                    : s.y.toMlAmountString();
+                return LineTooltipItem(
+                  tip,
+                  TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.w500,
+                  ),
+                );
+              }).toList(),
             ),
           ),
           lineBarsData: [

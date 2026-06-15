@@ -24,6 +24,18 @@ extension HydrationExtensions on double {
     return '${rounded.toStringAsFixed(1)} oz';
   }
 
+  // Always comma-formatted ml — never converts to L
+  String toMlAmountString() {
+    var str = round().toString();
+    final parts = <String>[];
+    while (str.length > 3) {
+      parts.insert(0, str.substring(str.length - 3));
+      str = str.substring(0, str.length - 3);
+    }
+    if (str.isNotEmpty) parts.insert(0, str);
+    return '${parts.join(',')} ml';
+  }
+
   // Weight conversions
   double get kgToLbs => this * 2.20462;
   double get lbsToKg => this / 2.20462;

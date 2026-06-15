@@ -102,15 +102,12 @@ class AnalyticsRepository {
         });
 
       case AnalyticsPeriod.month:
-        const labelIndices = {0, 6, 13, 20, 27};
         return List.generate(30, (i) {
           final date = today.subtract(Duration(days: 29 - i));
           return ChartDataPoint(
             x: i.toDouble(),
             y: dailyTotals[date] ?? 0.0,
-            label: labelIndices.contains(i)
-                ? '${_monthAbbr(date.month)} ${date.day}'
-                : '',
+            label: '${_monthAbbr(date.month)} ${date.day}',
           );
         });
 
@@ -151,28 +148,66 @@ class AnalyticsRepository {
 
       case AnalyticsPeriod.allTime:
         if (dailyTotals.isEmpty) return [];
-        final months = dailyTotals.keys
-            .map((d) => DateTime(d.year, d.month, 1))
-            .toSet()
-            .toList()
-          ..sort();
-        return months.asMap().entries.map((entry) {
-          final i = entry.key;
-          final month = entry.value;
-          final isCurrentMonth =
-              month.year == now.year && month.month == now.month;
-          final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
-          final effectiveDays = isCurrentMonth ? now.day : daysInMonth;
-          final total = dailyTotals.entries
-              .where((e) =>
-                  e.key.year == month.year && e.key.month == month.month)
-              .fold(0.0, (sum, e) => sum + e.value);
-          return ChartDataPoint(
-            x: i.toDouble(),
-            y: effectiveDays > 0 ? total / effectiveDays : 0.0,
-            label: '${_monthAbbr(month.month)} ${month.year}',
-          );
-        }).toList();
+        final sortedDates = dailyTotals.keys.toList()..sort();
+        final firstDate = sortedDates.first;
+        final daySpan = today.difference(firstDate).inDays;
+
+        if (daySpan < 60) {
+          // Daily — one point per day; widget applies label-interval filtering
+          final totalDays = daySpan + 1;
+          return List.generate(totalDays, (i) {
+            final date = firstDate.add(Duration(days: i));
+            return ChartDataPoint(
+              x: i.toDouble(),
+              y: dailyTotals[date] ?? 0.0,
+              label: '${_monthAbbr(date.month)} ${date.day}',
+            );
+          });
+        } else if (daySpan < 180) {
+          // Weekly — 7-day buckets; widget applies label-interval filtering
+          final totalWeeks = (daySpan / 7).ceil();
+          return List.generate(totalWeeks, (w) {
+            var total = 0.0;
+            var count = 0;
+            for (var d = 0; d < 7; d++) {
+              final date = firstDate.add(Duration(days: w * 7 + d));
+              if (!date.isAfter(today)) {
+                total += dailyTotals[date] ?? 0.0;
+                count++;
+              }
+            }
+            return ChartDataPoint(
+              x: w.toDouble(),
+              y: count > 0 ? total / count : 0.0,
+              label: 'Wk ${w + 1}',
+            );
+          });
+        } else {
+          // Monthly — calendar months with month+year labels
+          final months = dailyTotals.keys
+              .map((d) => DateTime(d.year, d.month, 1))
+              .toSet()
+              .toList()
+            ..sort();
+          return months.asMap().entries.map((entry) {
+            final i = entry.key;
+            final month = entry.value;
+            final isCurrentMonth =
+                month.year == now.year && month.month == now.month;
+            final daysInMonth = DateTime(month.year, month.month + 1, 0).day;
+            final effectiveDays = isCurrentMonth ? now.day : daysInMonth;
+            final total = dailyTotals.entries
+                .where((e) =>
+                    e.key.year == month.year && e.key.month == month.month)
+                .fold(0.0, (sum, e) => sum + e.value);
+            final yr = (month.year % 100).toString().padLeft(2, '0');
+            return ChartDataPoint(
+              x: i.toDouble(),
+              y: effectiveDays > 0 ? total / effectiveDays : 0.0,
+              label: "${_monthAbbr(month.month)} '$yr",
+            );
+          }).toList();
+        }
     }
   }
 }

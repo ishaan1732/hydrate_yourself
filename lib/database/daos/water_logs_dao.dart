@@ -51,6 +51,14 @@ class WaterLogsDao extends DatabaseAccessor<AppDatabase>
 
   Future<int> deleteAllLogs() => delete(waterLogs).go();
 
+  Future<DateTime?> getFirstLogDate() async {
+    final query = select(waterLogs)
+      ..orderBy([(t) => OrderingTerm.asc(t.loggedAt)])
+      ..limit(1);
+    final result = await query.getSingleOrNull();
+    return result?.loggedAt;
+  }
+
   Future<Map<DateTime, double>> getDailyTotals(int lastNDays) async {
     final now = DateTime.now();
     final start = DateTime(now.year, now.month, now.day)

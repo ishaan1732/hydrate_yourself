@@ -152,7 +152,7 @@ class AnalyticsScreen extends ConsumerWidget {
                                         ? summary.averageDailyMl
                                             .toWholeOzString()
                                         : summary.averageDailyMl
-                                            .toHydrationString('ml'),
+                                            .toMlAmountString(),
                                     subtitle: 'per day',
                                     icon: Icons.water_drop_outlined,
                                   ),
@@ -165,7 +165,7 @@ class AnalyticsScreen extends ConsumerWidget {
                                         ? summary.bestDayMl
                                             .toWholeOzString()
                                         : summary.bestDayMl
-                                            .toHydrationString('ml'),
+                                            .toMlAmountString(),
                                     subtitle: 'single day',
                                     icon: Icons.emoji_events_outlined,
                                     iconColor: AppColors.goalWarning,
@@ -197,7 +197,7 @@ class AnalyticsScreen extends ConsumerWidget {
                                         ? summary.totalMl
                                             .toWholeOzString()
                                         : summary.totalMl
-                                            .toHydrationString('ml'),
+                                            .toMlAmountString(),
                                     subtitle:
                                         '${selectedPeriod.label} total',
                                     icon: Icons.summarize_outlined,
@@ -235,12 +235,81 @@ class AnalyticsScreen extends ConsumerWidget {
                                     color: colorScheme.onSurfaceVariant),
                           ),
                           const SizedBox(height: 16),
-                          TrendChart(
-                            points: summary.chartPoints,
-                            period: selectedPeriod,
-                            goalMl: summary.goalMl,
-                            unit: unit,
-                          ),
+                          if (summary.chartPoints.isEmpty)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 32),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.show_chart_outlined,
+                                      size: 48,
+                                      color: colorScheme.outline,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'No data for this period',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: colorScheme.outline,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Log water to see your trend',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: colorScheme.outline
+                                            .withValues(alpha: 0.7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else if (summary.chartPoints.length < 2)
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 32),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.show_chart_outlined,
+                                      size: 48,
+                                      color: colorScheme.outline,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'Keep logging to see your trend',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: colorScheme.outline,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Need at least 2 days of data',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: colorScheme.outline
+                                            .withValues(alpha: 0.7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            TrendChart(
+                              points: summary.chartPoints,
+                              period: selectedPeriod,
+                              goalMl: summary.goalMl,
+                              unit: unit,
+                            ),
                         ],
                       ),
                     ),
@@ -275,6 +344,7 @@ class AnalyticsScreen extends ConsumerWidget {
                             child: DrinkBreakdownChart(
                               drinkTypeTotals: summary.drinkTypeTotals,
                               drinkTypeColors: summary.drinkTypeColors,
+                              unit: unit,
                             ),
                           ),
                         ],
