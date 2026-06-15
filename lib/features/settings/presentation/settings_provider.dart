@@ -203,7 +203,7 @@ class SettingsNotifier extends _$SettingsNotifier {
     final prefs = await SharedPreferences.getInstance();
     final soundEnabled =
         prefs.getBool(AppConstants.prefNotificationSound) ?? true;
-    await NotificationService().scheduleRemindersForToday(
+    await NotificationService().scheduleReminders(
       wakeHour: current.wakeHour,
       wakeMinute: current.wakeMinute,
       sleepHour: current.sleepHour,

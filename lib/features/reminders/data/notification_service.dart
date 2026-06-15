@@ -60,9 +60,9 @@ class NotificationService {
     return status.isGranted;
   }
 
-  /// Cancels all pending scheduled reminders then schedules one notification
-  /// per interval slot from [wakeHour] to [sleepHour] for the rest of today.
-  Future<void> scheduleRemindersForToday({
+  /// Schedules today's remaining slots and all of tomorrow's slots in one pass.
+  /// Today's notifications show current progress; tomorrow's show 0 (fresh day).
+  Future<void> scheduleReminders({
     required int wakeHour,
     required int wakeMinute,
     required int sleepHour,
@@ -95,52 +95,67 @@ class NotificationService {
 
       final now = tz.TZDateTime.now(tz.local);
       final minScheduleTime = now.add(const Duration(minutes: 2));
-      final todayWake = tz.TZDateTime(
-          tz.local, now.year, now.month, now.day, wakeHour, wakeMinute);
-      final todaySleep = tz.TZDateTime(
-          tz.local, now.year, now.month, now.day, sleepHour, sleepMinute);
 
-      // First slot is wake + interval, not wake itself
       int notificationId = 100;
-      tz.TZDateTime scheduledTime =
-          todayWake.add(Duration(minutes: intervalMinutes));
 
-      final percentage =
-          goalMl > 0 ? ((currentTotalMl / goalMl) * 100).round() : 0;
-      final remaining = (goalMl - currentTotalMl).clamp(0, goalMl);
-      final body = currentTotalMl >= goalMl
-          ? 'Goal reached! 🎉 $currentTotalMl ml of $goalMl ml'
-          : '$currentTotalMl ml of $goalMl ml ($percentage%) — $remaining ml to go';
+      for (int dayOffset = 0; dayOffset <= 1; dayOffset++) {
+        final targetDate = now.add(Duration(days: dayOffset));
 
-      while (scheduledTime.isBefore(todaySleep)) {
-        if (scheduledTime.isAfter(minScheduleTime)) {
-          await _plugin.zonedSchedule(
-            notificationId,
-            'Time to hydrate! 💧',
-            body,
-            scheduledTime,
-            NotificationDetails(
-              android: AndroidNotificationDetails(
-                channelId,
-                channelName,
-                channelDescription: 'Hydration reminders throughout the day',
-                importance:
-                    soundEnabled ? Importance.high : Importance.low,
-                priority: soundEnabled ? Priority.high : Priority.low,
-                playSound: soundEnabled,
-                enableVibration: soundEnabled,
-                icon: '@mipmap/ic_launcher',
+        var slotTime = tz.TZDateTime(
+          tz.local,
+          targetDate.year,
+          targetDate.month,
+          targetDate.day,
+          wakeHour,
+          wakeMinute,
+        ).add(Duration(minutes: intervalMinutes));
+
+        final sleepTime = tz.TZDateTime(
+          tz.local,
+          targetDate.year,
+          targetDate.month,
+          targetDate.day,
+          sleepHour,
+          sleepMinute,
+        );
+
+        while (slotTime.isBefore(sleepTime)) {
+          if (slotTime.isAfter(minScheduleTime)) {
+            final displayTotal = dayOffset == 0 ? currentTotalMl : 0;
+            final percentage =
+                goalMl > 0 ? ((displayTotal / goalMl) * 100).round() : 0;
+            final remaining = (goalMl - displayTotal).clamp(0, goalMl);
+            final body = displayTotal >= goalMl
+                ? 'Goal reached! 🎉 Keep it up!'
+                : '$displayTotal ml of $goalMl ml ($percentage%) — $remaining ml to go';
+
+            await _plugin.zonedSchedule(
+              notificationId,
+              'Time to hydrate! 💧',
+              body,
+              slotTime,
+              NotificationDetails(
+                android: AndroidNotificationDetails(
+                  channelId,
+                  channelName,
+                  channelDescription: 'Hydration reminders throughout the day',
+                  importance: soundEnabled ? Importance.high : Importance.low,
+                  priority: soundEnabled ? Priority.high : Priority.low,
+                  playSound: soundEnabled,
+                  enableVibration: soundEnabled,
+                  icon: '@mipmap/ic_launcher',
+                ),
               ),
-            ),
-            androidScheduleMode: scheduleMode,
-            uiLocalNotificationDateInterpretation:
-                UILocalNotificationDateInterpretation.absoluteTime,
-          );
+              androidScheduleMode: scheduleMode,
+              uiLocalNotificationDateInterpretation:
+                  UILocalNotificationDateInterpretation.absoluteTime,
+            );
 
-          notificationId++;
+            notificationId++;
+          }
+
+          slotTime = slotTime.add(Duration(minutes: intervalMinutes));
         }
-
-        scheduledTime = scheduledTime.add(Duration(minutes: intervalMinutes));
       }
     } catch (_) {}
   }

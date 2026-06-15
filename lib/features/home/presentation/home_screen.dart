@@ -27,13 +27,14 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen>
     with WidgetsBindingObserver {
-  late DateTime _lastKnownDate;
+  String _lastOpenDate = '';
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _lastKnownDate = DateTime.now();
+    final now = DateTime.now();
+    _lastOpenDate = '${now.year}-${now.month}-${now.day}';
   }
 
   @override
@@ -45,17 +46,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      final now = DateTime.now();
-      if (!DateUtils.isSameDay(now, _lastKnownDate)) {
-        _lastKnownDate = now;
-        ref.invalidate(todayTotalMlProvider);
-        ref.invalidate(todaySummaryProvider);
-        ref.invalidate(lastLogProvider);
-        ref.invalidate(todayOverrideNotifierProvider);
-        ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
-      }
-      _rescheduleNotifications();
+      _handleAppResume();
     }
+  }
+
+  Future<void> _handleAppResume() async {
+    final now = DateTime.now();
+    final todayStr = '${now.year}-${now.month}-${now.day}';
+    final isNewDay = _lastOpenDate != todayStr;
+    _lastOpenDate = todayStr;
+
+    if (isNewDay) {
+      ref.invalidate(todayTotalMlProvider);
+      ref.invalidate(todaySummaryProvider);
+      ref.invalidate(lastLogProvider);
+      ref.invalidate(todayOverrideNotifierProvider);
+      ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('today_total_ml_cache', 0);
+    }
+
+    await _rescheduleNotifications();
   }
 
   Future<void> _rescheduleNotifications() async {
@@ -67,7 +78,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         prefs.getBool(AppConstants.prefNotificationSound) ?? true;
     final currentTotal = (await ref.read(todayTotalMlProvider.future)).round();
 
-    await NotificationService().scheduleRemindersForToday(
+    await NotificationService().scheduleReminders(
       wakeHour: profile.wakeHour,
       wakeMinute: profile.wakeMinute,
       sleepHour: profile.sleepHour,

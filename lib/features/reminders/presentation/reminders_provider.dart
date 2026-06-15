@@ -24,7 +24,7 @@ class NotificationSetupNotifier extends _$NotificationSetupNotifier {
         final prefs = await SharedPreferences.getInstance();
         final soundEnabled =
             prefs.getBool(AppConstants.prefNotificationSound) ?? true;
-        await service.scheduleRemindersForToday(
+        await service.scheduleReminders(
           wakeHour: profile.wakeHour,
           wakeMinute: profile.wakeMinute,
           sleepHour: profile.sleepHour,

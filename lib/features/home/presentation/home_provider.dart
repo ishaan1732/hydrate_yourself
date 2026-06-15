@@ -252,7 +252,7 @@ class HomeAction extends _$HomeAction {
         await prefs.setInt('last_reschedule_ms', nowMs);
         final soundEnabled =
             prefs.getBool(AppConstants.prefNotificationSound) ?? true;
-        await NotificationService().scheduleRemindersForToday(
+        await NotificationService().scheduleReminders(
           wakeHour: profile.wakeHour,
           wakeMinute: profile.wakeMinute,
           sleepHour: profile.sleepHour,

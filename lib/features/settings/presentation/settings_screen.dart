@@ -686,6 +686,29 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   }
                 },
               ),
+              ListTile(
+                leading: Icon(Icons.storage_outlined,
+                    color: colorScheme.outline),
+                title: const Text('Debug: dump SharedPrefs'),
+                onTap: () async {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.reload();
+                  final keys = [
+                    'today_total_ml_cache',
+                    'notificationsEnabled',
+                    'notification_sound',
+                    'last_reschedule_ms',
+                    'review_prompt_count',
+                    'goal_hit_days_count',
+                  ];
+                  for (final key in keys) {
+                    final val = prefs.get('flutter.$key') ??
+                        prefs.get(key) ??
+                        'not set';
+                    debugPrint('PREFS: $key = $val');
+                  }
+                },
+              ),
               // ── END DEBUG TESTING ──
 
               const SizedBox(height: 32),
@@ -2236,7 +2259,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
             final currentTotal =
                 (await ref.read(todayTotalMlProvider.future)).round();
-            await NotificationService().scheduleRemindersForToday(
+            await NotificationService().scheduleReminders(
               wakeHour: profile.wakeHour,
               wakeMinute: profile.wakeMinute,
               sleepHour: profile.sleepHour,
