@@ -466,29 +466,78 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 8),
 
-              // Debug tool — remove before final Play Store release
+              // ── DEBUG TESTING — remove before Play Store release ──
               const Divider(),
-              ListTile(
-                leading: Icon(
-                  Icons.notifications_outlined,
-                  color: colorScheme.outline,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: Text(
+                  'Notification testing',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: colorScheme.outline,
+                  ),
                 ),
-                title: const Text('Test notification (30s)'),
-                subtitle: const Text('For testing only'),
+              ),
+              ListTile(
+                leading: Icon(Icons.volume_up_outlined,
+                    color: colorScheme.outline),
+                title: const Text('Test with sound (10s)'),
+                subtitle: const Text('Should play sound + vibrate'),
                 onTap: () async {
-                  await NotificationService().scheduleTestNotification();
+                  await NotificationService().scheduleTestWithSound();
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
-                          'Test notification in 30 seconds. '
-                          'Lock screen to verify timing.',
+                          'Sound notification in 10s — '
+                          'keep app open or background it',
                         ),
                       ),
                     );
                   }
                 },
               ),
+              ListTile(
+                leading: Icon(Icons.volume_off_outlined,
+                    color: colorScheme.outline),
+                title: const Text('Test silent (10s)'),
+                subtitle: const Text('Should appear with NO sound'),
+                onTap: () async {
+                  await NotificationService().scheduleTestSilent();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Silent notification in 10s — '
+                          'confirm no sound plays',
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.timer_outlined,
+                    color: colorScheme.outline),
+                title: const Text('Test exact timing (30s)'),
+                subtitle:
+                    const Text('Lock screen immediately after tapping'),
+                onTap: () async {
+                  await NotificationService().scheduleTestTiming();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Lock your phone NOW — '
+                          'notification fires in 30s',
+                        ),
+                        duration: Duration(seconds: 5),
+                      ),
+                    );
+                  }
+                },
+              ),
+              // ── END DEBUG TESTING ──
 
               const SizedBox(height: 32),
             ],

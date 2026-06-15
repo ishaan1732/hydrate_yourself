@@ -145,30 +145,71 @@ class NotificationService {
     } catch (_) {}
   }
 
-  // Debug tool — remove before final Play Store release
-  Future<void> scheduleTestNotification() async {
-    final prefs = await SharedPreferences.getInstance();
-    final soundEnabled =
-        prefs.getBool(AppConstants.prefNotificationSound) ?? true;
-    final channelId = soundEnabled ? _soundChannelId : _silentChannelId;
+  // Debug tools — remove before final Play Store release
 
-    final scheduledTime =
-        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 30));
-
+  Future<void> scheduleTestWithSound() async {
+    final time =
+        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
     await _plugin.zonedSchedule(
-      997,
-      'Hydrate Yourself test 💧',
-      'If you see this while phone is locked — '
-          'notifications are working correctly!',
-      scheduledTime,
-      NotificationDetails(
+      994,
+      'Test — with sound 🔔',
+      'You should hear a sound with this notification',
+      time,
+      const NotificationDetails(
         android: AndroidNotificationDetails(
-          channelId,
-          soundEnabled ? 'Water Reminders' : 'Water Reminders (Silent)',
-          importance: soundEnabled ? Importance.max : Importance.low,
-          priority: soundEnabled ? Priority.max : Priority.low,
-          playSound: soundEnabled,
-          enableVibration: soundEnabled,
+          'water_reminders',
+          'Water Reminders',
+          importance: Importance.high,
+          priority: Priority.high,
+          playSound: true,
+          enableVibration: true,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
+  Future<void> scheduleTestSilent() async {
+    final time =
+        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 10));
+    await _plugin.zonedSchedule(
+      995,
+      'Test — silent 🔕',
+      'You should NOT hear any sound with this',
+      time,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'water_reminders_silent',
+          'Water Reminders (Silent)',
+          importance: Importance.low,
+          priority: Priority.low,
+          playSound: false,
+          enableVibration: false,
+        ),
+      ),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+    );
+  }
+
+  Future<void> scheduleTestTiming() async {
+    final now = tz.TZDateTime.now(tz.local);
+    final time = now.add(const Duration(seconds: 30));
+    await _plugin.zonedSchedule(
+      996,
+      'Test — exact timing ⏱',
+      'Scheduled at ${now.hour}:${now.minute}:${now.second}'
+          ' — fired 30s later. Lock screen to verify.',
+      time,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'water_reminders',
+          'Water Reminders',
+          importance: Importance.max,
+          priority: Priority.max,
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
