@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -908,7 +909,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     setState(() => _currentPage--);
   }
 
+  Future<void> _requestNotificationPermissions() async {
+    final plugin = FlutterLocalNotificationsPlugin();
+    final android = plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+
+    // POST_NOTIFICATIONS (Android 13+) — shows system allow/deny dialog
+    await android?.requestNotificationsPermission();
+
+    // SCHEDULE_EXACT_ALARM (Android 12+) — opens Alarms & reminders settings
+    final canSchedule = await android?.canScheduleExactNotifications();
+    if (canSchedule == false) {
+      await android?.requestExactAlarmsPermission();
+    }
+  }
+
   Future<void> _complete() async {
+    await _requestNotificationPermissions();
+
     final formData = ref.read(onboardingNotifierProvider).value;
     final name = _nameController.text.trim();
     // Weight entered in user's chosen unit; convert to kg for storage

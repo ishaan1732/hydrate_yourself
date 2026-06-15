@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
@@ -35,7 +34,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _lastKnownDate = DateTime.now();
-    NotificationService().registerForegroundDrinkCallback(_onForegroundDrinkAction);
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (await BatteryOptimizationHelper.shouldShowDialog()) {
         if (mounted) {
@@ -47,15 +45,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   @override
   void dispose() {
-    NotificationService().registerForegroundDrinkCallback(null);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  void _onForegroundDrinkAction(int amountMl) {
-    if (!mounted) return;
-    debugPrint('=== FG HANDLER: calling addQuickLog($amountMl) ===');
-    ref.read(homeActionProvider.notifier).addQuickLog(amountMl.toDouble());
   }
 
   @override
@@ -64,74 +55,21 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       final now = DateTime.now();
       if (!DateUtils.isSameDay(now, _lastKnownDate)) {
         _lastKnownDate = now;
-        // Reset the background-isolate cache for the new day
-        SharedPreferences.getInstance()
-            .then((p) => p.setInt('today_total_ml_cache', 0));
         ref.invalidate(todayTotalMlProvider);
         ref.invalidate(todaySummaryProvider);
         ref.invalidate(lastLogProvider);
         ref.invalidate(todayOverrideNotifierProvider);
         ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
       }
-      // PART 6: flush any logs written by the background action button
-      _syncPendingBackgroundLogs();
-      // TRIGGER 1: reschedule with current progress values
       _rescheduleNotifications();
     }
   }
 
-  // PART 6 — flush pending logs from the background isolate into Drift
-  Future<void> _syncPendingBackgroundLogs() async {
-    debugPrint('=== SYNC: starting ===');
-    // Force reload from disk — the main isolate caches SharedPreferences in
-    // memory and won't see writes made by the background isolate otherwise.
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.reload();
-
-    final pending = prefs.getStringList('pending_bg_logs') ?? [];
-    debugPrint('=== SYNC: found ${pending.length} pending logs ===');
-    debugPrint('=== SYNC: pending = $pending ===');
-
-    if (pending.isEmpty) {
-      debugPrint('=== SYNC: nothing to sync ===');
-      return;
-    }
-
-    final repo = ref.read(homeRepositoryProvider);
-    for (final entry in pending) {
-      final parts = entry.split(',');
-      if (parts.length != 3) continue;
-      final amountMl = int.tryParse(parts[0]) ?? 0;
-      final timestamp = int.tryParse(parts[1]) ?? 0;
-      final drinkTypeId = int.tryParse(parts[2]) ?? 1;
-      if (amountMl > 0 && timestamp > 0) {
-        await repo.addLogAtTime(
-          amountMl: amountMl.toDouble(),
-          drinkTypeId: drinkTypeId,
-          loggedAt: DateTime.fromMillisecondsSinceEpoch(timestamp),
-        );
-        debugPrint('=== SYNC: inserted $amountMl ml ===');
-      }
-    }
-
-    // Clear only after all logs written successfully
-    await prefs.remove('pending_bg_logs');
-    await prefs.remove('today_total_ml_cache');
-    debugPrint('=== SYNC: cleared pending logs ===');
-
-    ref.invalidate(todayTotalMlProvider);
-    ref.invalidate(todaySummaryProvider);
-    ref.invalidate(lastLogProvider);
-    debugPrint('=== SYNC: providers invalidated ===');
-  }
-
-  // TRIGGER 1 — reschedule notifications with fresh progress values on resume
   Future<void> _rescheduleNotifications() async {
     final profile = ref.read(userProfileProvider).valueOrNull;
     if (profile == null) return;
 
-    final prefs = await SharedPreferences.getInstance();
-    final currentTotal = prefs.getInt('today_total_ml_cache') ?? 0;
+    final currentTotal = (await ref.read(todayTotalMlProvider.future)).round();
 
     await NotificationService().scheduleRemindersForToday(
       wakeHour: profile.wakeHour,

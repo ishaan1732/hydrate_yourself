@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/timezone.dart' as tz;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_constants.dart';
@@ -42,7 +42,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         child: settingsAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, st) {
-            debugPrint('Settings error: $e\n$st');
             return Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -251,9 +250,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       style: Theme.of(context).textTheme.bodyLarge,
                     ),
                     value: profile.notificationsEnabled,
-                    onChanged: (val) => ref
-                        .read(settingsNotifierProvider.notifier)
-                        .updateNotificationsEnabled(val),
+                    onChanged: _onNotificationsToggled,
                   ),
                   if (profile.notificationsEnabled) ...[
                     const Divider(height: 1, indent: 56),
@@ -468,44 +465,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
               const SizedBox(height: 8),
 
-              // TEMPORARY DEBUG — remove before Play Store release
-              // To test BACKGROUND handler: build APK, install,
-              //   CLOSE APP COMPLETELY, tap action button
-              // To test FOREGROUND handler: use flutter run,
-              //   keep app open, tap action button
-              // Both paths must work independently
-              _buildCard(
-                context,
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.bug_report_outlined),
-                    title: const Text('Debug: test notification (30s)'),
-                    onTap: () async {
-                      final now = tz.TZDateTime.now(tz.local);
-                      final testTime =
-                          now.add(const Duration(seconds: 30));
-                      debugPrint(
-                          '=== DEBUG: Scheduling test at $testTime ===');
-                      debugPrint(
-                          '=== DEBUG: Local timezone: ${tz.local.name} ===');
-                      try {
-                        await NotificationService()
-                            .scheduleTestWithAction(testTime);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Test notification in 30 seconds — lock phone now',
-                              ),
-                            ),
-                          );
-                        }
-                      } catch (e) {
-                        debugPrint('=== DEBUG ERROR: $e ===');
-                      }
-                    },
-                  ),
-                ],
+              // Debug tool — remove before final Play Store release
+              const Divider(),
+              ListTile(
+                leading: Icon(
+                  Icons.notifications_outlined,
+                  color: colorScheme.outline,
+                ),
+                title: const Text('Test notification (30s)'),
+                subtitle: const Text('For testing only'),
+                onTap: () async {
+                  await NotificationService().scheduleTestNotification();
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Test notification in 30 seconds. '
+                          'Lock screen to verify timing.',
+                        ),
+                      ),
+                    );
+                  }
+                },
               ),
 
               const SizedBox(height: 32),
@@ -514,6 +495,58 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> _onNotificationsToggled(bool enabled) async {
+    if (enabled) {
+      final android = FlutterLocalNotificationsPlugin()
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>();
+
+      final canSchedule = await android?.canScheduleExactNotifications();
+      if (canSchedule == false) {
+        if (mounted) {
+          await showDialog<void>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text('Enable exact reminders'),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: SingleChildScrollView(
+                  child: const Text(
+                    'To receive reminders at exactly the right time, '
+                    'Hydrate Yourself needs permission to set precise alarms.\n\n'
+                    'On the next screen, enable '
+                    '"Allow setting alarms and reminders".',
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    Navigator.pop(ctx);
+                    await android?.requestExactAlarmsPermission();
+                  },
+                  child: const Text('Open settings'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    }
+
+    ref
+        .read(settingsNotifierProvider.notifier)
+        .updateNotificationsEnabled(enabled);
   }
 
   Widget _buildThemeModeTile(

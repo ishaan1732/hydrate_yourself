@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -201,22 +200,16 @@ class SettingsNotifier extends _$SettingsNotifier {
   Future<void> _reschedule() async {
     final current = state.valueOrNull;
     if (current == null) return;
-    final prefs = ref.read(sharedPreferencesProvider);
-    final currentTotal = prefs.getInt('today_total_ml_cache') ?? 0;
-    try {
-      await NotificationService().scheduleRemindersForToday(
-        wakeHour: current.wakeHour,
-        wakeMinute: current.wakeMinute,
-        sleepHour: current.sleepHour,
-        sleepMinute: current.sleepMinute,
-        intervalMinutes: current.reminderIntervalMinutes,
-        currentTotalMl: currentTotal,
-        goalMl: current.dailyGoalMl,
-        notificationsEnabled: current.notificationsEnabled,
-      );
-    } catch (e) {
-      debugPrint('Notification reschedule failed: $e');
-    }
+    await NotificationService().scheduleRemindersForToday(
+      wakeHour: current.wakeHour,
+      wakeMinute: current.wakeMinute,
+      sleepHour: current.sleepHour,
+      sleepMinute: current.sleepMinute,
+      intervalMinutes: current.reminderIntervalMinutes,
+      currentTotalMl: 0,
+      goalMl: current.dailyGoalMl,
+      notificationsEnabled: current.notificationsEnabled,
+    );
   }
 
   Future<void> updateActivityLevel(int level) async {
