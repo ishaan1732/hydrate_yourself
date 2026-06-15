@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
@@ -69,6 +70,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final profile = ref.read(userProfileProvider).valueOrNull;
     if (profile == null) return;
 
+    final prefs = await SharedPreferences.getInstance();
+    final soundEnabled =
+        prefs.getBool(AppConstants.prefNotificationSound) ?? true;
     final currentTotal = (await ref.read(todayTotalMlProvider.future)).round();
 
     await NotificationService().scheduleRemindersForToday(
@@ -80,6 +84,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
       currentTotalMl: currentTotal,
       goalMl: profile.dailyGoalMl,
       notificationsEnabled: profile.notificationsEnabled,
+      soundEnabled: soundEnabled,
     );
   }
 

@@ -200,6 +200,9 @@ class SettingsNotifier extends _$SettingsNotifier {
   Future<void> _reschedule() async {
     final current = state.valueOrNull;
     if (current == null) return;
+    final prefs = await SharedPreferences.getInstance();
+    final soundEnabled =
+        prefs.getBool(AppConstants.prefNotificationSound) ?? true;
     await NotificationService().scheduleRemindersForToday(
       wakeHour: current.wakeHour,
       wakeMinute: current.wakeMinute,
@@ -209,6 +212,7 @@ class SettingsNotifier extends _$SettingsNotifier {
       currentTotalMl: 0,
       goalMl: current.dailyGoalMl,
       notificationsEnabled: current.notificationsEnabled,
+      soundEnabled: soundEnabled,
     );
   }
 

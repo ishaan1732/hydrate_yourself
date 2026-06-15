@@ -13,6 +13,9 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
+  static const String _soundChannelId = 'water_reminders';
+  static const String _silentChannelId = 'water_reminders_silent';
+
   Future<void> initialize() async {
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -25,16 +28,27 @@ class NotificationService {
 
     await _plugin.initialize(settings);
 
-    const AndroidNotificationChannel reminderChannel = AndroidNotificationChannel(
-      'water_reminders',
-      'Water Reminders',
-      description: 'Hydration reminders throughout the day',
-      importance: Importance.high,
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    await android?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        _soundChannelId,
+        'Water Reminders',
+        description: 'Hydration reminders throughout the day',
+        importance: Importance.high,
+        playSound: true,
+      ),
     );
-    await _plugin
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(reminderChannel);
+    await android?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        _silentChannelId,
+        'Water Reminders (Silent)',
+        description: 'Silent hydration reminders',
+        importance: Importance.low,
+        playSound: false,
+        enableVibration: false,
+      ),
+    );
   }
 
   Future<bool> requestPermissions() async {
@@ -57,6 +71,7 @@ class NotificationService {
     required int currentTotalMl,
     required int goalMl,
     required bool notificationsEnabled,
+    required bool soundEnabled,
   }) async {
     try {
       if (!notificationsEnabled || intervalMinutes == 0) {
@@ -73,6 +88,10 @@ class NotificationService {
           : AndroidScheduleMode.inexact;
 
       await _plugin.cancelAll();
+
+      final channelId = soundEnabled ? _soundChannelId : _silentChannelId;
+      final channelName =
+          soundEnabled ? 'Water Reminders' : 'Water Reminders (Silent)';
 
       final now = tz.TZDateTime.now(tz.local);
       final minScheduleTime = now.add(const Duration(minutes: 2));
@@ -100,13 +119,16 @@ class NotificationService {
             'Time to hydrate! 💧',
             body,
             scheduledTime,
-            const NotificationDetails(
+            NotificationDetails(
               android: AndroidNotificationDetails(
-                'water_reminders',
-                'Water Reminders',
+                channelId,
+                channelName,
                 channelDescription: 'Hydration reminders throughout the day',
-                importance: Importance.high,
-                priority: Priority.high,
+                importance:
+                    soundEnabled ? Importance.high : Importance.low,
+                priority: soundEnabled ? Priority.high : Priority.low,
+                playSound: soundEnabled,
+                enableVibration: soundEnabled,
                 icon: '@mipmap/ic_launcher',
               ),
             ),
@@ -125,6 +147,11 @@ class NotificationService {
 
   // Debug tool — remove before final Play Store release
   Future<void> scheduleTestNotification() async {
+    final prefs = await SharedPreferences.getInstance();
+    final soundEnabled =
+        prefs.getBool(AppConstants.prefNotificationSound) ?? true;
+    final channelId = soundEnabled ? _soundChannelId : _silentChannelId;
+
     final scheduledTime =
         tz.TZDateTime.now(tz.local).add(const Duration(seconds: 30));
 
@@ -134,12 +161,14 @@ class NotificationService {
       'If you see this while phone is locked — '
           'notifications are working correctly!',
       scheduledTime,
-      const NotificationDetails(
+      NotificationDetails(
         android: AndroidNotificationDetails(
-          'water_reminders',
-          'Water Reminders',
-          importance: Importance.max,
-          priority: Priority.max,
+          channelId,
+          soundEnabled ? 'Water Reminders' : 'Water Reminders (Silent)',
+          importance: soundEnabled ? Importance.max : Importance.low,
+          priority: soundEnabled ? Priority.max : Priority.low,
+          playSound: soundEnabled,
+          enableVibration: soundEnabled,
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,

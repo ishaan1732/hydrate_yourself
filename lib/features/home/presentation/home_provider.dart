@@ -250,6 +250,8 @@ class HomeAction extends _$HomeAction {
       const fiveMinutes = 5 * 60 * 1000;
       if (nowMs - lastReschedule > fiveMinutes) {
         await prefs.setInt('last_reschedule_ms', nowMs);
+        final soundEnabled =
+            prefs.getBool(AppConstants.prefNotificationSound) ?? true;
         await NotificationService().scheduleRemindersForToday(
           wakeHour: profile.wakeHour,
           wakeMinute: profile.wakeMinute,
@@ -259,6 +261,7 @@ class HomeAction extends _$HomeAction {
           currentTotalMl: newTotal.round(),
           goalMl: summary.goalMl,
           notificationsEnabled: profile.notificationsEnabled,
+          soundEnabled: soundEnabled,
         );
       }
     }
