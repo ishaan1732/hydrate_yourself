@@ -19,15 +19,13 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController(initialPage: 0);
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _weightController = TextEditingController();
   late FixedExtentScrollController _hourWheelCtrl;
   late FixedExtentScrollController _minuteWheelCtrl;
   int _currentPage = 0;
   bool _hasAttemptedNext = false;
   String? _nameError;
-  String? _weightError;
   String? _genderError;
-  double? _lastWarnedWeight;
+  double? _selectedWeight; // stored internally in kg
 
   @override
   void initState() {
@@ -36,14 +34,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     _hourWheelCtrl = FixedExtentScrollController(initialItem: initMins ~/ 60);
     _minuteWheelCtrl = FixedExtentScrollController(initialItem: (initMins % 60) ~/ 15);
     _nameController.addListener(() => setState(() {}));
-    _weightController.addListener(() => setState(() {}));
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     _nameController.dispose();
-    _weightController.dispose();
     _hourWheelCtrl.dispose();
     _minuteWheelCtrl.dispose();
     super.dispose();
@@ -58,10 +54,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         AppConstants.defaultReminderIntervalMinutes;
     final isIntervalInvalid = _currentPage == 4 && intervalMins == 0;
 
-    final weightInput = double.tryParse(_weightController.text.trim());
     final canProceedPage1 = _nameController.text.trim().isNotEmpty &&
-        weightInput != null &&
-        weightInput > 0 &&
+        _selectedWeight != null &&
         notifierState?.gender != null;
     final buttonDisabled =
         isIntervalInvalid || (_currentPage == 1 && !canProceedPage1);
@@ -283,54 +277,58 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           const SizedBox(height: 16),
           Builder(builder: (context) {
-            final weightUnit = ref.watch(onboardingNotifierProvider)
-                    .value?.weightUnit ??
+            final weightUnit = ref.watch(onboardingNotifierProvider).value?.weightUnit ??
                 AppConstants.unitKg;
-            return TextField(
-              controller: _weightController,
-              decoration: InputDecoration(
-                labelText: 'Weight ($weightUnit)',
-                errorText: _hasAttemptedNext ? _weightError : null,
-                border: const OutlineInputBorder(),
+            final isKg = weightUnit == AppConstants.unitKg;
+            return GestureDetector(
+              onTap: () => _showWeightPicker(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: _selectedWeight == null
+                        ? colorScheme.outline.withValues(alpha: 0.4)
+                        : colorScheme.primary,
+                    width: _selectedWeight == null ? 0.5 : 1.5,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  color: colorScheme.surface,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.monitor_weight_outlined,
+                      size: 20,
+                      color: _selectedWeight == null
+                          ? colorScheme.outline
+                          : colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        _selectedWeight == null
+                            ? 'Tap to select your weight'
+                            : isKg
+                                ? '${_selectedWeight!.round()} kg'
+                                : '${_selectedWeight!.kgToLbs.round()} lbs',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: _selectedWeight == null
+                              ? colorScheme.onSurface.withValues(alpha: 0.5)
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.expand_more_outlined,
+                      color: colorScheme.outline,
+                      size: 20,
+                    ),
+                  ],
+                ),
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              onChanged: (value) {
-                final weight = double.tryParse(value.trim());
-                if (weight != null && weight > 0) {
-                  ref
-                      .read(onboardingNotifierProvider.notifier)
-                      .updateWeight(weight);
-                }
-                if (_lastWarnedWeight != null) {
-                  setState(() {
-                    _lastWarnedWeight = null;
-                    _weightError = null;
-                  });
-                }
-              },
             );
           }),
-          const SizedBox(height: 12),
-          Text(
-            'Weight unit',
-            style: theme.textTheme.labelLarge
-                ?.copyWith(color: colorScheme.onSurfaceVariant),
-          ),
-          const SizedBox(height: 8),
-          SegmentedButton<String>(
-            segments: const [
-              ButtonSegment(value: 'kg', label: Text('kg')),
-              ButtonSegment(value: 'lbs', label: Text('lbs')),
-            ],
-            selected: {
-              ref.watch(onboardingNotifierProvider).value?.weightUnit ??
-                  AppConstants.unitKg,
-            },
-            onSelectionChanged: (val) => ref
-                .read(onboardingNotifierProvider.notifier)
-                .updateWeightUnit(val.first),
-          ),
           const SizedBox(height: 20),
           Text(
             'Gender',
@@ -833,6 +831,276 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     return m == 0 ? '$h hr' : '$h hr $m min';
   }
 
+  void _showWeightPicker(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final weightUnit = ref.read(onboardingNotifierProvider).value?.weightUnit ??
+        AppConstants.unitKg;
+
+    bool isKg = weightUnit == AppConstants.unitKg;
+
+    int minVal() => isKg ? 30 : 66;
+    int maxVal() => isKg ? 250 : 550;
+
+    int displayVal = _selectedWeight == null
+        ? (isKg ? 70 : 154)
+        : isKg
+            ? _selectedWeight!.round()
+            : _selectedWeight!.kgToLbs.round();
+
+    displayVal = displayVal.clamp(minVal(), maxVal());
+
+    final scrollController = FixedExtentScrollController(
+      initialItem: displayVal - minVal(),
+    );
+
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          void switchUnit(bool toKg) {
+            setDialogState(() {
+              if (toKg && !isKg) {
+                displayVal = displayVal.toDouble().lbsToKg.round().clamp(30, 250);
+                isKg = true;
+              } else if (!toKg && isKg) {
+                displayVal = displayVal.toDouble().kgToLbs.round().clamp(66, 550);
+                isKg = false;
+              }
+            });
+            scrollController.jumpToItem(displayVal - minVal());
+          }
+
+          return AlertDialog(
+            contentPadding: EdgeInsets.zero,
+            titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+            title: const FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text('Your weight'),
+            ),
+            content: SizedBox(
+              width: double.maxFinite,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: colorScheme.outline.withValues(alpha: 0.3),
+                        width: 0.5,
+                      ),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _unitChip(
+                          label: 'kg',
+                          selected: isKg,
+                          colorScheme: colorScheme,
+                          onTap: () => switchUnit(true),
+                        ),
+                        _unitChip(
+                          label: 'lbs',
+                          selected: !isKg,
+                          colorScheme: colorScheme,
+                          onTap: () => switchUnit(false),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        '$displayVal',
+                        style: TextStyle(
+                          fontSize: 52,
+                          fontWeight: FontWeight.w500,
+                          color: colorScheme.primary,
+                          height: 1,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        isKg ? 'kg' : 'lbs',
+                        style: TextStyle(
+                          fontSize: 20,
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: 60,
+                    height: 2,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.35),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 180,
+                    child: Stack(
+                      children: [
+                        Center(
+                          child: Container(
+                            height: 44,
+                            margin: const EdgeInsets.symmetric(horizontal: 40),
+                            decoration: BoxDecoration(
+                              color: colorScheme.primaryContainer
+                                  .withValues(alpha: 0.4),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: colorScheme.primary.withValues(alpha: 0.2),
+                                width: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                        CupertinoPicker(
+                          scrollController: scrollController,
+                          itemExtent: 44,
+                          selectionOverlay: const SizedBox.shrink(),
+                          onSelectedItemChanged: (index) {
+                            setDialogState(() {
+                              displayVal = minVal() + index;
+                            });
+                          },
+                          children: List.generate(
+                            maxVal() - minVal() + 1,
+                            (i) {
+                              final val = minVal() + i;
+                              final isSelected = val == displayVal;
+                              return Center(
+                                child: Text(
+                                  '$val',
+                                  style: TextStyle(
+                                    fontSize: isSelected ? 20 : 17,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w500
+                                        : FontWeight.normal,
+                                    color: isSelected
+                                        ? colorScheme.onSurface
+                                        : colorScheme.onSurface
+                                            .withValues(alpha: 0.4),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          child: IgnorePointer(
+                            child: Container(
+                              height: 60,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    colorScheme.surface,
+                                    colorScheme.surface.withValues(alpha: 0),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: IgnorePointer(
+                            child: Container(
+                              height: 60,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [
+                                    colorScheme.surface,
+                                    colorScheme.surface.withValues(alpha: 0),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final weightKg = isKg
+                      ? displayVal.toDouble()
+                      : displayVal.toDouble().lbsToKg;
+                  setState(() => _selectedWeight = weightKg);
+                  ref
+                      .read(onboardingNotifierProvider.notifier)
+                      .updateWeight(weightKg);
+                  ref
+                      .read(onboardingNotifierProvider.notifier)
+                      .updateWeightUnit(
+                          isKg ? AppConstants.unitKg : AppConstants.unitLbs);
+                  Navigator.pop(ctx);
+                },
+                child: const Text('Confirm'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _unitChip({
+    required String label,
+    required bool selected,
+    required ColorScheme colorScheme,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 7),
+        decoration: BoxDecoration(
+          color: selected ? colorScheme.primaryContainer : Colors.transparent,
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w500 : FontWeight.normal,
+            color: selected
+                ? colorScheme.primary
+                : colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
+        ),
+      ),
+    );
+  }
+
   void _nextPage() {
     FocusScope.of(context).unfocus();
 
@@ -840,51 +1108,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       setState(() => _hasAttemptedNext = true);
 
       final name = _nameController.text.trim();
-      final weight = double.tryParse(_weightController.text.trim());
       final gender = ref.read(onboardingNotifierProvider).value?.gender;
 
-      String? nameErr;
-      String? weightErr;
-      String? genderErr;
-
-      if (name.isEmpty) {
-        nameErr = 'Please enter your name';
-      }
-      if (weight == null || weight <= 0) {
-        weightErr = 'Please enter a valid weight';
-      } else if (weight > 1000) {
-        setState(() {
-          _weightError =
-              '⚠️ This seems high — tap Next again to confirm';
-        });
-        if (_lastWarnedWeight != weight) {
-          setState(() => _lastWarnedWeight = weight);
-          return;
-        }
-        setState(() {
-          _weightError = null;
-          _lastWarnedWeight = null;
-        });
-      }
-
-      if (gender == null) {
-        genderErr = 'Please select your gender';
-      }
+      final nameErr = name.isEmpty ? 'Please enter your name' : null;
+      final genderErr =
+          gender == null ? 'Please select your gender' : null;
 
       setState(() {
         _nameError = nameErr;
-        _weightError = weightErr;
         _genderError = genderErr;
       });
 
       if (name.isNotEmpty) {
         ref.read(onboardingNotifierProvider.notifier).updateName(name);
       }
-      if (weight != null && weight > 0) {
-        ref.read(onboardingNotifierProvider.notifier).updateWeight(weight);
-      }
 
-      if (nameErr != null || weightErr != null || genderErr != null) return;
+      if (nameErr != null || _selectedWeight == null || genderErr != null) {
+        return;
+      }
     }
 
     _pageController.nextPage(
@@ -929,17 +1170,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     final formData = ref.read(onboardingNotifierProvider).value;
     final name = _nameController.text.trim();
-    // Weight entered in user's chosen unit; convert to kg for storage
-    final rawWeight = double.tryParse(_weightController.text.trim()) ??
-        AppConstants.defaultWeightKg;
-    final weightUnit = formData?.weightUnit ?? AppConstants.unitKg;
-    final storedWeight = weightUnit == AppConstants.unitLbs
-        ? rawWeight.lbsToKg
-        : rawWeight;
     await ref.read(onboardingNotifierProvider.notifier).completeOnboarding(
           name: name,
-          weightKg: storedWeight,
-          weightUnit: weightUnit,
+          weightKg: _selectedWeight ?? AppConstants.defaultWeightKg,
+          weightUnit: formData?.weightUnit ?? AppConstants.unitKg,
           activityLevel:
               formData?.activityLevel ?? AppConstants.defaultActivityLevel,
           gender: formData?.gender ?? AppConstants.defaultGender,
