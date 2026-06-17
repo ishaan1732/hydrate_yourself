@@ -103,6 +103,15 @@ class NotificationService {
       final now = tz.TZDateTime.now(tz.local);
       final minScheduleTime = now.add(const Duration(minutes: 2));
 
+      // If sleep time, read as a plain time-of-day, falls at or
+      // before wake time, the user's bedtime is after midnight
+      // relative to their wake time (e.g. wake 6:00am, sleep
+      // 12:00am/1:00am/2:00am) — so the sleep boundary belongs
+      // to the calendar day AFTER wake's date, not the same one.
+      final wakeMinutesOfDay = wakeHour * 60 + wakeMinute;
+      final sleepMinutesOfDay = sleepHour * 60 + sleepMinute;
+      final sleepCrossesMidnight = sleepMinutesOfDay <= wakeMinutesOfDay;
+
       int notificationId = 100;
 
       // Any of the 5 reschedule triggers (open app, log
@@ -121,8 +130,12 @@ class NotificationService {
           wakeHour, wakeMinute,
         ).add(Duration(minutes: intervalMinutes));
 
+        final sleepDate = sleepCrossesMidnight
+            ? targetDate.add(const Duration(days: 1))
+            : targetDate;
+
         final sleepTime = tz.TZDateTime(
-          tz.local, targetDate.year, targetDate.month, targetDate.day,
+          tz.local, sleepDate.year, sleepDate.month, sleepDate.day,
           sleepHour, sleepMinute,
         );
 
