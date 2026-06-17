@@ -29,6 +29,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     with WidgetsBindingObserver {
   late DateTime _lastKnownDate;
 
+  // JumboWidget's natural (unscaled) size before its outer FittedBox would
+  // start shrinking it: 160 mascot (fixed per CLAUDE.md) + 6 spacer +
+  // 30 label pill (14 vertical padding + ~16 line height at fontSize 13)
+  // = 196. Giving it at least this height means it renders at full design
+  // size instead of being scaled down by FittedBox(fit: BoxFit.scaleDown).
+  static const double _compactJumboHeight = 196;
+
+  // Sum of every other section's real height, using Material 3's default
+  // type-scale line heights (this app's ThemeData doesn't override font
+  // sizes, only the font family via GoogleFonts.nunitoTextTheme):
+  //   _buildHeader:         24 (padding) + 20 (bodyMedium) + 32 (headlineSmall) = 76
+  //   _buildProgressText:   8 (padding) + 40 (displaySmall line) + 16 (bodySmall)
+  //                         + 8 (spacer) + 16 (labelSmall) + 2 (spacer)
+  //                         + 8 (progress bar) + 3 (spacer) + 12 (tick marks) = 113
+  //   _buildBottomControls: max(60 left zone, 91 right zone [10 padding +
+  //                         40 + 0.5 divider + 40, rounded up]) = 91
+  //   trailing SizedBox:    16
+  //   subtotal = 76 + 113 + 91 + 16 = 296
+  // Plus _compactJumboHeight (196) plus a ~24px safety margin:
+  //   296 + 196 + 24 = 516
+  static const double _compactLayoutThreshold = 516;
+
   @override
   void initState() {
     super.initState();
@@ -130,9 +152,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                   );
                 }
                 final summary = summaryAsync.valueOrNull!;
-                return _buildContent(
-                  context, ref, summary, unit, jumboAmount,
-                  profile, selectedDrinkTypeId, lastLogAsync,
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxHeight >= _compactLayoutThreshold) {
+                      return _buildContent(
+                        context, ref, summary, unit, jumboAmount,
+                        profile, selectedDrinkTypeId, lastLogAsync,
+                      );
+                    }
+                    return _buildCompactContent(
+                      context, ref, summary, unit, jumboAmount,
+                      profile, selectedDrinkTypeId, lastLogAsync,
+                    );
+                  },
                 );
               },
             ),
@@ -182,6 +214,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ),
         const SizedBox(height: 16),
       ],
+    );
+  }
+
+  Widget _buildCompactContent(
+    BuildContext context,
+    WidgetRef ref,
+    TodaySummary summary,
+    String unit,
+    int jumboAmount,
+    UserProfileModel? profile,
+    int? selectedDrinkTypeId,
+    AsyncValue<WaterLogModel?> lastLogAsync,
+  ) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          _buildHeader(context, profile),
+          _buildProgressText(context, summary, unit),
+          SizedBox(
+            height: _compactJumboHeight,
+            child: Center(
+              child: JumboWidget(
+                tapAmount: jumboAmount,
+                unit: unit,
+                onTap: () => ref
+                    .read(homeActionProvider.notifier)
+                    .addQuickLog(jumboAmount.toDouble()),
+              ),
+            ),
+          ),
+          _buildBottomControls(
+            context, ref, unit, selectedDrinkTypeId,
+            lastLogAsync, jumboAmount, profile,
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
     );
   }
 
