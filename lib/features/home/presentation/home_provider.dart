@@ -308,6 +308,21 @@ class HomeAction extends _$HomeAction {
       ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
     }
 
+    final profile = ref.read(userProfileProvider).valueOrNull;
+    if (profile != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await NotificationService().scheduleRemindersForToday(
+        wakeHour: profile.wakeHour,
+        wakeMinute: profile.wakeMinute,
+        sleepHour: profile.sleepHour,
+        sleepMinute: profile.sleepMinute,
+        intervalMinutes: profile.reminderIntervalMinutes,
+        currentTotalMl: totalAfterUndo.round(),
+        goalMl: summary.goalMl,
+        notificationsEnabled: profile.notificationsEnabled,
+        soundEnabled: prefs.getBool(AppConstants.prefNotificationSound) ?? true,
+      );
+    }
   }
 }
 

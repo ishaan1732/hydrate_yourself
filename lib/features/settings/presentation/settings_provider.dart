@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
 import '../../../database/database_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
+import '../../home/presentation/home_provider.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import '../../onboarding/presentation/onboarding_provider.dart';
 import '../../reminders/data/notification_service.dart';
@@ -203,13 +204,14 @@ class SettingsNotifier extends _$SettingsNotifier {
     final prefs = await SharedPreferences.getInstance();
     final soundEnabled =
         prefs.getBool(AppConstants.prefNotificationSound) ?? true;
+    final currentTotal = await ref.read(todayTotalMlProvider.future);
     await NotificationService().scheduleRemindersForToday(
       wakeHour: current.wakeHour,
       wakeMinute: current.wakeMinute,
       sleepHour: current.sleepHour,
       sleepMinute: current.sleepMinute,
       intervalMinutes: current.reminderIntervalMinutes,
-      currentTotalMl: 0,
+      currentTotalMl: currentTotal.round(),
       goalMl: current.dailyGoalMl,
       notificationsEnabled: current.notificationsEnabled,
       soundEnabled: soundEnabled,
@@ -277,6 +279,7 @@ class SettingsNotifier extends _$SettingsNotifier {
     state = const AsyncLoading();
     try {
       await ref.read(settingsRepositoryProvider).deleteAllData();
+      await NotificationService().cancelAllNotifications();
       ref.read(onboardingCompleteProvider.notifier).state = false;
       state = const AsyncData(null);
     } catch (e, st) {

@@ -60,8 +60,15 @@ class NotificationService {
     return status.isGranted;
   }
 
-  /// Cancels all pending scheduled reminders then schedules one notification
-  /// per interval slot from [wakeHour] to [sleepHour] for the rest of today.
+  Future<void> cancelAllNotifications() async {
+    await _plugin.cancelAll();
+  }
+
+  /// Cancels all pending scheduled reminders, then schedules one notification
+  /// per interval slot from [wakeHour] to [sleepHour] for the remainder of
+  /// today plus the next [scheduleHorizonDays] - 1 full days. Every one of
+  /// the 5 reschedule triggers elsewhere in the app re-extends this horizon
+  /// from whatever moment it fires.
   Future<void> scheduleRemindersForToday({
     required int wakeHour,
     required int wakeMinute,
@@ -95,52 +102,72 @@ class NotificationService {
 
       final now = tz.TZDateTime.now(tz.local);
       final minScheduleTime = now.add(const Duration(minutes: 2));
-      final todayWake = tz.TZDateTime(
-          tz.local, now.year, now.month, now.day, wakeHour, wakeMinute);
-      final todaySleep = tz.TZDateTime(
-          tz.local, now.year, now.month, now.day, sleepHour, sleepMinute);
 
-      // First slot is wake + interval, not wake itself
       int notificationId = 100;
-      tz.TZDateTime scheduledTime =
-          todayWake.add(Duration(minutes: intervalMinutes));
 
-      final percentage =
-          goalMl > 0 ? ((currentTotalMl / goalMl) * 100).round() : 0;
-      final remaining = (goalMl - currentTotalMl).clamp(0, goalMl);
-      final body = currentTotalMl >= goalMl
-          ? 'Goal reached! 🎉 $currentTotalMl ml of $goalMl ml'
-          : '$currentTotalMl ml of $goalMl ml ($percentage%) — $remaining ml to go';
+      // Any of the 5 reschedule triggers (open app, log
+      // water, undo, change settings, toggle sound) pushes
+      // this horizon forward by another 7 days from that
+      // moment. Only a user who never triggers any of those
+      // for 7 fully consecutive days will see reminders stop.
+      const scheduleHorizonDays = 7;
 
-      while (scheduledTime.isBefore(todaySleep)) {
-        if (scheduledTime.isAfter(minScheduleTime)) {
-          await _plugin.zonedSchedule(
-            notificationId,
-            'Time to hydrate! 💧',
-            body,
-            scheduledTime,
-            NotificationDetails(
-              android: AndroidNotificationDetails(
-                channelId,
-                channelName,
-                channelDescription: 'Hydration reminders throughout the day',
-                importance:
-                    soundEnabled ? Importance.high : Importance.low,
-                priority: soundEnabled ? Priority.high : Priority.low,
-                playSound: soundEnabled,
-                enableVibration: soundEnabled,
-                icon: '@mipmap/ic_launcher',
+      for (int dayOffset = 0; dayOffset < scheduleHorizonDays; dayOffset++) {
+        final targetDate = now.add(Duration(days: dayOffset));
+
+        // First slot is wake + interval, not wake itself
+        var slotTime = tz.TZDateTime(
+          tz.local, targetDate.year, targetDate.month, targetDate.day,
+          wakeHour, wakeMinute,
+        ).add(Duration(minutes: intervalMinutes));
+
+        final sleepTime = tz.TZDateTime(
+          tz.local, targetDate.year, targetDate.month, targetDate.day,
+          sleepHour, sleepMinute,
+        );
+
+        // Today (offset 0) shows real progress. Every other
+        // day in the horizon is a future day with nothing
+        // logged yet, so it always shows 0.
+        final displayTotal = dayOffset == 0 ? currentTotalMl : 0;
+
+        final percentage = goalMl > 0
+            ? ((displayTotal / goalMl) * 100).round() : 0;
+        final remaining = (goalMl - displayTotal).clamp(0, goalMl);
+        final body = displayTotal >= goalMl
+            ? 'Goal reached! 🎉 $displayTotal ml of $goalMl ml'
+            : '$displayTotal ml of $goalMl ml ($percentage%) — $remaining ml to go';
+
+        while (slotTime.isBefore(sleepTime)) {
+          if (slotTime.isAfter(minScheduleTime)) {
+            await _plugin.zonedSchedule(
+              notificationId,
+              'Time to hydrate! 💧',
+              body,
+              slotTime,
+              NotificationDetails(
+                android: AndroidNotificationDetails(
+                  channelId,
+                  channelName,
+                  channelDescription: 'Hydration reminders throughout the day',
+                  importance:
+                      soundEnabled ? Importance.high : Importance.low,
+                  priority: soundEnabled ? Priority.high : Priority.low,
+                  playSound: soundEnabled,
+                  enableVibration: soundEnabled,
+                  icon: '@mipmap/ic_launcher',
+                ),
               ),
-            ),
-            androidScheduleMode: scheduleMode,
-            uiLocalNotificationDateInterpretation:
-                UILocalNotificationDateInterpretation.absoluteTime,
-          );
+              androidScheduleMode: scheduleMode,
+              uiLocalNotificationDateInterpretation:
+                  UILocalNotificationDateInterpretation.absoluteTime,
+            );
 
-          notificationId++;
+            notificationId++;
+          }
+
+          slotTime = slotTime.add(Duration(minutes: intervalMinutes));
         }
-
-        scheduledTime = scheduledTime.add(Duration(minutes: intervalMinutes));
       }
     } catch (_) {}
   }
