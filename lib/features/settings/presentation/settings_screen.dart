@@ -304,7 +304,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         size: 14,
                         color: colorScheme.outline,
                       ),
-                      onTap: () => _showExactAlarmsDialog(context),
+                      onTap: () => _handleAlarmsRowTap(context),
                     ),
                   ],
                 ],
@@ -2556,6 +2556,46 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               await openBatteryOptimizationSettings();
             },
             child: const Text('Open settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleAlarmsRowTap(BuildContext context) async {
+    final isGranted = await NotificationService()
+        .isExactAlarmPermissionGranted();
+    if (!context.mounted) return;
+    if (isGranted) {
+      _showAlarmsAlreadyEnabledDialog(context);
+    } else {
+      _showExactAlarmsDialog(context);
+    }
+  }
+
+  void _showAlarmsAlreadyEnabledDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text('Exact reminders enabled'),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Text(
+              'Hydrate Yourself already has permission to set '
+              'precise alarms, so your reminders will fire on '
+              'time.',
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
           ),
         ],
       ),
