@@ -288,6 +288,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       ),
                       onTap: () => _showBatteryOptimizationDialog(context),
                     ),
+                    const Divider(height: 1, indent: 56),
+                    ListTile(
+                      leading: Icon(
+                        Icons.alarm_outlined,
+                        color: colorScheme.primary,
+                      ),
+                      title: const Text('Alarms & reminders'),
+                      subtitle: const Text(
+                        'Allow Hydrate Yourself to set exact alarms '
+                        'so reminders fire on time',
+                      ),
+                      trailing: Icon(
+                        Icons.arrow_forward_ios,
+                        size: 14,
+                        color: colorScheme.outline,
+                      ),
+                      onTap: () => _showExactAlarmsDialog(context),
+                    ),
                   ],
                 ],
               ),
@@ -2536,6 +2554,69 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               await openBatteryOptimizationSettings();
+            },
+            child: const Text('Open settings'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showExactAlarmsDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text('Enable exact reminders'),
+        ),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'To receive reminders at exactly the right '
+                  'time, Hydrate Yourself needs permission to '
+                  'set precise alarms.',
+                ),
+                const SizedBox(height: 16),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'To fix this:',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _buildStep(context, '1.', 'Tap "Open settings" below'),
+                const SizedBox(height: 6),
+                _buildStep(context, '2.',
+                    'Enable "Allow setting alarms and reminders"'),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final android = FlutterLocalNotificationsPlugin()
+                  .resolvePlatformSpecificImplementation<
+                      AndroidFlutterLocalNotificationsPlugin>();
+              await android?.requestExactAlarmsPermission();
             },
             child: const Text('Open settings'),
           ),

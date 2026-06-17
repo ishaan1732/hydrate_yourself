@@ -64,6 +64,12 @@ class NotificationService {
     await _plugin.cancelAll();
   }
 
+  Future<bool> isExactAlarmPermissionGranted() async {
+    final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    return await androidPlugin?.canScheduleExactNotifications() ?? false;
+  }
+
   /// Cancels all pending scheduled reminders, then schedules one notification
   /// per interval slot from [wakeHour] to [sleepHour] for the remainder of
   /// today plus the next [scheduleHorizonDays] - 1 full days. Every one of
