@@ -1478,17 +1478,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text('Edit Name'),
-        ),
         content: SizedBox(
           width: double.maxFinite,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Edit Name',
+                    style: Theme.of(dialogContext).textTheme.titleLarge,
+                  ),
+                ),
+                const SizedBox(height: 20),
                 TextField(
                   controller: controller,
                   decoration: const InputDecoration(
@@ -1497,31 +1501,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                   autofocus: true,
                 ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext),
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Cancel'),
+                      ),
+                    ),
+                    FilledButton(
+                      onPressed: () {
+                        final name = controller.text.trim();
+                        if (name.isEmpty) return;
+                        Navigator.pop(dialogContext);
+                        ref
+                            .read(settingsNotifierProvider.notifier)
+                            .updateName(name);
+                      },
+                      child: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Save'),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text('Cancel'),
-            ),
-          ),
-          FilledButton(
-            onPressed: () {
-              final name = controller.text.trim();
-              if (name.isEmpty) return;
-              Navigator.pop(dialogContext);
-              ref.read(settingsNotifierProvider.notifier).updateName(name);
-            },
-            child: const FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text('Save'),
-            ),
-          ),
-        ],
       ),
     );
   }
