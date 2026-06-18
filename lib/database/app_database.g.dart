@@ -518,24 +518,8 @@ class $WaterLogsTable extends WaterLogs
       'REFERENCES drink_types (id)',
     ),
   );
-  static const VerificationMeta _noteMeta = const VerificationMeta('note');
   @override
-  late final GeneratedColumn<String> note = GeneratedColumn<String>(
-    'note',
-    aliasedName,
-    true,
-    additionalChecks: GeneratedColumn.checkTextLength(maxTextLength: 200),
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    loggedAt,
-    amountMl,
-    drinkTypeId,
-    note,
-  ];
+  List<GeneratedColumn> get $columns => [id, loggedAt, amountMl, drinkTypeId];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -578,12 +562,6 @@ class $WaterLogsTable extends WaterLogs
     } else if (isInserting) {
       context.missing(_drinkTypeIdMeta);
     }
-    if (data.containsKey('note')) {
-      context.handle(
-        _noteMeta,
-        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
-      );
-    }
     return context;
   }
 
@@ -609,10 +587,6 @@ class $WaterLogsTable extends WaterLogs
         DriftSqlType.int,
         data['${effectivePrefix}drink_type_id'],
       )!,
-      note: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}note'],
-      ),
     );
   }
 
@@ -627,13 +601,11 @@ class WaterLogsData extends DataClass implements Insertable<WaterLogsData> {
   final DateTime loggedAt;
   final double amountMl;
   final int drinkTypeId;
-  final String? note;
   const WaterLogsData({
     required this.id,
     required this.loggedAt,
     required this.amountMl,
     required this.drinkTypeId,
-    this.note,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -642,9 +614,6 @@ class WaterLogsData extends DataClass implements Insertable<WaterLogsData> {
     map['logged_at'] = Variable<DateTime>(loggedAt);
     map['amount_ml'] = Variable<double>(amountMl);
     map['drink_type_id'] = Variable<int>(drinkTypeId);
-    if (!nullToAbsent || note != null) {
-      map['note'] = Variable<String>(note);
-    }
     return map;
   }
 
@@ -654,7 +623,6 @@ class WaterLogsData extends DataClass implements Insertable<WaterLogsData> {
       loggedAt: Value(loggedAt),
       amountMl: Value(amountMl),
       drinkTypeId: Value(drinkTypeId),
-      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
     );
   }
 
@@ -668,7 +636,6 @@ class WaterLogsData extends DataClass implements Insertable<WaterLogsData> {
       loggedAt: serializer.fromJson<DateTime>(json['loggedAt']),
       amountMl: serializer.fromJson<double>(json['amountMl']),
       drinkTypeId: serializer.fromJson<int>(json['drinkTypeId']),
-      note: serializer.fromJson<String?>(json['note']),
     );
   }
   @override
@@ -679,7 +646,6 @@ class WaterLogsData extends DataClass implements Insertable<WaterLogsData> {
       'loggedAt': serializer.toJson<DateTime>(loggedAt),
       'amountMl': serializer.toJson<double>(amountMl),
       'drinkTypeId': serializer.toJson<int>(drinkTypeId),
-      'note': serializer.toJson<String?>(note),
     };
   }
 
@@ -688,13 +654,11 @@ class WaterLogsData extends DataClass implements Insertable<WaterLogsData> {
     DateTime? loggedAt,
     double? amountMl,
     int? drinkTypeId,
-    Value<String?> note = const Value.absent(),
   }) => WaterLogsData(
     id: id ?? this.id,
     loggedAt: loggedAt ?? this.loggedAt,
     amountMl: amountMl ?? this.amountMl,
     drinkTypeId: drinkTypeId ?? this.drinkTypeId,
-    note: note.present ? note.value : this.note,
   );
   WaterLogsData copyWithCompanion(WaterLogsCompanion data) {
     return WaterLogsData(
@@ -704,7 +668,6 @@ class WaterLogsData extends DataClass implements Insertable<WaterLogsData> {
       drinkTypeId: data.drinkTypeId.present
           ? data.drinkTypeId.value
           : this.drinkTypeId,
-      note: data.note.present ? data.note.value : this.note,
     );
   }
 
@@ -714,14 +677,13 @@ class WaterLogsData extends DataClass implements Insertable<WaterLogsData> {
           ..write('id: $id, ')
           ..write('loggedAt: $loggedAt, ')
           ..write('amountMl: $amountMl, ')
-          ..write('drinkTypeId: $drinkTypeId, ')
-          ..write('note: $note')
+          ..write('drinkTypeId: $drinkTypeId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, loggedAt, amountMl, drinkTypeId, note);
+  int get hashCode => Object.hash(id, loggedAt, amountMl, drinkTypeId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -729,8 +691,7 @@ class WaterLogsData extends DataClass implements Insertable<WaterLogsData> {
           other.id == this.id &&
           other.loggedAt == this.loggedAt &&
           other.amountMl == this.amountMl &&
-          other.drinkTypeId == this.drinkTypeId &&
-          other.note == this.note);
+          other.drinkTypeId == this.drinkTypeId);
 }
 
 class WaterLogsCompanion extends UpdateCompanion<WaterLogsData> {
@@ -738,20 +699,17 @@ class WaterLogsCompanion extends UpdateCompanion<WaterLogsData> {
   final Value<DateTime> loggedAt;
   final Value<double> amountMl;
   final Value<int> drinkTypeId;
-  final Value<String?> note;
   const WaterLogsCompanion({
     this.id = const Value.absent(),
     this.loggedAt = const Value.absent(),
     this.amountMl = const Value.absent(),
     this.drinkTypeId = const Value.absent(),
-    this.note = const Value.absent(),
   });
   WaterLogsCompanion.insert({
     this.id = const Value.absent(),
     required DateTime loggedAt,
     required double amountMl,
     required int drinkTypeId,
-    this.note = const Value.absent(),
   }) : loggedAt = Value(loggedAt),
        amountMl = Value(amountMl),
        drinkTypeId = Value(drinkTypeId);
@@ -760,14 +718,12 @@ class WaterLogsCompanion extends UpdateCompanion<WaterLogsData> {
     Expression<DateTime>? loggedAt,
     Expression<double>? amountMl,
     Expression<int>? drinkTypeId,
-    Expression<String>? note,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (loggedAt != null) 'logged_at': loggedAt,
       if (amountMl != null) 'amount_ml': amountMl,
       if (drinkTypeId != null) 'drink_type_id': drinkTypeId,
-      if (note != null) 'note': note,
     });
   }
 
@@ -776,14 +732,12 @@ class WaterLogsCompanion extends UpdateCompanion<WaterLogsData> {
     Value<DateTime>? loggedAt,
     Value<double>? amountMl,
     Value<int>? drinkTypeId,
-    Value<String?>? note,
   }) {
     return WaterLogsCompanion(
       id: id ?? this.id,
       loggedAt: loggedAt ?? this.loggedAt,
       amountMl: amountMl ?? this.amountMl,
       drinkTypeId: drinkTypeId ?? this.drinkTypeId,
-      note: note ?? this.note,
     );
   }
 
@@ -802,9 +756,6 @@ class WaterLogsCompanion extends UpdateCompanion<WaterLogsData> {
     if (drinkTypeId.present) {
       map['drink_type_id'] = Variable<int>(drinkTypeId.value);
     }
-    if (note.present) {
-      map['note'] = Variable<String>(note.value);
-    }
     return map;
   }
 
@@ -814,8 +765,7 @@ class WaterLogsCompanion extends UpdateCompanion<WaterLogsData> {
           ..write('id: $id, ')
           ..write('loggedAt: $loggedAt, ')
           ..write('amountMl: $amountMl, ')
-          ..write('drinkTypeId: $drinkTypeId, ')
-          ..write('note: $note')
+          ..write('drinkTypeId: $drinkTypeId')
           ..write(')'))
         .toString();
   }
@@ -2144,7 +2094,6 @@ typedef $$WaterLogsTableCreateCompanionBuilder =
       required DateTime loggedAt,
       required double amountMl,
       required int drinkTypeId,
-      Value<String?> note,
     });
 typedef $$WaterLogsTableUpdateCompanionBuilder =
     WaterLogsCompanion Function({
@@ -2152,7 +2101,6 @@ typedef $$WaterLogsTableUpdateCompanionBuilder =
       Value<DateTime> loggedAt,
       Value<double> amountMl,
       Value<int> drinkTypeId,
-      Value<String?> note,
     });
 
 final class $$WaterLogsTableReferences
@@ -2200,11 +2148,6 @@ class $$WaterLogsTableFilterComposer
 
   ColumnFilters<double> get amountMl => $composableBuilder(
     column: $table.amountMl,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get note => $composableBuilder(
-    column: $table.note,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -2256,11 +2199,6 @@ class $$WaterLogsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get note => $composableBuilder(
-    column: $table.note,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   $$DrinkTypesTableOrderingComposer get drinkTypeId {
     final $$DrinkTypesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2302,9 +2240,6 @@ class $$WaterLogsTableAnnotationComposer
 
   GeneratedColumn<double> get amountMl =>
       $composableBuilder(column: $table.amountMl, builder: (column) => column);
-
-  GeneratedColumn<String> get note =>
-      $composableBuilder(column: $table.note, builder: (column) => column);
 
   $$DrinkTypesTableAnnotationComposer get drinkTypeId {
     final $$DrinkTypesTableAnnotationComposer composer = $composerBuilder(
@@ -2362,13 +2297,11 @@ class $$WaterLogsTableTableManager
                 Value<DateTime> loggedAt = const Value.absent(),
                 Value<double> amountMl = const Value.absent(),
                 Value<int> drinkTypeId = const Value.absent(),
-                Value<String?> note = const Value.absent(),
               }) => WaterLogsCompanion(
                 id: id,
                 loggedAt: loggedAt,
                 amountMl: amountMl,
                 drinkTypeId: drinkTypeId,
-                note: note,
               ),
           createCompanionCallback:
               ({
@@ -2376,13 +2309,11 @@ class $$WaterLogsTableTableManager
                 required DateTime loggedAt,
                 required double amountMl,
                 required int drinkTypeId,
-                Value<String?> note = const Value.absent(),
               }) => WaterLogsCompanion.insert(
                 id: id,
                 loggedAt: loggedAt,
                 amountMl: amountMl,
                 drinkTypeId: drinkTypeId,
-                note: note,
               ),
           withReferenceMapper: (p0) => p0
               .map(

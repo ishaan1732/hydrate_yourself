@@ -13,7 +13,6 @@ class WaterLogModel with _$WaterLogModel {
     required DateTime loggedAt,
     required double amountMl,
     required DrinkTypeModel drinkType,
-    String? note,
   }) = _WaterLogModel;
 
   factory WaterLogModel.fromDrift(
@@ -25,6 +24,5 @@ class WaterLogModel with _$WaterLogModel {
         loggedAt: log.loggedAt,
         amountMl: log.amountMl,
         drinkType: DrinkTypeModel.fromDrift(drinkType),
-        note: log.note,
       );
 }

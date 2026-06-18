@@ -21,7 +21,6 @@ mixin _$WaterLogModel {
   DateTime get loggedAt => throw _privateConstructorUsedError;
   double get amountMl => throw _privateConstructorUsedError;
   DrinkTypeModel get drinkType => throw _privateConstructorUsedError;
-  String? get note => throw _privateConstructorUsedError;
 
   /// Create a copy of WaterLogModel
   /// with the given fields replaced by the non-null parameter values.
@@ -42,7 +41,6 @@ abstract class $WaterLogModelCopyWith<$Res> {
     DateTime loggedAt,
     double amountMl,
     DrinkTypeModel drinkType,
-    String? note,
   });
 
   $DrinkTypeModelCopyWith<$Res> get drinkType;
@@ -67,7 +65,6 @@ class _$WaterLogModelCopyWithImpl<$Res, $Val extends WaterLogModel>
     Object? loggedAt = null,
     Object? amountMl = null,
     Object? drinkType = null,
-    Object? note = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -87,10 +84,6 @@ class _$WaterLogModelCopyWithImpl<$Res, $Val extends WaterLogModel>
                 ? _value.drinkType
                 : drinkType // ignore: cast_nullable_to_non_nullable
                       as DrinkTypeModel,
-            note: freezed == note
-                ? _value.note
-                : note // ignore: cast_nullable_to_non_nullable
-                      as String?,
           )
           as $Val,
     );
@@ -121,7 +114,6 @@ abstract class _$$WaterLogModelImplCopyWith<$Res>
     DateTime loggedAt,
     double amountMl,
     DrinkTypeModel drinkType,
-    String? note,
   });
 
   @override
@@ -146,7 +138,6 @@ class __$$WaterLogModelImplCopyWithImpl<$Res>
     Object? loggedAt = null,
     Object? amountMl = null,
     Object? drinkType = null,
-    Object? note = freezed,
   }) {
     return _then(
       _$WaterLogModelImpl(
@@ -166,10 +157,6 @@ class __$$WaterLogModelImplCopyWithImpl<$Res>
             ? _value.drinkType
             : drinkType // ignore: cast_nullable_to_non_nullable
                   as DrinkTypeModel,
-        note: freezed == note
-            ? _value.note
-            : note // ignore: cast_nullable_to_non_nullable
-                  as String?,
       ),
     );
   }
@@ -183,7 +170,6 @@ class _$WaterLogModelImpl implements _WaterLogModel {
     required this.loggedAt,
     required this.amountMl,
     required this.drinkType,
-    this.note,
   });
 
   @override
@@ -194,12 +180,10 @@ class _$WaterLogModelImpl implements _WaterLogModel {
   final double amountMl;
   @override
   final DrinkTypeModel drinkType;
-  @override
-  final String? note;
 
   @override
   String toString() {
-    return 'WaterLogModel(id: $id, loggedAt: $loggedAt, amountMl: $amountMl, drinkType: $drinkType, note: $note)';
+    return 'WaterLogModel(id: $id, loggedAt: $loggedAt, amountMl: $amountMl, drinkType: $drinkType)';
   }
 
   @override
@@ -213,13 +197,12 @@ class _$WaterLogModelImpl implements _WaterLogModel {
             (identical(other.amountMl, amountMl) ||
                 other.amountMl == amountMl) &&
             (identical(other.drinkType, drinkType) ||
-                other.drinkType == drinkType) &&
-            (identical(other.note, note) || other.note == note));
+                other.drinkType == drinkType));
   }
 
   @override
   int get hashCode =>
-      Object.hash(runtimeType, id, loggedAt, amountMl, drinkType, note);
+      Object.hash(runtimeType, id, loggedAt, amountMl, drinkType);
 
   /// Create a copy of WaterLogModel
   /// with the given fields replaced by the non-null parameter values.
@@ -236,7 +219,6 @@ abstract class _WaterLogModel implements WaterLogModel {
     required final DateTime loggedAt,
     required final double amountMl,
     required final DrinkTypeModel drinkType,
-    final String? note,
   }) = _$WaterLogModelImpl;
 
   @override
@@ -247,8 +229,6 @@ abstract class _WaterLogModel implements WaterLogModel {
   double get amountMl;
   @override
   DrinkTypeModel get drinkType;
-  @override
-  String? get note;
 
   /// Create a copy of WaterLogModel
   /// with the given fields replaced by the non-null parameter values.

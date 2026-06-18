@@ -8,5 +8,4 @@ class WaterLogs extends Table {
   DateTimeColumn get loggedAt => dateTime()();
   RealColumn get amountMl => real()();
   IntColumn get drinkTypeId => integer().references(DrinkTypes, #id)();
-  TextColumn get note => text().withLength(max: 200).nullable()();
 }

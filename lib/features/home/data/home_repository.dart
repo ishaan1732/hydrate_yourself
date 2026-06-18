@@ -40,7 +40,6 @@ class HomeRepository {
         loggedAt: DateTime.now(),
         amountMl: amountMl,
         drinkTypeId: drinkTypeId,
-        note: const Value(null),
       ));
 
   Future<void> addLogAtTime({
@@ -52,7 +51,6 @@ class HomeRepository {
         loggedAt: loggedAt,
         amountMl: amountMl,
         drinkTypeId: drinkTypeId,
-        note: const Value(null),
       ));
 
   Future<WaterLogModel?> getLastLog() async {

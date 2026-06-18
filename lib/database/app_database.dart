@@ -27,7 +27,7 @@ class AppDatabase extends _$AppDatabase {
       AppDatabase._withExecutor(NativeDatabase(File(dbPath)));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -86,6 +86,9 @@ class AppDatabase extends _$AppDatabase {
             await m.addColumn(userProfile, userProfile.gender);
             await m.addColumn(userProfile, userProfile.isPregnant);
             await m.addColumn(userProfile, userProfile.climateType);
+          }
+          if (from < 5) {
+            await m.dropColumn(waterLogs, 'note');
           }
         },
       );
