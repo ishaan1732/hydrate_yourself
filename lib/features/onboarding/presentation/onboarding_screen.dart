@@ -41,6 +41,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   static const double _compactOnboardingThreshold = 168;
   static const double _compactPageViewHeight = 500;
 
+  // Minimum width the Back/Next/Complete Row needs at full size, with
+  // neither button wrapped in Expanded/Flexible (Spacer absorbs slack but
+  // can't shrink the buttons themselves below their content+padding):
+  //   FilledButton: horizontal padding 32*2=64 + widest label "Complete"
+  //                 at labelLarge (~14sp, ~9px/char * 8 chars =~72) =~ 136
+  //   TextButton 'Back': default theme padding ~12*2=24 + "Back" at
+  //                 ~9px/char * 4 chars =~36 =~ 60
+  //   subtotal = 136 + 60 = 196
+  // Plus a ~40px safety margin: 196 + 40 = 236, rounded to 240.
+  static const double _compactButtonRowThreshold = 240;
+  static const double _compactButtonRowPadding = 16; // half of 32
+  static const double _compactButtonRowFontSize = 12;
+
   @override
   void initState() {
     super.initState();
@@ -123,26 +136,55 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-                    child: Row(
-                      children: [
-                        TextButton(
-                          onPressed: _previousPage,
-                          child: const Text('Back'),
-                        ),
-                        const Spacer(),
-                        FilledButton(
-                          onPressed: buttonDisabled
-                              ? null
-                              : (_currentPage < 4 ? _nextPage : _complete),
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 32, vertical: 14),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: Text(_currentPage < 4 ? 'Next' : 'Complete'),
-                        ),
-                      ],
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isCompact = constraints.maxWidth <
+                            _compactButtonRowThreshold;
+                        return Row(
+                          children: [
+                            TextButton(
+                              onPressed: _previousPage,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  'Back',
+                                  style: isCompact
+                                      ? const TextStyle(
+                                          fontSize: _compactButtonRowFontSize)
+                                      : null,
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+                            FilledButton(
+                              onPressed: buttonDisabled
+                                  ? null
+                                  : (_currentPage < 4
+                                      ? _nextPage
+                                      : _complete),
+                              style: FilledButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: isCompact
+                                        ? _compactButtonRowPadding
+                                        : 32,
+                                    vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  _currentPage < 4 ? 'Next' : 'Complete',
+                                  style: isCompact
+                                      ? const TextStyle(
+                                          fontSize: _compactButtonRowFontSize)
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -195,26 +237,52 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-            child: Row(
-              children: [
-                TextButton(
-                  onPressed: _previousPage,
-                  child: const Text('Back'),
-                ),
-                const Spacer(),
-                FilledButton(
-                  onPressed: buttonDisabled
-                      ? null
-                      : (_currentPage < 4 ? _nextPage : _complete),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 32, vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: Text(_currentPage < 4 ? 'Next' : 'Complete'),
-                ),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isCompact =
+                    constraints.maxWidth < _compactButtonRowThreshold;
+                return Row(
+                  children: [
+                    TextButton(
+                      onPressed: _previousPage,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Back',
+                          style: isCompact
+                              ? const TextStyle(
+                                  fontSize: _compactButtonRowFontSize)
+                              : null,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    FilledButton(
+                      onPressed: buttonDisabled
+                          ? null
+                          : (_currentPage < 4 ? _nextPage : _complete),
+                      style: FilledButton.styleFrom(
+                        padding: EdgeInsets.symmetric(
+                            horizontal:
+                                isCompact ? _compactButtonRowPadding : 32,
+                            vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          _currentPage < 4 ? 'Next' : 'Complete',
+                          style: isCompact
+                              ? const TextStyle(
+                                  fontSize: _compactButtonRowFontSize)
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],

@@ -51,6 +51,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   //   296 + 196 + 24 = 516
   static const double _compactLayoutThreshold = 516;
 
+  // 16px outer padding each side (32 total) + 196px left zone (two 60px
+  // _GlassButtons + one 60px undo box + two 8px gaps) + 50px right zone
+  // (5px padding each side + 40px icon column) = 278px absolute minimum
+  // before this Row hard-overflows horizontally. Plus a safety margin so
+  // buttons aren't pixel-perfect-tight right at the boundary: 320.
+  static const double _compactButtonRowThreshold = 320;
+
+  // 48 is Android's documented minimum comfortable tap-target size — the
+  // floor this shrinks to never makes these buttons uncomfortable to press.
+  static const double _compactButtonSize = 48;
+
   @override
   void initState() {
     super.initState();
@@ -433,158 +444,171 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             : drinkTypes.first)
         : null;
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          // ── LEFT ZONE: two square glass buttons ───────────────────────────
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact =
+            constraints.maxWidth < _compactButtonRowThreshold;
+        final boxSize = isCompact ? _compactButtonSize : 60.0;
+        final iconBarSize = isCompact ? _compactButtonSize - 8 : 40.0;
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              _GlassButton(
-                icon: Icons.local_drink_outlined,
-                label: unit == 'oz'
-                    ? jumboAmount.toDouble().toHalfOzString()
-                    : '$jumboAmount ml',
-                onTap: () => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(24)),
-                  ),
-                  builder: (dialogContext) => Padding(
-                    padding: EdgeInsets.only(
-                      bottom: MediaQuery.of(context).viewInsets.bottom,
+              // ── LEFT ZONE: two square glass buttons ───────────────────────
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _GlassButton(
+                    icon: Icons.local_drink_outlined,
+                    label: unit == 'oz'
+                        ? jumboAmount.toDouble().toHalfOzString()
+                        : '$jumboAmount ml',
+                    onTap: () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.vertical(top: Radius.circular(24)),
+                      ),
+                      builder: (dialogContext) => Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom,
+                        ),
+                        child: CupSizeSheet(
+                          currentSizeMl: jumboAmount,
+                          unit: unit,
+                          onSizeSelected: (ml) {
+                            ref
+                                .read(jumboTapAmountProvider.notifier)
+                                .setAmount(ml);
+                          },
+                        ),
+                      ),
                     ),
-                    child: CupSizeSheet(
-                      currentSizeMl: jumboAmount,
-                      unit: unit,
-                      onSizeSelected: (ml) {
-                        ref
-                            .read(jumboTapAmountProvider.notifier)
-                            .setAmount(ml);
-                      },
+                    boxSize: boxSize,
+                  ),
+                  const SizedBox(width: 8),
+                  _GlassButton(
+                    iconWidget: selectedDrinkType != null &&
+                            selectedDrinkType.iconName.isNotEmpty
+                        ? Text(
+                            _emojiForDrink(selectedDrinkType.iconName),
+                            style: const TextStyle(fontSize: 18),
+                          )
+                        : null,
+                    icon: selectedDrinkType == null ||
+                            selectedDrinkType.iconName.isEmpty
+                        ? Icons.water_drop_outlined
+                        : null,
+                    iconColor: colorScheme.tertiary,
+                    label: selectedDrinkType?.name ?? 'Drink',
+                    onTap: drinkTypes.isEmpty
+                        ? null
+                        : () => showModalBottomSheet<void>(
+                              context: context,
+                              isScrollControlled: true,
+                              shape: const RoundedRectangleBorder(
+                                borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(24)),
+                              ),
+                              builder: (dialogContext) => DrinkTypeSheet(
+                                selectedDrinkTypeId:
+                                    selectedDrinkTypeId ?? drinkTypes.first.id,
+                                onDrinkSelected: (drink) {
+                                  ref
+                                      .read(
+                                          selectedDrinkTypeIdProvider.notifier)
+                                      .state = drink.id;
+                                },
+                              ),
+                            ),
+                    boxSize: boxSize,
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: boxSize,
+                    height: boxSize,
+                    clipBehavior: Clip.hardEdge,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: colorScheme.primary.withValues(alpha: 0.35),
+                      ),
+                    ),
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: Icon(
+                        Icons.undo_outlined,
+                        color: colorScheme.error,
+                      ),
+                      onPressed: lastLog != null
+                          ? () => ref
+                              .read(homeActionProvider.notifier)
+                              .deleteLastLog()
+                          : null,
                     ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: 8),
-              _GlassButton(
-                iconWidget: selectedDrinkType != null &&
-                        selectedDrinkType.iconName.isNotEmpty
-                    ? Text(
-                        _emojiForDrink(selectedDrinkType.iconName),
-                        style: const TextStyle(fontSize: 18),
-                      )
-                    : null,
-                icon: selectedDrinkType == null ||
-                        selectedDrinkType.iconName.isEmpty
-                    ? Icons.water_drop_outlined
-                    : null,
-                iconColor: colorScheme.tertiary,
-                label: selectedDrinkType?.name ?? 'Drink',
-                onTap: drinkTypes.isEmpty
-                    ? null
-                    : () => showModalBottomSheet<void>(
-                          context: context,
-                          isScrollControlled: true,
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(
-                                top: Radius.circular(24)),
-                          ),
-                          builder: (dialogContext) => DrinkTypeSheet(
-                            selectedDrinkTypeId:
-                                selectedDrinkTypeId ?? drinkTypes.first.id,
-                            onDrinkSelected: (drink) {
-                              ref
-                                  .read(selectedDrinkTypeIdProvider.notifier)
-                                  .state = drink.id;
-                            },
+
+              // ── RIGHT ZONE: vertical icon bar ────────────────────────────
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.28),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                padding: const EdgeInsets.all(5),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Climate — FIX B: opaque so full tap area is tappable
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _showClimateDialog(context, ref, profile),
+                      child: SizedBox(
+                        width: iconBarSize,
+                        height: iconBarSize,
+                        child: const Center(
+                          child: Icon(
+                            Icons.wb_sunny_outlined,
+                            size: 20,
+                            color: Color.fromRGBO(255, 255, 255, 0.85),
                           ),
                         ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                width: 60,
-                height: 60,
-                clipBehavior: Clip.hardEdge,
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: colorScheme.primary.withValues(alpha: 0.35),
-                  ),
-                ),
-                child: IconButton(
-                  padding: EdgeInsets.zero,
-                  icon: Icon(
-                    Icons.undo_outlined,
-                    color: colorScheme.error,
-                  ),
-                  onPressed: lastLog != null
-                      ? () =>
-                          ref.read(homeActionProvider.notifier).deleteLastLog()
-                      : null,
+                      ),
+                    ),
+                    Container(
+                      width: 28,
+                      height: 0.5,
+                      color: Colors.white.withValues(alpha: 0.15),
+                    ),
+                    // Activity — opaque so full tap area is tappable
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _showActivityDialog(context, ref, profile),
+                      child: SizedBox(
+                        width: iconBarSize,
+                        height: iconBarSize,
+                        child: const Center(
+                          child: Icon(
+                            Icons.directions_run_outlined,
+                            size: 20,
+                            color: Color.fromRGBO(255, 255, 255, 0.85),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
-
-          // ── RIGHT ZONE: vertical icon bar ────────────────────────────────
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.28),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            padding: const EdgeInsets.all(5),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Climate — FIX B: opaque so full 40×40 area is tappable
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => _showClimateDialog(context, ref, profile),
-                  child: const SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: Center(
-                      child: Icon(
-                        Icons.wb_sunny_outlined,
-                        size: 20,
-                        color: Color.fromRGBO(255, 255, 255, 0.85),
-                      ),
-                    ),
-                  ),
-                ),
-                Container(
-                  width: 28,
-                  height: 0.5,
-                  color: Colors.white.withValues(alpha: 0.15),
-                ),
-                // Activity — opaque so full 40×40 area is tappable
-                GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => _showActivityDialog(context, ref, profile),
-                  child: const SizedBox(
-                    width: 40,
-                    height: 40,
-                    child: Center(
-                      child: Icon(
-                        Icons.directions_run_outlined,
-                        size: 20,
-                        color: Color.fromRGBO(255, 255, 255, 0.85),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -694,6 +718,7 @@ class _GlassButton extends StatelessWidget {
     required this.label,
     required this.onTap,
     this.iconColor,
+    this.boxSize = 60,
   });
 
   final IconData? icon;
@@ -701,6 +726,7 @@ class _GlassButton extends StatelessWidget {
   final String label;
   final VoidCallback? onTap;
   final Color? iconColor;
+  final double boxSize;
 
   @override
   Widget build(BuildContext context) {
@@ -711,12 +737,13 @@ class _GlassButton extends StatelessWidget {
     // 2. Check Physical Screen Width (Standard phones are 375-430dp, small screens are <= 360dp)
     final double screenWidth = MediaQuery.sizeOf(context).width;
     final bool isScreenTooSmall = screenWidth <= 360;
-    final bool shouldHideLabel = isFontTooLarge || isScreenTooSmall;
+    final bool shouldHideLabel =
+        isFontTooLarge || isScreenTooSmall || boxSize < 60;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 60,
-        height: 60,
+        width: boxSize,
+        height: boxSize,
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
           color: colorScheme.primaryContainer,

@@ -4,6 +4,13 @@ import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
 import '../extensions/double_extensions.dart';
 
+// Minimum width the kg/lbs toggle needs at full size: each chip carries
+// horizontal padding 24*2=48, plus its label ("kg" ~2 chars, "lbs" ~3 chars
+// at ~9px/char =~18 and ~27) =~ 66 and ~75. Sum of both chips =~ 141. Plus
+// a ~40px safety margin: 141 + 40 = 181, rounded to 180.
+const double _compactUnitToggleThreshold = 180;
+const double _compactUnitChipPadding = 12; // half of 24
+
 Future<(double, String)?> showWeightPickerDialog({
   required BuildContext context,
   required double? currentWeightKg,
@@ -62,31 +69,39 @@ Future<(double, String)?> showWeightPickerDialog({
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: colorScheme.outline.withValues(alpha: 0.3),
-                        width: 0.5,
-                      ),
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _unitChip(
-                          label: 'kg',
-                          selected: isKg,
-                          colorScheme: colorScheme,
-                          onTap: () => switchUnit(true),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final isCompact =
+                          constraints.maxWidth < _compactUnitToggleThreshold;
+                      return Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: colorScheme.outline.withValues(alpha: 0.3),
+                            width: 0.5,
+                          ),
+                          borderRadius: BorderRadius.circular(99),
                         ),
-                        _unitChip(
-                          label: 'lbs',
-                          selected: !isKg,
-                          colorScheme: colorScheme,
-                          onTap: () => switchUnit(false),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _unitChip(
+                              label: 'kg',
+                              selected: isKg,
+                              colorScheme: colorScheme,
+                              onTap: () => switchUnit(true),
+                              isCompact: isCompact,
+                            ),
+                            _unitChip(
+                              label: 'lbs',
+                              selected: !isKg,
+                              colorScheme: colorScheme,
+                              onTap: () => switchUnit(false),
+                              isCompact: isCompact,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -261,24 +276,29 @@ Widget _unitChip({
   required bool selected,
   required ColorScheme colorScheme,
   required VoidCallback onTap,
+  required bool isCompact,
 }) {
   return GestureDetector(
     onTap: onTap,
     child: AnimatedContainer(
       duration: const Duration(milliseconds: 150),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 7),
+      padding: EdgeInsets.symmetric(
+          horizontal: isCompact ? _compactUnitChipPadding : 24, vertical: 7),
       decoration: BoxDecoration(
         color: selected ? colorScheme.primaryContainer : Colors.transparent,
         borderRadius: BorderRadius.circular(99),
       ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: selected ? FontWeight.w500 : FontWeight.normal,
-          color: selected
-              ? colorScheme.primary
-              : colorScheme.onSurface.withValues(alpha: 0.5),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w500 : FontWeight.normal,
+            color: selected
+                ? colorScheme.primary
+                : colorScheme.onSurface.withValues(alpha: 0.5),
+          ),
         ),
       ),
     ),
