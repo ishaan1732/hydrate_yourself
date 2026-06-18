@@ -239,10 +239,13 @@ class _CupSizeSheetState extends State<CupSizeSheet> {
                   widget.onSizeSelected(_customMl);
                   Navigator.pop(context);
                 },
-                child: Text(
-                  widget.unit == 'oz'
-                      ? 'Set Cup Size — ${_mlToDisplayOz(_customMl)} oz'
-                      : 'Set Cup Size — $_customMl ml',
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    widget.unit == 'oz'
+                        ? 'Set Cup Size — ${_mlToDisplayOz(_customMl)} oz'
+                        : 'Set Cup Size — $_customMl ml',
+                  ),
                 ),
               ),
             ),

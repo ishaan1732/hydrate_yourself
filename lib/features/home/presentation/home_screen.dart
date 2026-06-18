@@ -983,7 +983,10 @@ class _ClimateDialogState extends ConsumerState<_ClimateDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text('Cancel'),
+          ),
         ),
         FilledButton(
           onPressed: () async {
@@ -996,7 +999,10 @@ class _ClimateDialogState extends ConsumerState<_ClimateDialog> {
             }
             nav.pop();
           },
-          child: const Text('Apply'),
+          child: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text('Apply'),
+          ),
         ),
       ],
     );
@@ -1145,7 +1151,10 @@ class _ActivityDialogState extends ConsumerState<_ActivityDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          child: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text('Cancel'),
+          ),
         ),
         FilledButton(
           onPressed: () async {
@@ -1158,7 +1167,10 @@ class _ActivityDialogState extends ConsumerState<_ActivityDialog> {
             }
             nav.pop();
           },
-          child: const Text('Apply'),
+          child: const FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text('Apply'),
+          ),
         ),
       ],
     );

@@ -586,14 +586,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Cancel'),
+                  ),
                 ),
                 FilledButton(
                   onPressed: () async {
                     Navigator.pop(ctx);
                     await android?.requestExactAlarmsPermission();
                   },
-                  child: const Text('Open settings'),
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Open settings'),
+                  ),
                 ),
               ],
             ),
@@ -764,7 +770,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
+              child: const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('Cancel'),
+              ),
             ),
             FilledButton(
               style: FilledButton.styleFrom(
@@ -783,7 +792,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   context.go('/onboarding');
                 }
               },
-              child: const Text('Delete everything'),
+              child: const FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('Delete everything'),
+              ),
             ),
           ],
         );
@@ -1241,7 +1253,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Got it'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Got it'),
+            ),
           ),
         ],
       ),
@@ -1454,7 +1469,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Cancel'),
+            ),
           ),
         ],
       ),
@@ -1708,7 +1726,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     stopHold();
                     Navigator.pop(dialogContext);
                   },
-                  child: const Text('Cancel'),
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Cancel'),
+                  ),
                 ),
                 FilledButton(
                   onPressed: () {
@@ -1718,7 +1739,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         .read(settingsNotifierProvider.notifier)
                         .updateGoal(currentMl);
                   },
-                  child: const Text('Save'),
+                  child: const FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text('Save'),
+                  ),
                 ),
               ],
             );
@@ -2105,7 +2129,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Cancel'),
+            ),
           ),
         ],
       ),
@@ -2229,7 +2256,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Cancel'),
+            ),
           ),
         ],
       ),
@@ -2298,14 +2328,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Close'),
+            ),
           ),
           FilledButton(
             onPressed: () async {
               Navigator.pop(ctx);
               await openBatteryOptimizationSettings();
             },
-            child: const Text('Open settings'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Open settings'),
+            ),
           ),
         ],
       ),
@@ -2345,7 +2381,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Close'),
+            ),
           ),
         ],
       ),
@@ -2398,7 +2437,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Close'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Close'),
+            ),
           ),
           FilledButton(
             onPressed: () async {
@@ -2408,7 +2450,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       AndroidFlutterLocalNotificationsPlugin>();
               await android?.requestExactAlarmsPermission();
             },
-            child: const Text('Open settings'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Open settings'),
+            ),
           ),
         ],
       ),
