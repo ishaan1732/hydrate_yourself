@@ -28,6 +28,19 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   String? _genderError;
   double? _selectedWeight; // stored internally in kg
 
+  // Sum of the two fixed-height rows that sandwich the PageView, both of
+  // which can't shrink or scroll on their own:
+  //   progress dots:  32 (Padding: 16 top + 16 bottom) + 8 (Row height,
+  //                    fixed by AnimatedContainer's height: 8) = 40
+  //   Back/Next row:  40 (Padding: 8 top + 32 bottom) + 48 (Row height,
+  //                    set by FilledButton's vertical: 14 padding + ~20
+  //                    labelLarge text line height = 48, taller than the
+  //                    ~40 default Material 3 button minimum) = 88
+  //   subtotal = 40 + 88 = 128
+  // Plus a ~40px safety margin: 128 + 40 = 168
+  static const double _compactOnboardingThreshold = 168;
+  static const double _compactPageViewHeight = 500;
+
   @override
   void initState() {
     super.initState();
@@ -69,67 +82,142 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(4, (i) {
-                  final isActive = i == _currentPage - 1;
-                  return AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: isActive ? 24 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: isActive
-                          ? colorScheme.primary
-                          : colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  );
-                }),
-              ),
-            ),
-            Expanded(
-              child: PageView(
-                controller: _pageController,
-                physics: const NeverScrollableScrollPhysics(),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxHeight >= _compactOnboardingThreshold) {
+              return Column(
                 children: [
-                  _buildNameWeightPage(),
-                  _buildActivityPage(),
-                  _buildClimatePage(),
-                  _buildRemindersPage(),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
-              child: Row(
-                children: [
-                  TextButton(
-                    onPressed: _previousPage,
-                    child: const Text('Back'),
-                  ),
-                  const Spacer(),
-                  FilledButton(
-                    onPressed: buttonDisabled
-                        ? null
-                        : (_currentPage < 4 ? _nextPage : _complete),
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 32, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(4, (i) {
+                        final isActive = i == _currentPage - 1;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: isActive ? 24 : 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? colorScheme.primary
+                                : colorScheme.outlineVariant,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        );
+                      }),
                     ),
-                    child: Text(_currentPage < 4 ? 'Next' : 'Complete'),
+                  ),
+                  Expanded(
+                    child: PageView(
+                      controller: _pageController,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        _buildNameWeightPage(),
+                        _buildActivityPage(),
+                        _buildClimatePage(),
+                        _buildRemindersPage(),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+                    child: Row(
+                      children: [
+                        TextButton(
+                          onPressed: _previousPage,
+                          child: const Text('Back'),
+                        ),
+                        const Spacer(),
+                        FilledButton(
+                          onPressed: buttonDisabled
+                              ? null
+                              : (_currentPage < 4 ? _nextPage : _complete),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 32, vertical: 14),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                          child: Text(_currentPage < 4 ? 'Next' : 'Complete'),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
-              ),
-            ),
-          ],
+              );
+            }
+            return _buildCompactOnboardingFrame(buttonDisabled);
+          },
         ),
+      ),
+    );
+  }
+
+  Widget _buildCompactOnboardingFrame(bool buttonDisabled) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(4, (i) {
+                final isActive = i == _currentPage - 1;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: isActive ? 24 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: isActive
+                        ? Theme.of(context).colorScheme.primary
+                        : Theme.of(context).colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                );
+              }),
+            ),
+          ),
+          SizedBox(
+            height: _compactPageViewHeight,
+            child: PageView(
+              controller: _pageController,
+              physics: const NeverScrollableScrollPhysics(),
+              children: [
+                _buildNameWeightPage(),
+                _buildActivityPage(),
+                _buildClimatePage(),
+                _buildRemindersPage(),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+            child: Row(
+              children: [
+                TextButton(
+                  onPressed: _previousPage,
+                  child: const Text('Back'),
+                ),
+                const Spacer(),
+                FilledButton(
+                  onPressed: buttonDisabled
+                      ? null
+                      : (_currentPage < 4 ? _nextPage : _complete),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 32, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(_currentPage < 4 ? 'Next' : 'Complete'),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
