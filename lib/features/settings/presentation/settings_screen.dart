@@ -15,6 +15,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
 import '../../../core/providers/theme_mode_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
+import '../../../core/widgets/weight_picker_dialog.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import '../../home/presentation/home_provider.dart';
 import '../../reminders/data/notification_service.dart';
@@ -117,11 +118,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     icon: Icons.monitor_weight_outlined,
                     label: 'Weight',
                     value: profile.weightKg.toWeightString(profile.weightUnit),
-                    onTap: () =>
-                        _showEditWeightDialog(context, ref, profile),
+                    onTap: () => _handleEditWeightTap(context, ref, profile),
                   ),
-                  const Divider(height: 1, indent: 56),
-                  _buildWeightUnitTile(context, ref, profile),
                   const Divider(height: 1, indent: 56),
                   _buildActivityTile(context, ref, profile.activityLevel),
                   const Divider(height: 1, indent: 56),
@@ -1039,32 +1037,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     );
   }
 
-  Widget _buildWeightUnitTile(
-      BuildContext context, WidgetRef ref, UserProfileModel profile) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return ListTile(
-      leading: Icon(Icons.scale_outlined, color: colorScheme.primary),
-      title: Text('Weight Unit', style: Theme.of(context).textTheme.bodyLarge),
-      trailing: SegmentedButton<String>(
-        segments: const [
-          ButtonSegment(value: 'kg', label: Text('kg')),
-          ButtonSegment(value: 'lbs', label: Text('lbs')),
-        ],
-        selected: {profile.weightUnit},
-        onSelectionChanged: (val) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ref
-                .read(settingsNotifierProvider.notifier)
-                .updateWeightUnit(val.first);
-          });
-        },
-        style: const ButtonStyle(
-          visualDensity: VisualDensity.compact,
-        ),
-      ),
-    );
-  }
-
   Widget _buildWakeTimeTile(
       BuildContext context, WidgetRef ref, UserProfileModel profile) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -1532,7 +1504,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Cancel'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Cancel'),
+            ),
           ),
           FilledButton(
             onPressed: () {
@@ -1541,114 +1516,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               Navigator.pop(dialogContext);
               ref.read(settingsNotifierProvider.notifier).updateName(name);
             },
-            child: const Text('Save'),
+            child: const FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text('Save'),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showEditWeightDialog(
+  Future<void> _handleEditWeightTap(
     BuildContext context,
     WidgetRef ref,
     UserProfileModel profile,
-  ) {
-    final controller = TextEditingController(
-      text: profile.weightUnit == 'lbs'
-          ? profile.weightKg.kgToLbs.toStringAsFixed(1)
-          : profile.weightKg.toStringAsFixed(1),
-    );
-    String? errorText;
-    String? warningText;
-
-    showDialog(
+  ) async {
+    final result = await showWeightPickerDialog(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (ctx, setState) {
-          final theme = Theme.of(ctx);
-          return AlertDialog(
-            title: const FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text('Edit Weight'),
-            ),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextField(
-                  controller: controller,
-                  decoration: InputDecoration(
-                    labelText: 'Weight (${profile.weightUnit})',
-                    border: const OutlineInputBorder(),
-                    errorText: errorText,
-                    suffixText: profile.weightUnit,
-                  ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  autofocus: true,
-                  onChanged: (val) {
-                    final parsed = double.tryParse(val.trim());
-                    setState(() {
-                      errorText = null;
-                      warningText = null;
-                      if (parsed != null && parsed > 1000) {
-                        warningText =
-                            'This seems unusually high — please double-check';
-                      }
-                    });
-                  },
-                ),
-                if (warningText != null) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(Icons.warning_amber_rounded,
-                          size: 14, color: Colors.amber.shade700),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          warningText!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.amber.shade700),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final val =
-                      double.tryParse(controller.text.trim());
-                  if (val == null || val <= 0) {
-                    setState(
-                        () => errorText = 'Please enter a valid weight');
-                    return;
-                  }
-                  Navigator.pop(dialogContext);
-                  ref
-                      .read(settingsNotifierProvider.notifier)
-                      .updateWeight(val, profile.weightUnit);
-                },
-                child: Text(warningText != null ? 'Save anyway' : 'Save'),
-              ),
-            ],
-          );
-        },
-      ),
+      currentWeightKg: profile.weightKg,
+      currentUnit: profile.weightUnit,
     );
+    if (result == null) return;
+
+    final (weightKg, unit) = result;
+    final weightInUnit = unit == AppConstants.unitLbs
+        ? weightKg.kgToLbs
+        : weightKg;
+    ref
+        .read(settingsNotifierProvider.notifier)
+        .updateWeight(weightInUnit, unit);
+    ref.read(settingsNotifierProvider.notifier).updateWeightUnit(unit);
   }
 
   void _showActivityDialog(
