@@ -244,15 +244,18 @@ class HomeAction extends _$HomeAction {
 
     // Reschedule so remaining notifications show updated progress.
     // Throttled to once per 5 minutes — prevents cancelAll() on every tap —
-    // but always fires immediately once the goal is met, so the goal-stop
-    // check inside scheduleRemindersForToday isn't silently throttled away.
+    // but always fires immediately on the specific log that crosses from
+    // under-goal to at/over-goal, so the goal-stop check inside
+    // scheduleRemindersForToday isn't silently throttled away. Later logs
+    // while already at/over goal go back to respecting the throttle.
     if (profile != null) {
       final lastReschedule = prefs.getInt('last_reschedule_ms') ?? 0;
       final nowMs = DateTime.now().millisecondsSinceEpoch;
       const fiveMinutes = 5 * 60 * 1000;
       final throttleElapsed = nowMs - lastReschedule > fiveMinutes;
-      final goalMet = newTotal.round() >= summary.goalMl;
-      if (throttleElapsed || goalMet) {
+      final goalJustCrossed =
+          !wasAlreadyAchieved && newTotal.round() >= summary.goalMl;
+      if (throttleElapsed || goalJustCrossed) {
         await prefs.setInt('last_reschedule_ms', nowMs);
         final soundEnabled =
             prefs.getBool(AppConstants.prefNotificationSound) ?? true;
