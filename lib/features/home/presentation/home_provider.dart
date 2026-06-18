@@ -242,13 +242,17 @@ class HomeAction extends _$HomeAction {
     final profile = ref.read(userProfileProvider).valueOrNull;
     final newTotal = await ref.read(todayTotalMlProvider.future);
 
-    // Reschedule so remaining notifications show updated progress
-    // Throttled to once per 5 minutes — prevents cancelAll() on every tap
+    // Reschedule so remaining notifications show updated progress.
+    // Throttled to once per 5 minutes — prevents cancelAll() on every tap —
+    // but always fires immediately once the goal is met, so the goal-stop
+    // check inside scheduleRemindersForToday isn't silently throttled away.
     if (profile != null) {
       final lastReschedule = prefs.getInt('last_reschedule_ms') ?? 0;
       final nowMs = DateTime.now().millisecondsSinceEpoch;
       const fiveMinutes = 5 * 60 * 1000;
-      if (nowMs - lastReschedule > fiveMinutes) {
+      final throttleElapsed = nowMs - lastReschedule > fiveMinutes;
+      final goalMet = newTotal.round() >= summary.goalMl;
+      if (throttleElapsed || goalMet) {
         await prefs.setInt('last_reschedule_ms', nowMs);
         final soundEnabled =
             prefs.getBool(AppConstants.prefNotificationSound) ?? true;

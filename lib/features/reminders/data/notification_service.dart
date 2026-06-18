@@ -128,6 +128,16 @@ class NotificationService {
       const scheduleHorizonDays = 7;
 
       for (int dayOffset = 0; dayOffset < scheduleHorizonDays; dayOffset++) {
+        // If today's real intake has already met or exceeded the
+        // goal, there's nothing left to remind about today — skip
+        // creating any of today's remaining slots entirely. This
+        // can only ever apply to day 0: every other day's display
+        // total is always 0, since the future can't be known in
+        // advance, so this check can never affect a future day.
+        if (dayOffset == 0 && currentTotalMl >= goalMl) {
+          continue;
+        }
+
         final targetDate = now.add(Duration(days: dayOffset));
 
         // First slot is wake + interval, not wake itself
@@ -153,9 +163,8 @@ class NotificationService {
         final percentage = goalMl > 0
             ? ((displayTotal / goalMl) * 100).round() : 0;
         final remaining = (goalMl - displayTotal).clamp(0, goalMl);
-        final body = displayTotal >= goalMl
-            ? 'Goal reached! 🎉 $displayTotal ml of $goalMl ml'
-            : '$displayTotal ml of $goalMl ml ($percentage%) — $remaining ml to go';
+        final body = '$displayTotal ml of $goalMl ml '
+            '($percentage%) — $remaining ml to go';
 
         while (slotTime.isBefore(sleepTime)) {
           if (slotTime.isAfter(minScheduleTime)) {
