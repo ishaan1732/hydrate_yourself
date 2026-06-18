@@ -35,6 +35,8 @@ class LogListTile extends StatelessWidget {
         unit == 'oz'
             ? '+${log.amountMl.toDouble().toHalfOzString()}'
             : '+${log.amountMl.round()}ml',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
         style: theme.textTheme.bodyLarge?.copyWith(
           fontWeight: FontWeight.w600,
         ),
