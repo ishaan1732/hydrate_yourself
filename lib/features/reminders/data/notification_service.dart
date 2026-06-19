@@ -13,7 +13,7 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
 
-  static const String _soundChannelId = 'water_reminders';
+  static const String _soundChannelId = 'water_reminders_v2';
   static const String _silentChannelId = 'water_reminders_silent';
 
   Future<void> initialize() async {
@@ -37,6 +37,7 @@ class NotificationService {
         description: 'Hydration reminders throughout the day',
         importance: Importance.high,
         playSound: true,
+        sound: RawResourceAndroidNotificationSound('water_pour'),
       ),
     );
     await android?.createNotificationChannel(
@@ -182,6 +183,10 @@ class NotificationService {
                       soundEnabled ? Importance.high : Importance.low,
                   priority: soundEnabled ? Priority.high : Priority.low,
                   playSound: soundEnabled,
+                  sound: soundEnabled
+                      ? const RawResourceAndroidNotificationSound(
+                          'water_pour')
+                      : null,
                   enableVibration: soundEnabled,
                   icon: '@mipmap/ic_launcher',
                 ),
