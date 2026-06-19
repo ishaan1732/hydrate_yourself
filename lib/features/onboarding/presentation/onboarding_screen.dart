@@ -97,8 +97,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            debugPrint(
-                'onboarding root LayoutBuilder maxHeight: ${constraints.maxHeight}');
             if (constraints.maxHeight >= _compactOnboardingThreshold) {
               return Column(
                 children: [
