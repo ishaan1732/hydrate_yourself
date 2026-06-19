@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -87,6 +88,7 @@ class NotificationService {
     required bool notificationsEnabled,
     required bool soundEnabled,
   }) async {
+    int notificationId = 100;
     try {
       if (!notificationsEnabled || intervalMinutes == 0) {
         await _plugin.cancelAll();
@@ -118,8 +120,6 @@ class NotificationService {
       final wakeMinutesOfDay = wakeHour * 60 + wakeMinute;
       final sleepMinutesOfDay = sleepHour * 60 + sleepMinute;
       final sleepCrossesMidnight = sleepMinutesOfDay <= wakeMinutesOfDay;
-
-      int notificationId = 100;
 
       // Any of the 5 reschedule triggers (open app, log
       // water, undo, change settings, toggle sound) pushes
@@ -188,7 +188,7 @@ class NotificationService {
                           'water_pour')
                       : null,
                   enableVibration: soundEnabled,
-                  icon: '@mipmap/ic_launcher',
+                  icon: '@mipmap/launcher_icon',
                 ),
               ),
               androidScheduleMode: scheduleMode,
@@ -202,7 +202,9 @@ class NotificationService {
           slotTime = slotTime.add(Duration(minutes: intervalMinutes));
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to schedule notification id=$notificationId: $e');
+    }
   }
 
   Future<void> markGoalAchievedToday() async {

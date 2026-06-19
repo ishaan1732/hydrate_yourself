@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
 
@@ -18,7 +17,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      textTheme: GoogleFonts.nunitoTextTheme(base.textTheme),
+      textTheme: base.textTheme.apply(fontFamily: 'Nunito'),
     );
   }
 }

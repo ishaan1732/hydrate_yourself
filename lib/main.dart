@@ -16,12 +16,14 @@ import 'features/settings/presentation/settings_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Timezone initialisation required for zonedSchedule
-  tz.initializeTimeZones();
-  final tzInfo = await FlutterTimezone.getLocalTimezone();
-  tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
-
-  await NotificationService().initialize();
+  try {
+    tz.initializeTimeZones();
+    final tzInfo = await FlutterTimezone.getLocalTimezone();
+    tz.setLocalLocation(tz.getLocation(tzInfo.identifier));
+    await NotificationService().initialize();
+  } catch (e) {
+    debugPrint('Notification init failed: $e');
+  }
 
   final prefs = await SharedPreferences.getInstance();
   final isOnboarded =

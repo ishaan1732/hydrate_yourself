@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,17 +25,21 @@ class NotificationSetupNotifier extends _$NotificationSetupNotifier {
         final prefs = await SharedPreferences.getInstance();
         final soundEnabled =
             prefs.getBool(AppConstants.prefNotificationSound) ?? true;
-        await service.scheduleRemindersForToday(
-          wakeHour: profile.wakeHour,
-          wakeMinute: profile.wakeMinute,
-          sleepHour: profile.sleepHour,
-          sleepMinute: profile.sleepMinute,
-          intervalMinutes: profile.reminderIntervalMinutes,
-          currentTotalMl: 0,
-          goalMl: profile.dailyGoalMl,
-          notificationsEnabled: profile.notificationsEnabled,
-          soundEnabled: soundEnabled,
-        );
+        try {
+          await service.scheduleRemindersForToday(
+            wakeHour: profile.wakeHour,
+            wakeMinute: profile.wakeMinute,
+            sleepHour: profile.sleepHour,
+            sleepMinute: profile.sleepMinute,
+            intervalMinutes: profile.reminderIntervalMinutes,
+            currentTotalMl: 0,
+            goalMl: profile.dailyGoalMl,
+            notificationsEnabled: profile.notificationsEnabled,
+            soundEnabled: soundEnabled,
+          );
+        } catch (e) {
+          debugPrint('SCHEDULE FAILED: $e');
+        }
       }
     }
 

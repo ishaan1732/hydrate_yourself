@@ -78,6 +78,21 @@ flutter:
     - assets/icons/
     - assets/images/
     - assets/animations/
+    - assets/fonts/
+
+  fonts:
+    - family: Nunito
+      fonts:
+        - asset: assets/fonts/Nunito-VariableFont_wght.ttf
+          weight: 400
+        - asset: assets/fonts/Nunito-VariableFont_wght.ttf
+          weight: 500
+        - asset: assets/fonts/Nunito-VariableFont_wght.ttf
+          weight: 600
+        - asset: assets/fonts/Nunito-VariableFont_wght.ttf
+          weight: 700
+        - asset: assets/fonts/Nunito-VariableFont_wght.ttf
+          weight: 800
 
 flutter_launcher_icons:
   android: "launcher_icon"
