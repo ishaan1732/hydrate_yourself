@@ -17,7 +17,6 @@ import '../../../core/providers/theme_mode_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
 import '../../../core/widgets/weight_picker_dialog.dart';
 import '../../onboarding/domain/user_profile_model.dart';
-import '../../home/presentation/home_provider.dart';
 import '../../reminders/data/notification_service.dart';
 import '../domain/mascot_type.dart';
 import 'providers/mascot_provider.dart';
@@ -2026,16 +2025,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ref.read(settingsNotifierProvider).valueOrNull;
             if (profile == null || !profile.notificationsEnabled) return;
 
-            final currentTotal =
-                (await ref.read(todayTotalMlProvider.future)).round();
-            await NotificationService().scheduleRemindersForToday(
+            await NotificationService().scheduleReminders(
               wakeHour: profile.wakeHour,
               wakeMinute: profile.wakeMinute,
               sleepHour: profile.sleepHour,
               sleepMinute: profile.sleepMinute,
               intervalMinutes: profile.reminderIntervalMinutes,
-              currentTotalMl: currentTotal,
-              goalMl: profile.dailyGoalMl,
               notificationsEnabled: true,
               soundEnabled: val,
             );

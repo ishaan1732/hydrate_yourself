@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <application
-        android:label="hydrate_yourself"
+        android:label="Hydrate Yourself"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

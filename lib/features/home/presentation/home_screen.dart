@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../onboarding/domain/user_profile_model.dart';
-import '../../reminders/data/notification_service.dart';
 import '../../reminders/presentation/reminders_provider.dart';
 import '../domain/today_override.dart';
 import '../domain/today_summary.dart';
@@ -87,30 +85,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ref.invalidate(todayOverrideNotifierProvider);
         ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
       }
-      _rescheduleNotifications();
     }
-  }
-
-  Future<void> _rescheduleNotifications() async {
-    final profile = ref.read(userProfileProvider).valueOrNull;
-    if (profile == null) return;
-
-    final prefs = await SharedPreferences.getInstance();
-    final soundEnabled =
-        prefs.getBool(AppConstants.prefNotificationSound) ?? true;
-    final currentTotal = (await ref.read(todayTotalMlProvider.future)).round();
-
-    await NotificationService().scheduleRemindersForToday(
-      wakeHour: profile.wakeHour,
-      wakeMinute: profile.wakeMinute,
-      sleepHour: profile.sleepHour,
-      sleepMinute: profile.sleepMinute,
-      intervalMinutes: profile.reminderIntervalMinutes,
-      currentTotalMl: currentTotal,
-      goalMl: profile.dailyGoalMl,
-      notificationsEnabled: profile.notificationsEnabled,
-      soundEnabled: soundEnabled,
-    );
   }
 
   @override

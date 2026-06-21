@@ -7,7 +7,7 @@ part of 'reminders_provider.dart';
 // **************************************************************************
 
 String _$notificationSetupNotifierHash() =>
-    r'5ad503e8379f97e504935efa46565b70998a9980';
+    r'e18ce4fb13e93a08b27f57f14b615ba4d544c193';
 
 /// See also [NotificationSetupNotifier].
 @ProviderFor(NotificationSetupNotifier)

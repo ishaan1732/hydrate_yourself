@@ -21,7 +21,6 @@ class AppConstants {
   // SharedPreferences keys
   static const String prefHasCompletedOnboarding = 'has_completed_onboarding';
   static const String prefSelectedUnit = 'selected_unit';
-  static const String prefLastNotificationTime = 'last_notification_time';
 
   // Notification constants
   static const String notificationChannelId = 'hydrate_reminders';
@@ -66,5 +65,4 @@ class AppConstants {
 
   // Notification preferences
   static const String prefNotificationSound = 'notification_sound';
-  static const String prefGoalAchievedDate = 'goal_achieved_date';
 }

@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/utils/hydration_calculator.dart';
 import '../../../database/database_provider.dart';
-import '../../reminders/data/notification_service.dart';
 import '../../settings/presentation/settings_provider.dart';
 import '../data/home_repository.dart';
 import '../domain/drink_type_model.dart';
@@ -216,7 +215,6 @@ class HomeAction extends _$HomeAction {
           amountMl: amountMl,
           drinkTypeId: drinkType.id,
         );
-    await NotificationService().updateLastLogTime();
 
     final summary = await ref.read(todaySummaryProvider.future);
     final wasAlreadyAchieved = ref.read(goalPreviouslyAchievedProvider);
@@ -224,7 +222,6 @@ class HomeAction extends _$HomeAction {
     if (summary.isGoalAchieved && !wasAlreadyAchieved) {
       ref.read(goalPreviouslyAchievedProvider.notifier).state = true;
       ref.read(showCelebrationProvider.notifier).state = true;
-      await NotificationService().markGoalAchievedToday();
       Future.delayed(const Duration(seconds: 3), () {
         ref.read(showCelebrationProvider.notifier).state = false;
       });
@@ -239,39 +236,6 @@ class HomeAction extends _$HomeAction {
     await prefs.setInt(AppConstants.prefLastDrinkTypeId, drinkType.id);
     await prefs.setInt(AppConstants.prefTodayGoalMl, summary.goalMl);
 
-    final profile = ref.read(userProfileProvider).valueOrNull;
-    final newTotal = await ref.read(todayTotalMlProvider.future);
-
-    // Reschedule so remaining notifications show updated progress.
-    // Throttled to once per 5 minutes — prevents cancelAll() on every tap —
-    // but always fires immediately on the specific log that crosses from
-    // under-goal to at/over-goal, so the goal-stop check inside
-    // scheduleRemindersForToday isn't silently throttled away. Later logs
-    // while already at/over goal go back to respecting the throttle.
-    if (profile != null) {
-      final lastReschedule = prefs.getInt('last_reschedule_ms') ?? 0;
-      final nowMs = DateTime.now().millisecondsSinceEpoch;
-      const fiveMinutes = 5 * 60 * 1000;
-      final throttleElapsed = nowMs - lastReschedule > fiveMinutes;
-      final goalJustCrossed =
-          !wasAlreadyAchieved && newTotal.round() >= summary.goalMl;
-      if (throttleElapsed || goalJustCrossed) {
-        await prefs.setInt('last_reschedule_ms', nowMs);
-        final soundEnabled =
-            prefs.getBool(AppConstants.prefNotificationSound) ?? true;
-        await NotificationService().scheduleRemindersForToday(
-          wakeHour: profile.wakeHour,
-          wakeMinute: profile.wakeMinute,
-          sleepHour: profile.sleepHour,
-          sleepMinute: profile.sleepMinute,
-          intervalMinutes: profile.reminderIntervalMinutes,
-          currentTotalMl: newTotal.round(),
-          goalMl: summary.goalMl,
-          notificationsEnabled: profile.notificationsEnabled,
-          soundEnabled: soundEnabled,
-        );
-      }
-    }
   }
 
   Future<void> _maybeRequestReview() async {
@@ -313,22 +277,6 @@ class HomeAction extends _$HomeAction {
 
     if (totalAfterUndo < summary.goalMl) {
       ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
-    }
-
-    final profile = ref.read(userProfileProvider).valueOrNull;
-    if (profile != null) {
-      final prefs = await SharedPreferences.getInstance();
-      await NotificationService().scheduleRemindersForToday(
-        wakeHour: profile.wakeHour,
-        wakeMinute: profile.wakeMinute,
-        sleepHour: profile.sleepHour,
-        sleepMinute: profile.sleepMinute,
-        intervalMinutes: profile.reminderIntervalMinutes,
-        currentTotalMl: totalAfterUndo.round(),
-        goalMl: summary.goalMl,
-        notificationsEnabled: profile.notificationsEnabled,
-        soundEnabled: prefs.getBool(AppConstants.prefNotificationSound) ?? true,
-      );
     }
   }
 }

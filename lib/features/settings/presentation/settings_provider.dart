@@ -5,7 +5,6 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
 import '../../../database/database_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
-import '../../home/presentation/home_provider.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import '../../onboarding/presentation/onboarding_provider.dart';
 import '../../reminders/data/notification_service.dart';
@@ -204,15 +203,12 @@ class SettingsNotifier extends _$SettingsNotifier {
     final prefs = await SharedPreferences.getInstance();
     final soundEnabled =
         prefs.getBool(AppConstants.prefNotificationSound) ?? true;
-    final currentTotal = await ref.read(todayTotalMlProvider.future);
-    await NotificationService().scheduleRemindersForToday(
+    await NotificationService().scheduleReminders(
       wakeHour: current.wakeHour,
       wakeMinute: current.wakeMinute,
       sleepHour: current.sleepHour,
       sleepMinute: current.sleepMinute,
       intervalMinutes: current.reminderIntervalMinutes,
-      currentTotalMl: currentTotal.round(),
-      goalMl: current.dailyGoalMl,
       notificationsEnabled: current.notificationsEnabled,
       soundEnabled: soundEnabled,
     );
