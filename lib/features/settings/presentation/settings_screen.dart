@@ -495,6 +495,51 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       }
                     },
                   ),
+                  const Divider(height: 1, indent: 56),
+                  ListTile(
+                    leading: Icon(
+                      Icons.privacy_tip_outlined,
+                      color: colorScheme.primary,
+                    ),
+                    title: const Text('Privacy Policy'),
+                    trailing: Icon(
+                      Icons.arrow_forward_ios,
+                      size: 14,
+                      color: colorScheme.outline,
+                    ),
+                    onTap: () async {
+                      final uri = Uri.parse(
+                        'https://ishaan1732.github.io/hydrate_yourself_privacy/',
+                      );
+                      try {
+                        final launched = await launchUrl(
+                          uri,
+                          mode: LaunchMode.externalApplication,
+                        );
+                        if (!launched && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Visit our privacy policy at: '
+                                'ishaan1732.github.io/hydrate_yourself_privacy',
+                              ),
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Could not open browser. Visit our privacy '
+                                'policy at: ishaan1732.github.io/hydrate_yourself_privacy',
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  ),
                 ],
               ),
 
