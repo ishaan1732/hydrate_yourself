@@ -5,6 +5,7 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/extensions/double_extensions.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../onboarding/domain/user_profile_model.dart';
+import '../../reminders/data/notification_service.dart';
 import '../../reminders/presentation/reminders_provider.dart';
 import '../domain/today_override.dart';
 import '../domain/today_summary.dart';
@@ -74,7 +75,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
+  Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (state == AppLifecycleState.resumed) {
       final now = DateTime.now();
       if (!DateUtils.isSameDay(now, _lastKnownDate)) {
@@ -85,6 +86,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ref.invalidate(todayOverrideNotifierProvider);
         ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
       }
+      await NotificationService().dismissActiveNotifications();
     }
   }
 

@@ -3,6 +3,16 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:timezone/timezone.dart' as tz;
 
+// Fires when a notification is tapped while the app is fully terminated.
+// Must be a top-level function (not a class method) since
+// @pragma('vm:entry-point') functions cannot be class methods.
+@pragma('vm:entry-point')
+void notificationTapBackground(NotificationResponse details) {
+  // App will be launched by the tap — active notifications will be
+  // dismissed by the foreground handler on resume. No additional
+  // action needed here for now.
+}
+
 class NotificationService {
   static final NotificationService instance = NotificationService._internal();
   NotificationService._internal();
@@ -24,7 +34,13 @@ class NotificationService {
       iOS: iosSettings,
     );
 
-    await _plugin.initialize(settings);
+    await _plugin.initialize(
+      settings,
+      onDidReceiveNotificationResponse: (details) async {
+        await dismissActiveNotifications();
+      },
+      onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
+    );
 
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
@@ -61,6 +77,23 @@ class NotificationService {
 
   Future<void> cancelAllNotifications() async {
     await _plugin.cancelAll();
+  }
+
+  /// Dismisses only the notifications currently visible in the shade.
+  /// getActiveNotifications() returns just what's visible right now —
+  /// not the future scheduled alarms — so cancelling by id here leaves
+  /// the recurring AlarmManager entries completely intact.
+  Future<void> dismissActiveNotifications() async {
+    final android = _plugin.resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin>();
+    if (android == null) return;
+
+    final active = await android.getActiveNotifications();
+    for (final notification in active) {
+      if (notification.id != null) {
+        await _plugin.cancel(notification.id!);
+      }
+    }
   }
 
   Future<bool> isExactAlarmPermissionGranted() async {
