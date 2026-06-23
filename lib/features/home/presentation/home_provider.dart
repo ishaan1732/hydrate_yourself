@@ -203,6 +203,11 @@ class HomeAction extends _$HomeAction {
   void build() {}
 
   Future<void> addQuickLog(double amountMl) async {
+    final profile = await ref.read(userProfileProvider.future);
+    final goalMl = profile?.dailyGoalMl ?? AppConstants.defaultDailyGoalMl;
+    final currentTotal = await ref.read(todayTotalMlProvider.future);
+    final wasAlreadyAchieved = ref.read(goalPreviouslyAchievedProvider);
+
     final drinkTypes = await ref.read(drinkTypesProvider.future);
     final selectedId = ref.read(selectedDrinkTypeIdProvider);
     final drinkType = selectedId != null
@@ -216,10 +221,13 @@ class HomeAction extends _$HomeAction {
           drinkTypeId: drinkType.id,
         );
 
-    final summary = await ref.read(todaySummaryProvider.future);
-    final wasAlreadyAchieved = ref.read(goalPreviouslyAchievedProvider);
+    // amountMl is stored and summed as-is (no hydrationCoefficient applied
+    // in storage), so the local total must match that to stay in sync with
+    // the eventual stream value.
+    final newTotal = currentTotal + amountMl;
+    final goalJustCrossed = !wasAlreadyAchieved && newTotal >= goalMl;
 
-    if (summary.isGoalAchieved && !wasAlreadyAchieved) {
+    if (goalJustCrossed) {
       ref.read(goalPreviouslyAchievedProvider.notifier).state = true;
       ref.read(showCelebrationProvider.notifier).state = true;
       Future.delayed(const Duration(seconds: 3), () {
@@ -234,7 +242,7 @@ class HomeAction extends _$HomeAction {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(AppConstants.prefLastCupSizeMl, amountMl.round());
     await prefs.setInt(AppConstants.prefLastDrinkTypeId, drinkType.id);
-    await prefs.setInt(AppConstants.prefTodayGoalMl, summary.goalMl);
+    await prefs.setInt(AppConstants.prefTodayGoalMl, goalMl);
 
   }
 
