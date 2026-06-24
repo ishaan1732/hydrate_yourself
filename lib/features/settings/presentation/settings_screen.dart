@@ -509,7 +509,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
                     onTap: () async {
                       final uri = Uri.parse(
-                        'https://ishaan1732.github.io/hydrate_yourself_privacy/',
+                        'https://sarthi2020.github.io/hydrate_yourself_privacy/',
                       );
                       try {
                         final launched = await launchUrl(
@@ -521,7 +521,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             const SnackBar(
                               content: Text(
                                 'Visit our privacy policy at: '
-                                'ishaan1732.github.io/hydrate_yourself_privacy',
+                                'sarthi2020.github.io/hydrate_yourself_privacy',
                               ),
                             ),
                           );
@@ -532,7 +532,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             const SnackBar(
                               content: Text(
                                 'Could not open browser. Visit our privacy '
-                                'policy at: ishaan1732.github.io/hydrate_yourself_privacy',
+                                'policy at: sarthi2020.github.io/hydrate_yourself_privacy',
                               ),
                             ),
                           );
