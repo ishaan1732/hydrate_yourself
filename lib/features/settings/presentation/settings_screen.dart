@@ -17,6 +17,7 @@ import '../../../core/extensions/double_extensions.dart';
 import '../../../core/providers/theme_mode_provider.dart';
 import '../../../core/utils/hydration_calculator.dart';
 import '../../../core/widgets/weight_picker_dialog.dart';
+import '../../home/presentation/home_provider.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import '../../reminders/data/notification_service.dart';
 import '../domain/mascot_type.dart';
@@ -271,6 +272,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     value: profile.notificationsEnabled,
                     onChanged: _onNotificationsToggled,
                   ),
+                  const Divider(height: 1, indent: 56),
+                  _buildPersistentNotificationToggleTile(
+                      context, ref, profile.unit),
                   if (profile.notificationsEnabled) ...[
                     const Divider(height: 1, indent: 56),
                     _buildReminderIntervalTile(
@@ -2094,6 +2098,57 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               notificationsEnabled: true,
               soundEnabled: val,
             );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPersistentNotificationToggleTile(
+      BuildContext context, WidgetRef ref, String unit) {
+    return FutureBuilder<bool>(
+      future: SharedPreferences.getInstance().then(
+        (prefs) =>
+            prefs.getBool(AppConstants.prefPersistentNotificationEnabled) ??
+            false,
+      ),
+      builder: (context, snapshot) {
+        final enabled = snapshot.data ?? false;
+        return SwitchListTile(
+          secondary: const Icon(Icons.water_drop_outlined),
+          title: Text(
+            'Progress notification',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          subtitle: const Text(
+            'Show hydration progress in the notification shade',
+          ),
+          value: enabled,
+          onChanged: (value) async {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setBool(
+                AppConstants.prefPersistentNotificationEnabled, value);
+            setState(() {});
+
+            if (value) {
+              // ref.read(...).valueOrNull would read synchronously and
+              // return null here: todaySummaryProvider is autoDispose and
+              // has no listeners while Settings (not Home) is on screen,
+              // so it's mid-recompute with nothing cached yet. .future
+              // triggers it (or reuses the in-flight computation) and
+              // properly awaits the result instead.
+              final summary = await ref.read(todaySummaryProvider.future);
+              final cupSize =
+                  prefs.getInt(AppConstants.prefLastCupSizeMl) ?? 250;
+              await NotificationService().showPersistentNotification(
+                currentMl: summary.totalMl.round(),
+                goalMl: summary.goalMl,
+                cupSizeMl: cupSize,
+                unit: unit,
+              );
+            } else {
+              await NotificationService().dismissPersistentNotification();
+            }
           },
         );
       },

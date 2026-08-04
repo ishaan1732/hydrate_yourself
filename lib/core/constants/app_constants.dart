@@ -50,6 +50,10 @@ class AppConstants {
   static const String prefLastCupSizeMl = 'last_cup_size_ml';
   static const String prefLastDrinkTypeId = 'last_drink_type_id';
   static const String prefTodayGoalMl = 'today_goal_ml';
+  static const String prefCachedDbPath = 'cached_db_path';
+  static const String prefPersistentNotificationEnabled =
+      'persistent_notification_enabled';
+  static const String persistentNotificationAddAction = 'add_water';
 
   // Gender
   static const String genderMale = 'male';

@@ -16,6 +16,10 @@ import 'features/settings/presentation/settings_provider.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Cache the resolved DB path so the notification background isolate can
+  // open the same file without calling path_provider itself.
+  await NotificationService.cacheDbPath();
+
   try {
     tz.initializeTimeZones();
     final tzInfo = await FlutterTimezone.getLocalTimezone();

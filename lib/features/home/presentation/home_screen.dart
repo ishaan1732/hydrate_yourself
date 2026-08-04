@@ -7,6 +7,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../onboarding/domain/user_profile_model.dart';
 import '../../reminders/data/notification_service.dart';
 import '../../reminders/presentation/reminders_provider.dart';
+import '../../settings/presentation/settings_provider.dart';
 import '../domain/today_override.dart';
 import '../domain/today_summary.dart';
 import '../domain/water_log_model.dart';
@@ -102,6 +103,28 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     final jumboAmount = jumboAmountAsync.valueOrNull ?? 250;
     final selectedDrinkTypeId = ref.watch(selectedDrinkTypeIdProvider);
     final lastLogAsync = ref.watch(lastLogProvider);
+
+    // Refreshes the persistent progress notification's text whenever the
+    // foreground app is open and the summary changes (log, undo, day
+    // change). Deliberately the only place this notification's text is
+    // updated — see notification_service.dart for why the background
+    // isolate never does this itself.
+    ref.listen(todaySummaryProvider, (_, next) {
+      next.whenData((summary) async {
+        final prefs = ref.read(sharedPreferencesProvider);
+        final enabled = prefs
+                .getBool(AppConstants.prefPersistentNotificationEnabled) ??
+            false;
+        if (!enabled) return;
+        final cupSize = prefs.getInt(AppConstants.prefLastCupSizeMl) ?? 250;
+        await NotificationService().showPersistentNotification(
+          currentMl: summary.totalMl.round(),
+          goalMl: summary.goalMl,
+          cupSizeMl: cupSize,
+          unit: unit,
+        );
+      });
+    });
 
     return Scaffold(
       backgroundColor: colorScheme.surface,

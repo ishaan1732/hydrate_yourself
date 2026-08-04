@@ -1,16 +1,70 @@
-import 'package:flutter/foundation.dart';
+import 'dart:ui';
+
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 
-// Fires when a notification is tapped while the app is fully terminated.
-// Must be a top-level function (not a class method) since
+import '../../../core/constants/app_constants.dart';
+import '../../../database/app_database.dart';
+
+// Fires when a notification is tapped while the app is fully terminated OR
+// backgrounded. Must be a top-level function (not a class method) since
 // @pragma('vm:entry-point') functions cannot be class methods.
+//
+// Only the 'add_water' action (from the persistent progress notification)
+// does anything here. It reads the db path cached by
+// NotificationService.cacheDbPath() at foreground startup instead of
+// resolving it via path_provider — path_provider doesn't reliably resolve
+// from this isolate on real devices, which is what broke a previous
+// attempt at this feature. Deliberately out of scope for v1: updating the
+// persistent notification's own text from this isolate. That only happens
+// when the foreground app is next opened (see home_screen.dart), so no
+// second DB read + notification update has to happen from here.
 @pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse details) {
-  // App will be launched by the tap — active notifications will be
-  // dismissed by the foreground handler on resume. No additional
-  // action needed here for now.
+Future<void> notificationTapBackground(NotificationResponse response) async {
+  debugPrint('=== BACKGROUND_ISOLATE_FIRED === '
+      'actionId=${response.actionId}');
+  if (response.actionId != AppConstants.persistentNotificationAddAction) {
+    // App will be launched by the tap — active notifications will be
+    // dismissed by the foreground handler on resume. No additional
+    // action needed here for now.
+    return;
+  }
+
+  try {
+    WidgetsFlutterBinding.ensureInitialized();
+    DartPluginRegistrant.ensureInitialized();
+
+    final prefs = await SharedPreferences.getInstance();
+
+    // Read the path cached from the foreground — never resolve it via
+    // path_provider from this isolate.
+    final dbPath = prefs.getString(AppConstants.prefCachedDbPath);
+    if (dbPath == null) return;
+
+    final cupSizeMl = prefs.getInt(AppConstants.prefLastCupSizeMl) ?? 250;
+    final drinkTypeId = prefs.getInt(AppConstants.prefLastDrinkTypeId) ?? 1;
+
+    final db = AppDatabase.openWithPath(dbPath);
+    try {
+      debugPrint('=== BACKGROUND_DB_WRITE_ATTEMPT === '
+          'cupSizeMl=$cupSizeMl dbPath=$dbPath');
+      await db.waterLogsDao.insertLog(WaterLogsCompanion.insert(
+        loggedAt: DateTime.now(),
+        amountMl: cupSizeMl.toDouble(),
+        drinkTypeId: drinkTypeId,
+      ));
+      debugPrint('=== BACKGROUND_DB_WRITE_SUCCESS ===');
+    } finally {
+      await db.close();
+    }
+
+    debugPrint('Background water log: ${cupSizeMl}ml');
+  } catch (e) {
+    debugPrint('Background tap failed: $e');
+  }
 }
 
 class NotificationService {
@@ -23,6 +77,16 @@ class NotificationService {
 
   static const String _soundChannelId = 'water_reminders_v2';
   static const String _silentChannelId = 'water_reminders_silent';
+
+  /// Called once at app startup from the foreground. Stores the resolved
+  /// database path so the background isolate can open the SAME file via
+  /// [AppDatabase.openWithPath] without calling path_provider itself (see
+  /// [notificationTapBackground]).
+  static Future<void> cacheDbPath() async {
+    final dbPath = await AppDatabase.resolveDbPath();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(AppConstants.prefCachedDbPath, dbPath);
+  }
 
   Future<void> initialize() async {
     const androidSettings =
@@ -64,6 +128,17 @@ class NotificationService {
         enableVibration: false,
       ),
     );
+    await android?.createNotificationChannel(
+      const AndroidNotificationChannel(
+        AppConstants.progressChannelId,
+        AppConstants.progressChannelName,
+        description: AppConstants.progressChannelDesc,
+        importance: Importance.low,
+        playSound: false,
+        enableVibration: false,
+        showBadge: false,
+      ),
+    );
   }
 
   Future<bool> requestPermissions() async {
@@ -83,6 +158,11 @@ class NotificationService {
   /// getActiveNotifications() returns just what's visible right now —
   /// not the future scheduled alarms — so cancelling by id here leaves
   /// the recurring AlarmManager entries completely intact.
+  ///
+  /// The persistent progress notification (id [AppConstants.
+  /// progressNotificationId]) is excluded: it's `ongoing: true` and meant
+  /// to stay visible across app opens, so a blanket sweep of "everything
+  /// currently in the shade" must not cancel it too.
   Future<void> dismissActiveNotifications() async {
     final android = _plugin.resolvePlatformSpecificImplementation<
         AndroidFlutterLocalNotificationsPlugin>();
@@ -90,7 +170,8 @@ class NotificationService {
 
     final active = await android.getActiveNotifications();
     for (final notification in active) {
-      if (notification.id != null) {
+      if (notification.id != null &&
+          notification.id != AppConstants.progressNotificationId) {
         await _plugin.cancel(notification.id!);
       }
     }
@@ -203,4 +284,58 @@ class NotificationService {
     }
   }
 
+  /// Shows (or updates) the persistent hydration-progress notification.
+  /// Only ever called from the foreground app — the background isolate
+  /// deliberately never touches this (see [notificationTapBackground]).
+  Future<void> showPersistentNotification({
+    required int currentMl,
+    required int goalMl,
+    required int cupSizeMl,
+    required String unit,
+  }) async {
+    final isOz = unit == AppConstants.unitOz;
+    final displayCurrent = isOz ? (currentMl / 29.5735).round() : currentMl;
+    final displayGoal = isOz ? (goalMl / 29.5735).round() : goalMl;
+    final displayCup = isOz
+        ? '${(cupSizeMl / 29.5735).toStringAsFixed(1)} oz'
+        : '$cupSizeMl ml';
+    final unitLabel = isOz ? 'oz' : 'ml';
+    final percentage = ((currentMl / goalMl) * 100).clamp(0, 100).round();
+
+    const addAction = AndroidNotificationAction(
+      AppConstants.persistentNotificationAddAction,
+      'Add water',
+      showsUserInterface: false,
+      cancelNotification: false,
+    );
+
+    final androidDetails = AndroidNotificationDetails(
+      AppConstants.progressChannelId,
+      AppConstants.progressChannelName,
+      channelDescription: AppConstants.progressChannelDesc,
+      importance: Importance.low,
+      priority: Priority.low,
+      ongoing: true,
+      autoCancel: false,
+      playSound: false,
+      enableVibration: false,
+      showProgress: true,
+      maxProgress: goalMl,
+      progress: currentMl.clamp(0, goalMl).toInt(),
+      icon: '@mipmap/launcher_icon',
+      actions: const [addAction],
+      subText: '$percentage%',
+    );
+
+    await _plugin.show(
+      AppConstants.progressNotificationId,
+      '💧 $displayCurrent / $displayGoal $unitLabel',
+      currentMl >= goalMl ? 'Goal reached! 🎉' : 'Tap to add $displayCup',
+      NotificationDetails(android: androidDetails),
+    );
+  }
+
+  Future<void> dismissPersistentNotification() async {
+    await _plugin.cancel(AppConstants.progressNotificationId);
+  }
 }

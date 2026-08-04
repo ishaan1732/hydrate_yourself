@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'daos/drink_types_dao.dart';
 import 'daos/user_profile_dao.dart';
@@ -18,13 +20,24 @@ part 'app_database.g.dart';
   daos: [UserProfileDao, DrinkTypesDao, WaterLogsDao],
 )
 class AppDatabase extends _$AppDatabase {
-  AppDatabase() : super(driftDatabase(name: 'hydrate_yourself'));
+  static const String _dbName = 'hydrate_yourself';
+
+  AppDatabase() : super(driftDatabase(name: _dbName));
 
   // Used by background isolate — explicit path required
   AppDatabase._withExecutor(super.executor);
 
   static AppDatabase openWithPath(String dbPath) =>
       AppDatabase._withExecutor(NativeDatabase(File(dbPath)));
+
+  /// Resolves the exact on-disk file drift_flutter's driftDatabase() opens
+  /// (ApplicationDocumentsDirectory/$_dbName.sqlite), so a background
+  /// isolate can cache and later reopen the SAME file via [openWithPath]
+  /// instead of resolving it independently.
+  static Future<String> resolveDbPath() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return p.join(dir.path, '$_dbName.sqlite');
+  }
 
   @override
   int get schemaVersion => 5;
