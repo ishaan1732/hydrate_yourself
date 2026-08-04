@@ -243,7 +243,8 @@ class HomeAction extends _$HomeAction {
     await prefs.setInt(AppConstants.prefLastCupSizeMl, amountMl.round());
     await prefs.setInt(AppConstants.prefLastDrinkTypeId, drinkType.id);
     await prefs.setInt(AppConstants.prefTodayGoalMl, goalMl);
-
+    await prefs.setString(
+        AppConstants.prefSelectedUnit, profile?.unit ?? AppConstants.unitMl);
   }
 
   Future<void> _maybeRequestReview() async {

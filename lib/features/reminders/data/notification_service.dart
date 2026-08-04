@@ -2,12 +2,14 @@ import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../../core/constants/app_constants.dart';
 import '../../../database/app_database.dart';
+import '../../home/presentation/home_provider.dart';
 
 // Fires when a notification is tapped while the app is fully terminated OR
 // backgrounded. Must be a top-level function (not a class method) since
@@ -18,10 +20,16 @@ import '../../../database/app_database.dart';
 // NotificationService.cacheDbPath() at foreground startup instead of
 // resolving it via path_provider — path_provider doesn't reliably resolve
 // from this isolate on real devices, which is what broke a previous
-// attempt at this feature. Deliberately out of scope for v1: updating the
-// persistent notification's own text from this isolate. That only happens
-// when the foreground app is next opened (see home_screen.dart), so no
-// second DB read + notification update has to happen from here.
+// attempt at this feature.
+//
+// This isolate DOES also refresh the persistent notification's text after
+// writing (a deliberate reversal of the original v1 scope, which avoided
+// exactly this second DB read + notification update from here). It's safe
+// because the read reuses the SAME AppDatabase instance that just wrote —
+// Drift's stream reactivity is scoped to the connection instance, so this
+// isn't crossing the isolate boundary the way the *foreground* app's
+// streams would need to (see home_screen.dart's didChangeAppLifecycleState
+// for that side of it).
 @pragma('vm:entry-point')
 Future<void> notificationTapBackground(NotificationResponse response) async {
   debugPrint('=== BACKGROUND_ISOLATE_FIRED === '
@@ -48,6 +56,7 @@ Future<void> notificationTapBackground(NotificationResponse response) async {
     final drinkTypeId = prefs.getInt(AppConstants.prefLastDrinkTypeId) ?? 1;
 
     final db = AppDatabase.openWithPath(dbPath);
+    double newTotalMl;
     try {
       debugPrint('=== BACKGROUND_DB_WRITE_ATTEMPT === '
           'cupSizeMl=$cupSizeMl dbPath=$dbPath');
@@ -57,11 +66,30 @@ Future<void> notificationTapBackground(NotificationResponse response) async {
         drinkTypeId: drinkTypeId,
       ));
       debugPrint('=== BACKGROUND_DB_WRITE_SUCCESS ===');
+      // Same connection instance that just wrote — this read sees the
+      // insert above without needing a fresh subscription.
+      newTotalMl = await db.waterLogsDao.watchTodayTotalMl().first;
     } finally {
       await db.close();
     }
 
     debugPrint('Background water log: ${cupSizeMl}ml');
+
+    final notificationEnabled =
+        prefs.getBool(AppConstants.prefPersistentNotificationEnabled) ??
+            false;
+    if (notificationEnabled) {
+      final goalMl = prefs.getInt(AppConstants.prefTodayGoalMl) ??
+          AppConstants.defaultDailyGoalMl;
+      final unit =
+          prefs.getString(AppConstants.prefSelectedUnit) ?? AppConstants.unitMl;
+      await NotificationService().showPersistentNotification(
+        currentMl: newTotalMl.round(),
+        goalMl: goalMl,
+        cupSizeMl: cupSizeMl,
+        unit: unit,
+      );
+    }
   } catch (e) {
     debugPrint('Background tap failed: $e');
   }
@@ -77,6 +105,12 @@ class NotificationService {
 
   static const String _soundChannelId = 'water_reminders_v2';
   static const String _silentChannelId = 'water_reminders_silent';
+
+  /// Set once from main.dart. Lets the foreground notification response
+  /// handler below invalidate Home's providers after a DB write it makes
+  /// itself — that write goes through a separate AppDatabase connection
+  /// (see the handler), so Riverpod has no other way to know about it.
+  static ProviderContainer? providerContainer;
 
   /// Called once at app startup from the foreground. Stores the resolved
   /// database path so the background isolate can open the SAME file via
@@ -101,7 +135,56 @@ class NotificationService {
     await _plugin.initialize(
       settings,
       onDidReceiveNotificationResponse: (details) async {
-        await dismissActiveNotifications();
+        if (details.actionId != AppConstants.persistentNotificationAddAction) {
+          await dismissActiveNotifications();
+          return;
+        }
+
+        // App is already running — this is the SAME isolate as the rest
+        // of the app, unlike notificationTapBackground. Still goes
+        // through a separate AppDatabase connection rather than the
+        // app-wide Riverpod one (NotificationService is a bare singleton
+        // with no ref of its own), so Home's streams won't see this write
+        // on their own — hence the providerContainer.invalidate calls
+        // below.
+        final prefs = await SharedPreferences.getInstance();
+        final cupSizeMl = prefs.getInt(AppConstants.prefLastCupSizeMl) ?? 250;
+        final drinkTypeId =
+            prefs.getInt(AppConstants.prefLastDrinkTypeId) ?? 1;
+        final dbPath = prefs.getString(AppConstants.prefCachedDbPath);
+        if (dbPath == null) return;
+
+        final db = AppDatabase.openWithPath(dbPath);
+        double newTotalMl;
+        try {
+          await db.waterLogsDao.insertLog(WaterLogsCompanion.insert(
+            loggedAt: DateTime.now(),
+            amountMl: cupSizeMl.toDouble(),
+            drinkTypeId: drinkTypeId,
+          ));
+          newTotalMl = await db.waterLogsDao.watchTodayTotalMl().first;
+        } finally {
+          await db.close();
+        }
+
+        providerContainer?.invalidate(todayTotalMlProvider);
+        providerContainer?.invalidate(todaySummaryProvider);
+
+        final notificationEnabled = prefs.getBool(
+                AppConstants.prefPersistentNotificationEnabled) ??
+            false;
+        if (notificationEnabled) {
+          final goalMl = prefs.getInt(AppConstants.prefTodayGoalMl) ??
+              AppConstants.defaultDailyGoalMl;
+          final unit = prefs.getString(AppConstants.prefSelectedUnit) ??
+              AppConstants.unitMl;
+          await showPersistentNotification(
+            currentMl: newTotalMl.round(),
+            goalMl: goalMl,
+            cupSizeMl: cupSizeMl,
+            unit: unit,
+          );
+        }
       },
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
@@ -285,8 +368,11 @@ class NotificationService {
   }
 
   /// Shows (or updates) the persistent hydration-progress notification.
-  /// Only ever called from the foreground app — the background isolate
-  /// deliberately never touches this (see [notificationTapBackground]).
+  /// Called from the foreground on every summary change (see
+  /// home_screen.dart), from the Settings toggle, and from the background
+  /// isolate itself right after an "Add water" tap writes a log (see
+  /// [notificationTapBackground]) so the total shown doesn't go stale
+  /// until the app is next opened.
   Future<void> showPersistentNotification({
     required int currentMl,
     required int goalMl,

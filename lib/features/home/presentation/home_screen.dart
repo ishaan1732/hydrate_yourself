@@ -87,6 +87,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         ref.invalidate(todayOverrideNotifierProvider);
         ref.read(goalPreviouslyAchievedProvider.notifier).state = false;
       }
+      // A background isolate (e.g. the persistent notification's "Add
+      // water" action) can write to the DB via a separate NativeDatabase
+      // connection. Drift's stream reactivity is scoped to the connection
+      // instance, not the underlying file, so this app's streams never
+      // see that write on their own — invalidate on every resume (not
+      // just day-change) so a background write is always reflected.
+      ref.invalidate(todayTotalMlProvider);
+      ref.invalidate(todaySummaryProvider);
       await NotificationService().dismissActiveNotifications();
     }
   }

@@ -42,12 +42,22 @@ Future<void> main() async {
     await prefs.remove('override_date');
   }
 
+  // A plain ProviderScope only creates its container internally, with no
+  // way to reach it from outside the widget tree. NotificationService's
+  // foreground response handler needs to invalidate Home's providers after
+  // a DB write it makes itself (see notification_service.dart), so the
+  // container is created explicitly here and handed to it.
+  final container = ProviderContainer(
+    overrides: [
+      onboardingCompleteProvider.overrideWith((ref) => isOnboarded),
+      sharedPreferencesProvider.overrideWithValue(prefs),
+    ],
+  );
+  NotificationService.providerContainer = container;
+
   runApp(
-    ProviderScope(
-      overrides: [
-        onboardingCompleteProvider.overrideWith((ref) => isOnboarded),
-        sharedPreferencesProvider.overrideWithValue(prefs),
-      ],
+    UncontrolledProviderScope(
+      container: container,
       child: const HydrateApp(),
     ),
   );
